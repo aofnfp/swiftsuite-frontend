@@ -1,0 +1,297 @@
+import React, { useState, useEffect } from "react";
+import { LiaDollarSignSolid } from "react-icons/lia";
+import { IoMdArrowDropdown, IoMdArrowDropup } from "react-icons/io";
+
+const Ssi = ({ formFilters, handleFormInputChange, handleSubmit, clearFilters }) => {
+    const [dropdowns, setDropdowns] = useState({
+        isUPCOpen: false,
+        isSkuOpen: false,
+        isShippingOpen: false,
+        isManufacturerOpen: false,
+    });
+
+    const toggleDropdown = (dropdown) => {
+        setDropdowns((prev) => ({
+            ...prev,
+            [dropdown]: !prev[dropdown],
+        }));
+    };
+
+    const closeAllDropdowns = () => {
+        setDropdowns({
+            isUPCOpen: false,
+            isSkuOpen: false,
+            isShippingOpen: false,
+            isManufacturerOpen: false,
+        });
+    };
+
+    useEffect(() => {
+        const handleBodyClick = (e) => {
+            if (!e.target.closest(".dropdown")) closeAllDropdowns();
+        };
+        document.body.addEventListener("click", handleBodyClick);
+        return () => document.body.removeEventListener("click", handleBodyClick);
+    }, []);
+
+    return (
+        <form
+            onSubmit={handleSubmit}
+        >
+            {/* Wholesale */}
+            {/* <div className="flex mt-5 gap-8">
+                <p className="md:w-32">Wholesale</p>
+                <div className="flex border border-gray-300 rounded shadow-sm">
+                    <p className="pt-[5px] border-r text-[#089451]">
+                        <LiaDollarSignSolid />
+                    </p>
+                    <input
+                        type="number"
+                        name="minwholesale"
+                        value={formFilters.minwholesale || ""}
+                        onChange={handleFormInputChange}
+                        className="focus:outline-none rounded py-[2px] md:w-[156px]"
+                    />
+                </div>
+                <p>To</p>
+                <div className="flex border border-gray-300 rounded shadow-sm">
+                    <p className="pt-[5px] border-r text-[#089451]">
+                        <LiaDollarSignSolid />
+                    </p>
+                    <input
+                        type="number"
+                        name="maxwholesale"
+                        value={formFilters.maxwholesale || ""}
+                        onChange={handleFormInputChange}
+                        className="focus:outline-none rounded py-[2px] md:w-[156px]"
+                    />
+                </div>
+            </div> */}
+
+            {/* MSRP */}
+            {/* <div className="flex mt-5 gap-8">
+                <p className="md:w-32">MSRP</p>
+                <div className="flex border border-gray-300 rounded shadow-sm">
+                    <p className="pt-[5px] border-r text-[#089451]">
+                        <LiaDollarSignSolid />
+                    </p>
+                    <input
+                        type="text"
+                        name="minmsrp"
+                        value={formFilters.minmsrp || ""}
+                        onChange={handleFormInputChange}
+                        className="focus:outline-none rounded py-[2px] md:w-[156px]"
+                    />
+                </div>
+                <p>To</p>
+                <div className="flex border border-gray-300 rounded shadow-sm">
+                    <p className="pt-[5px] border-r text-[#089451]">
+                        <LiaDollarSignSolid />
+                    </p>
+                    <input
+                        type="text"
+                        name="maxmsrp"
+                        value={formFilters.maxmsrp || ""}
+                        onChange={handleFormInputChange}
+                        className="focus:outline-none rounded py-[2px] md:w-[156px]"
+                    />
+                </div>
+            </div> */}
+
+            {/* <div className="flex mt-5 gap-8">
+                <p className="md:w-32">Quantity</p>
+                <div className="flex border border-gray-300 rounded shadow-sm">
+                    <p className="pt-[5px] border-r text-[#089451]">
+                        <LiaDollarSignSolid />
+                    </p>
+                    <input
+                        type="number"
+                        name="minquantity"
+                        value={formFilters.minquantity || ""}
+                        onChange={handleFormInputChange}
+                        className="focus:outline-none rounded py-[2px] md:w-[156px]"
+                    />
+                </div>
+                <p>To</p>
+                <div className="flex border border-gray-300 rounded shadow-sm">
+                    <p className="pt-[5px] border-r text-[#089451]">
+                        <LiaDollarSignSolid />
+                    </p>
+                    <input
+                        type="text"
+                        name="maxquantity"
+                        value={formFilters.maxquantity || ""}
+                        onChange={handleFormInputChange}
+                        className="focus:outline-none rounded py-[2px] md:w-[156px]"
+                    />
+                </div>
+            </div> */}
+
+            {/* <div className="flex mt-5 gap-8">
+                <p className="md:w-32">Price</p>
+                <div className="flex border border-gray-300 rounded shadow-sm">
+                    <input
+                        type="number"
+                        name="minprice"
+                        value={formFilters.minprice || ""}
+                        onChange={handleFormInputChange}
+                        className="focus:outline-none rounded py-[2px] md:w-[156px]"
+                    />
+                </div>
+                <p>To</p>
+                <div className="flex border border-gray-300 rounded shadow-sm">
+                    <input
+                        type="number"
+                        name="maxprice"
+                        value={formFilters.maxprice || ""}
+                        onChange={handleFormInputChange}
+                        className="focus:outline-none rounded py-[2px] md:w-[156px]"
+                    />
+                </div>
+            </div> */}
+
+            {/* Has UPC */}
+            <div className="mt-5">
+                <div className="flex gap-8 relative dropdown">
+                    <p className="md:w-32">Has UPC</p>
+                    <input
+                        type="text"
+                        className="border md:w-[58%] border-gray-300 rounded focus:outline-none py-[2px] px-1 shadow-sm cursor-pointer"
+                        value={formFilters.upc || "Yes"}
+                        name="upc"
+                        readOnly
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            toggleDropdown("isUPCOpen");
+                        }}
+                    />
+                    <div className="pt-[4px] text-[#089451] absolute right-[185px] top-1">
+                        {dropdowns.isUPCOpen ? <IoMdArrowDropup /> : <IoMdArrowDropdown />}
+                    </div>
+                </div>
+                {dropdowns.isUPCOpen && (
+                    <div className="absolute bg-white border shadow-md md:w-[55%] left-[200px] z-10">
+                        <p
+                            className="cursor-pointer hover:bg-gray-200 px-2"
+                            onClick={() => {
+                                handleFormInputChange({ target: { name: "upc", value: "Yes" } });
+                                toggleDropdown("isUPCOpen");
+                            }}
+                        >
+                            Yes
+                        </p>
+                        <p
+                            className="cursor-pointer hover:bg-gray-200 px-2"
+                            onClick={() => {
+                                handleFormInputChange({ target: { name: "upc", value: "No" } });
+                                toggleDropdown("isUPCOpen");
+                            }}
+                        >
+                            No
+                        </p>
+                    </div>
+                )}
+            </div>
+
+
+            <div className="mt-5">
+                <div className="flex gap-8 relative dropdown">
+                    <p className="md:w-32">Has Manufacturer</p>
+                    <input
+                        type="text"
+                        className="border md:w-[58%] border-gray-300 rounded focus:outline-none py-[2px] px-1 shadow-sm cursor-pointer"
+                        value={formFilters.manufacturer || "Yes"}
+                        readOnly
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            toggleDropdown("isManufacturerOpen");
+                        }}
+                    />
+                    <div className="pt-[4px] text-[#089451] absolute right-[185px] top-1">
+                        {dropdowns.isManufacturerOpen ? <IoMdArrowDropup /> : <IoMdArrowDropdown />}
+                    </div>
+                </div>
+                {dropdowns.isManufacturerOpen && (
+                    <div className="absolute bg-white border shadow-md md:w-[55%] left-[200px] z-10">
+                        <p
+                            className="cursor-pointer hover:bg-gray-200 px-2"
+                            onClick={() => {
+                                handleFormInputChange({ target: { name: "manufacturer", value: "Yes" } });
+                                toggleDropdown("isManufacturerOpen");
+                            }}
+                        >
+                            Yes
+                        </p>
+                        <p
+                            className="cursor-pointer hover:bg-gray-200 px-2"
+                            onClick={() => {
+                                handleFormInputChange({ target: { name: "manufacturer", value: "No" } });
+                                toggleDropdown("isManufacturerOpen");
+                            }}
+                        >
+                            No
+                        </p>
+                    </div>
+                )}
+            </div>
+
+            <div className="mt-5">
+                <div className="flex gap-8 relative dropdown">
+                    <p className="md:w-32">Has SKU</p>
+                    <input
+                        type="text"
+                        className="border md:w-[58%] border-gray-300 rounded focus:outline-none py-[2px] px-1 shadow-sm cursor-pointer"
+                        value={formFilters.sku || "Yes"}
+                        readOnly
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            toggleDropdown("isSkuOpen");
+                        }}
+                    />
+                    <div className="pt-[4px] text-[#089451] absolute right-[185px] top-1">
+                        {dropdowns.isSkuOpen ? <IoMdArrowDropup /> : <IoMdArrowDropdown />}
+                    </div>
+                </div>
+                {dropdowns.isSkuOpen && (
+                    <div className="absolute bg-white border shadow-md md:w-[55%] left-[200px] z-10">
+                        <p
+                            className="cursor-pointer hover:bg-gray-200 px-2"
+                            onClick={() => {
+                                handleFormInputChange({ target: { name: "sku", value: "Yes" } });
+                                toggleDropdown("isSkuOpen");
+                            }}
+                        >
+                            Yes
+                        </p>
+                        <p
+                            className="cursor-pointer hover:bg-gray-200 px-2"
+                            onClick={() => {
+                                handleFormInputChange({ target: { name: "sku", value: "No" } });
+                                toggleDropdown("isSkuOpen");
+                            }}
+                        >
+                            No
+                        </p>
+                    </div>
+                )}
+            </div>
+            <div className="flex justify-center items-center gap-10 mt-5 mb-5">
+                <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="border-[1px] text-red-700 border-red-700 rounded py-1 md:px-10 cursor-pointer"
+                >
+                    Clear
+                </button>
+                <button
+                    type="submit"
+                    className="border text-white bg-[#089451] rounded py-1 md:px-10 cursor-pointer"
+                >
+                    Apply
+                </button>
+            </div>
+        </form>
+    );
+};
+
+export default Ssi

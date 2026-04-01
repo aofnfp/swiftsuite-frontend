@@ -1,0 +1,35 @@
+import React from "react";
+import img from "../Images/success.png";
+import { Link } from "react-router-dom";
+
+const SuccessMarketplace = () => {
+  const marketPlace = localStorage.getItem("submittedMarketPlace") || "your marketplace";
+  const marketList = localStorage.getItem("MarketList");
+
+  // Determine if this is an update or enrolment
+  const isUpdate = marketList === "false";
+
+  return (
+    <div className="bg-white h-screen flex flex-col justify-center items-center text-center space-y-4 px-4">
+      <img src={img} width={150} alt="success" className="mb-2" />
+
+      <h2 className="text-2xl font-semibold text-gray-800">
+        Marketplace {isUpdate ? "Update" : "Enrolment"} <br /> Successful 🎉
+      </h2>
+
+      <p className="text-gray-600 max-w-md text-lg">
+        You’ve successfully {isUpdate ? "updated" : "enrolled for"} the{" "}
+        <span className="font-semibold capitalize text-[#027840]">{marketPlace}</span> marketplace.
+      </p>
+
+      <Link
+        to="/layout/mymarket"
+        className="text-[#027840] border border-[#027840] px-6 py-2 rounded-lg hover:bg-green-700 hover:text-white transition"
+      >
+        Back to Marketplace
+      </Link>
+    </div>
+  );
+};
+
+export default SuccessMarketplace;

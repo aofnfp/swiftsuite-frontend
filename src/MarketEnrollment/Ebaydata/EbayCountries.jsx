@@ -1,0 +1,20 @@
+export const countries = [
+  { name: "United States" },
+  { name: "United Kingdom" },
+  { name: "Germany" },
+  { name: "Australia" },
+  { name: "Canada" },
+  { name: "France" },
+  { name: "Italy" },
+  { name: "Spain" },
+  { name: "Netherlands" },
+  { name: "Belgium" },
+  { name: "Poland" },
+  { name: "Switzerland" },
+  { name: "Austria" },
+  { name: "Ireland" },
+  { name: "Hong Kong" },
+  { name: "Singapore" },
+  { name: "Malaysia" },
+  { name: "Philippines" }
+];

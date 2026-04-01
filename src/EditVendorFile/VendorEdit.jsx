@@ -1,0 +1,111 @@
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { BsCheckCircleFill } from "react-icons/bs";
+import { useNavigate } from 'react-router-dom';
+import { handleNextStep } from '../redux/EditVendor';
+
+import EditProductType from './EditProductType';
+import EditIdentifier from './EditIdentifier';
+import SuccessEdit from './SuccessEdit';
+
+const VendorEdit = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const currentIndex = useSelector(
+    (state) => state.editVendor.enrolmentUpdate.currentStep
+  );
+
+  const [vendorData, setVendorData] = useState(null);
+
+  useEffect(() => {
+    const storedVendor = localStorage.getItem('matchedVendor');
+    if (storedVendor) {
+      setVendorData(JSON.parse(storedVendor));
+    } else {
+      navigate('/');
+    }
+
+    // Reset step when leaving component
+    return () => {
+      dispatch(handleNextStep({ currentStep: -1 }));
+    };
+  }, [dispatch, navigate]);
+
+  if (!vendorData) {
+    return (
+      <div className="text-center text-xl font-semibold mt-20">
+        Loading...
+      </div>
+    );
+  }
+
+  const steps = ['Edit Identifier', 'Product Type'];
+
+  const handleStepChange = (step) => {
+    dispatch(handleNextStep({ currentStep: step }));
+  };
+
+  return (
+    <section className="bg-[#E7F2ED]  my-16">
+      {/* ✅ Stepper - hidden on success screen */}
+      {currentIndex !== 2 && (
+        <div className="flex items-center justify-center gap-6 py-6">
+          {steps.map((label, index) => {
+            const completed = currentIndex > index;
+            const current = currentIndex === index;
+
+            return (
+              <div
+                key={index}
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => handleStepChange(index)}
+              >
+                <div
+                  className={`flex items-center justify-center w-8 h-8 rounded-full text-white text-sm transition-colors duration-200 ${
+                    completed
+                      ? 'bg-[#027840]'
+                      : current
+                      ? 'bg-[#027840]'
+                      : 'bg-gray-300'
+                  }`}
+                >
+                  {completed ? (
+                    <BsCheckCircleFill className="text-white" />
+                  ) : (
+                    index + 1
+                  )}
+                </div>
+                <span
+                  className={`text-sm hidden md:block font-medium ${
+                    current ? 'text-green-800' : 'text-gray-600'
+                  }`}
+                >
+                  {label}
+                </span>
+                {index !== steps.length - 1 && (
+                  <div className="w-6 h-px bg-gray-400" />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ✅ Main Content Area */}
+      <div className="flex flex-col items-center">
+        <div className="rounded-xl w-full max-w-3xl min-h-[300px] mb-10 py-2">
+          {currentIndex === 0 && <EditIdentifier vendorData={vendorData} />}
+          {currentIndex === 1 && <EditProductType vendorData={vendorData} />}
+          {currentIndex === 2 && (
+            <div className="flex justify-center items-center min-h-[60vh]">
+              <SuccessEdit />
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default VendorEdit;

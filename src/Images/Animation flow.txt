@@ -1,0 +1,1 @@
+Picture dissolves to the next picture after 10seconds

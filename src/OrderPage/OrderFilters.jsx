@@ -42,8 +42,8 @@ const OrderFilters = ({
               <label className="block text-xs font-semibold text-gray-500 mb-1">Start date</label>
               <input
                 type="date"
-                name="startDate"
-                value={formFilters.startDate || ""}
+                name="creationDate__gte"
+                value={formFilters.creationDate__gte || ""}
                 onChange={handleFormInputChange}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#089451] focus:outline-none"
               />
@@ -52,8 +52,8 @@ const OrderFilters = ({
               <label className="block text-xs font-semibold text-gray-500 mb-1">End date</label>
               <input
                 type="date"
-                name="endDate"
-                value={formFilters.endDate || ""}
+                name="creationDate__lte"
+                value={formFilters.creationDate__lte || ""}
                 onChange={handleFormInputChange}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#089451] focus:outline-none"
               />
@@ -66,9 +66,18 @@ const OrderFilters = ({
             <label className="block text-xs font-semibold text-gray-500 mb-1">Vendor</label>
             <input
               type="text"
-              name="vendor"
+              name="vendor_name"
               placeholder="Vendor name"
-              value={formFilters.vendor || ""}
+              value={formFilters.vendor_name || ""}
+              onChange={handleFormInputChange}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#089451] focus:outline-none"
+            />
+            <label className="block text-xs font-semibold text-gray-500 mb-1 mt-3">Market name</label>
+            <input
+              type="text"
+              name="market_name"
+              placeholder="Market name"
+              value={formFilters.market_name || ""}
               onChange={handleFormInputChange}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#089451] focus:outline-none"
             />
@@ -85,9 +94,9 @@ const OrderFilters = ({
                 </span>
                 <input
                   type="number"
-                  name="minprice"
+                  name="price_min"
                   placeholder="Min"
-                  value={formFilters.minprice || ""}
+                  value={formFilters.price_min || ""}
                   onChange={handleFormInputChange}
                   className="w-full px-2 py-2 focus:outline-none"
                 />
@@ -101,9 +110,9 @@ const OrderFilters = ({
                 </span>
                 <input
                   type="number"
-                  name="maxprice"
+                  name="price_max"
                   placeholder="Max"
-                  value={formFilters.maxprice || ""}
+                  value={formFilters.	price_max || ""}
                   onChange={handleFormInputChange}
                   className="w-full px-2 py-2 focus:outline-none"
                 />

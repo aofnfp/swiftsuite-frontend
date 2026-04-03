@@ -59,6 +59,9 @@ const Catalogue = () => {
   const setFilterApplied = useCatalogueStore((state) => state.setFilterApplied);
   const selectedVendorIdentifier = useCatalogueStore((state) => state.selectedVendorIdentifier);
   const setSelectedVendorIdentifier = useCatalogueStore((state) => state.setSelectedVendorIdentifier);
+  const selectedVendor = useCatalogueStore((state) => state.selectedVendor);
+  const setSelectedVendor = useCatalogueStore((state) => state.setSelectedVendor);
+
   const multiSelect = useCatalogueStore((state) => state.multiSelect);
   const setMultiSelect = useCatalogueStore((state) => state.setMultiSelect);
   const showActionsLg = useCatalogueStore((state) => state.showActionsLg);
@@ -126,7 +129,7 @@ const Catalogue = () => {
     mapprice: "",
     manufacturer: "",
   });
-  const [selectedVendor, setSelectedVendor] = useState(null);
+  // const [selectedVendor, setSelectedVendor] = useState(null);
   const [toggling, setToggling] = useState(false);
   // const [multiSelect, setMultiSelect] = useState(false);
   // const [showActionsLg, setShowActionsLg] = useState(false);

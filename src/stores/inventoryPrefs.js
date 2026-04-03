@@ -14,6 +14,7 @@ export const useInventoryPrefsStore = create(
       inventoryLogSearchTerm: "",
       inventorySortConfig: { key: "", direction: "" },
       inventoryDetailActiveTab: "details",
+      
       setInventoryProductPerPage: (value) =>
         set({ inventoryProductPerPage: Number(value) || 20 }),
       setInventorySavedProductPerPage: (value) =>

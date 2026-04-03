@@ -19,41 +19,47 @@ import { MdOutlineCancel } from "react-icons/md";
 import { BsSearch } from "react-icons/bs";
 import { FiFilter } from "react-icons/fi";
 import SubscriptionModal from "../pages/SubscriptionModal";
+import { useOrderStore } from "../stores/orderStore";
 
 const Order = () => {
   const navigate = useNavigate();
   const userId = localStorage.getItem("userId");
-  const ordersPerPage = Number(localStorage.getItem("orderPerPage")) || 20;
 
   const store = useSelector((state) => state.vendor.order);
   const { subscribed } = useSelector((state) => state.permission);
+
+  const setSearch = useOrderStore((state) => state.setSearchQuery);
+  const search = useOrderStore((state) => state.searchQuery);
+  const setDebouncedSearch = useOrderStore((state) => state.setDebouncedQuery);
+  const debouncedSearch = useOrderStore((state) => state.debouncedQuery);
+  const setPage = useOrderStore((state) => state.setPage);
+  const page = useOrderStore((state) => state.page);
+  const selectedOrderPerPage = useOrderStore((state) => state.selectedOrderPerPage);
+  const setSelectedOrderPerPage = useOrderStore((state) => state.setSelectedOrderPerPage);
+  
   const dispatch = useDispatch();
 
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: "", direction: "" });
   const [orders, setOrders] = useState([]);
   const [loader, setLoader] = useState(false);
-  const [selectedOrderPerPage, setSelectedOrderPerPage] =
-    useState(ordersPerPage) || 20;
   const [totalItems, setTotalItems] = useState(false);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [hasPreviousPage, setHasPreviousPage] = useState(false);
   const [totalPages, setTotalPages] = useState(0);
   const [error, setError] = useState(null);
-  const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [showModal, setShowModal] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [vendor_status, setVendor_status] = useState("all");
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [filterLoading, setFilterLoading] = useState(false);
   const [formFilters, setFormFilters] = useState({
     minquantity: "",
-    maxquantity: "",
-    minprice: "",
-    maxprice: "",
-    startDate: "",
-    endDate: "",
-    vendor: "",
+    quantity: "",
+    price_min: "",
+    price_max: "",
+    creationDate__gte: "",
+    creationDate__lte: "",
+    vendor_name: "",
+    market_name: "",
   });
   const [activeFilters, setActiveFilters] = useState({});
 
@@ -63,7 +69,7 @@ const Order = () => {
 
   useEffect(() => {
     fetchOrders();
-  }, [page, selectedOrderPerPage, selectedStatus, activeFilters, debouncedSearch]);
+  }, [page, selectedOrderPerPage, vendor_status, activeFilters, debouncedSearch]);
 
   const handleOrderPerPageChange = async (e) => {
     const value = Number(e.target.value);
@@ -83,7 +89,7 @@ const Order = () => {
         selectedOrderPerPage,
         page,
         debouncedSearch,
-        selectedStatus,
+        vendor_status,
         activeFilters,
       );
       const rawOrders = res.results || [];
@@ -140,7 +146,7 @@ const Order = () => {
   };
 
   const handleOrderStatus = (status) => {
-    setSelectedStatus(status);
+    setVendor_status(status);
     setPage(1);
   };
 
@@ -250,7 +256,7 @@ const Order = () => {
                 {['all', 'pending', 'processing', 'shipped', 'delivered'].map(
                   (status) => {
                     const normalized = status.charAt(0).toUpperCase() + status.slice(1);
-                    const isActive = selectedStatus === status;
+                    const isActive = vendor_status === status;
                     return (
                       <Button
                         key={status}

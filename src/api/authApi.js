@@ -218,9 +218,9 @@ export const deleteListingImage = async (imageName, imageId) => {
 }
 
 // Order
-export const orderProduct = async (selectedOrderPerPage, page, vendor_status, search, filters = {}) => {
+export const orderProduct = async (selectedOrderPerPage, page, search, filters = {}) => {
   const params = {search, ...filters};
-  const response = await axiosInstance.get(`/orderApp/orders/?limit=${selectedOrderPerPage}&page=${page}/?vendor_status=${vendor_status}`, { params });
+  const response = await axiosInstance.get(`/orderApp/orders/?limit=${selectedOrderPerPage}&page=${page}`, { params });
   return response.data;
 };
 

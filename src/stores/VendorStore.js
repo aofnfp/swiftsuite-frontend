@@ -16,6 +16,7 @@ export const useVendorStore = create(
       fromVendor: false,
       accountId: null,
       enrolmentResponse: null,
+      
       setVendorContext: (context) =>
         set((state) => ({
           vendorName: context.vendorName !== undefined ? context.vendorName : state.vendorName,

@@ -1,26 +1,13 @@
-# TODO: Make OrderPage Responsive and Improve Flex Layout
+# TODO: Implement Backend Sorting for Orders (Date oldest/newest via ?ordering=creationDate / -creationDate)
 
-## Task: Make the OrderPage responsive and improve the flex layout
+Current Progress:
 
-### Plan:
+## Steps:
+1. ✅ Added sortConfig state/actions to src/stores/orderStore.js
+2. ✅ Updated src/api/authApi.js orderProduct to append ordering param for creationDate only (preserves search/filters)
+3. ✅ Update src/OrderPage/Order.jsx: Integrate store sortConfig, pass to API, update sort dropdown to use store (Date toggle: ?ordering=creationDate / -creationDate)
+4. ⏳ Test: Toggle Date sort → check Network ?ordering param + correct order
+5. ⏳ Optionally remove client sort logic (backend now sorts)
+6. ⏳ Complete
 
-1. [x] **OrderItem.jsx**: Make the image container responsive, improve flex/grid layout for mobile
-   - Make image container responsive with breakpoints
-   - Improve grid layout for mobile (change grid-cols-2 to responsive)
-   - Improve flex layout for better mobile experience
-
-2. [ ] **OrderDetails.jsx**: Fix the negative margin issue, improve grid responsiveness
-   - Remove negative margin (-mt-10)
-   - Improve grid layout with better breakpoints
-   - Make the layout more flexible
-
-3. [ ] **ContactInformation.jsx**: Add better spacing and responsive adjustments
-   - Add better spacing between elements
-   - Make the layout more responsive
-
-### Implementation:
-
-- Use Tailwind CSS responsive classes (sm:, md:, lg:, xl:)
-- Improve flexbox layouts with proper breakpoints
-- Use grid with responsive columns
-- Remove fixed widths where possible
+Next: Step 3 edits to Order.jsx

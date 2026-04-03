@@ -8,12 +8,14 @@ export const useOrderStore = create(
       searchQuery: "",
       debouncedQuery: "",
       page: 1,
+      sortConfig: { key: null, direction: null },
 
       // Actions
       setSelectedOrderPerPage: (count) => set({ selectedOrderPerPage: Number(count) || 20 }),
       setSearchQuery: (query) => set({ searchQuery: query }),
       setDebouncedQuery: (query) => set({ debouncedQuery: query }),
-      setPage: (value) => set({ page: Number(value) || 20 }),
+      setPage: (value) => set({ page: Number(value) || 1 }),
+      setSortConfig: (config) => set({ sortConfig: config }),
       setProductChange: (value) => set({ productChange: value }),
 
       resetProduct: () =>
@@ -32,6 +34,7 @@ export const useOrderStore = create(
         searchQuery: state.searchQuery,
         debouncedQuery: state.debouncedQuery,
         page: state.page,
+        sortConfig: state.sortConfig,
       }),
     },
   ),

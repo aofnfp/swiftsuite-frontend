@@ -218,8 +218,11 @@ export const deleteListingImage = async (imageName, imageId) => {
 }
 
 // Order
-export const orderProduct = async (selectedOrderPerPage, page, vendor_status, search, filters = {}) => {
-  const params = {search, ...filters};
+export const orderProduct = async (selectedOrderPerPage, page, search, filters = {}, sortConfig = null) => {
+  const params = { search, ...filters };
+  if (sortConfig?.key === 'creationDate') {
+    params.ordering = sortConfig.direction === 'ascending' ? 'creationDate' : '-creationDate';
+  }
   const response = await axiosInstance.get(`/orderApp/orders/?limit=${selectedOrderPerPage}&page=${page}`, { params });
   return response.data;
 };

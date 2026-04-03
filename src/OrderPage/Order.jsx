@@ -36,10 +36,12 @@ const Order = () => {
   const page = useOrderStore((state) => state.page);
   const selectedOrderPerPage = useOrderStore((state) => state.selectedOrderPerPage);
   const setSelectedOrderPerPage = useOrderStore((state) => state.setSelectedOrderPerPage);
+  const sortConfig = useOrderStore((state) => state.sortConfig);
+  const setSortConfig = useOrderStore((state) => state.setSortConfig);
   
   const dispatch = useDispatch();
 
-  const [sortConfig, setSortConfig] = useState({ key: "", direction: "" });
+  // sortConfig now from store
   const [orders, setOrders] = useState([]);
   const [loader, setLoader] = useState(false);
   const [totalItems, setTotalItems] = useState(false);
@@ -69,7 +71,7 @@ const Order = () => {
 
   useEffect(() => {
     fetchOrders();
-  }, [page, selectedOrderPerPage, vendor_status, activeFilters, debouncedSearch]);
+  }, [selectedOrderPerPage, page, activeFilters, debouncedSearch, sortConfig]);
 
   const handleOrderPerPageChange = async (e) => {
     const value = Number(e.target.value);
@@ -80,18 +82,13 @@ const Order = () => {
 
   const handleRefresh = () => {
     fetchOrders();
+    setActiveFilters({});
   };
 
   const fetchOrders = async () => {
     setLoader(true);
     try {
-      const res = await orderProduct(
-        selectedOrderPerPage,
-        page,
-        debouncedSearch,
-        vendor_status,
-        activeFilters,
-      );
+      const res = await orderProduct(selectedOrderPerPage, page, debouncedSearch, activeFilters, sortConfig);
       const rawOrders = res.results || [];
       const orders = rawOrders.map((order) => {
         return {
@@ -132,11 +129,6 @@ const Order = () => {
   }, [search]);
 
   const SORT_OPTIONS = [
-    { key: "quantity", label: "Quantity" },
-    { key: "vendor_orders", label: "Status" },
-    { key: "vendor_name", label: "Vendor" },
-    { key: "buyer.buyerRegistrationAddress.fullName", label: "Customer" },
-    { key: "lineItemCost.value", label: "Total" },
     { key: "creationDate", label: "Date" },
   ];
 
@@ -144,10 +136,15 @@ const Order = () => {
     setSearch(e.target.value);
     setPage(1);
   };
-
+  
   const handleOrderStatus = (status) => {
     setVendor_status(status);
     setPage(1);
+    if(status === "all"){
+      setActiveFilters({});
+    }else{
+      setActiveFilters({ vendor_status: status });
+    }
   };
 
   const handleFormInputChange = (e) => {
@@ -178,14 +175,7 @@ const Order = () => {
     setFilterLoading(false);
   };
 
-  const handleSort = (key) => {
-    let direction = key === "creationDate" ? "descending" : "ascending";
-    if (sortConfig.key === key) {
-      direction =
-        sortConfig.direction === "ascending" ? "descending" : "ascending";
-    }
-    setSortConfig({ key, direction });
-  };
+  // handleSort moved to dropdown onSelectionChange, using store setSortConfig
 
   const getNestedValue = (obj, path) => {
     return path.split(".").reduce((acc, part) => acc && acc[part], obj);
@@ -327,7 +317,7 @@ const Order = () => {
                     className="capitalize text-black font-semibold -z-1"
                     variant="bordered"
                   >
-                    {sortConfig.key
+                    {sortConfig?.key
                       ? `${
                           SORT_OPTIONS.find((opt) => opt.key === sortConfig.key)
                             ?.label
@@ -342,7 +332,10 @@ const Order = () => {
                   selectedKeys={new Set([sortConfig.key])}
                   onSelectionChange={(keys) => {
                     const selectedKey = Array.from(keys)[0];
-                    handleSort(selectedKey);
+                    if (selectedKey === 'creationDate') {
+                      const currentDir = sortConfig?.direction === 'descending' ? 'ascending' : 'descending';
+                      setSortConfig({ key: selectedKey, direction: currentDir });
+                    }
                   }}
                 >
                   {SORT_OPTIONS.map((option) => (

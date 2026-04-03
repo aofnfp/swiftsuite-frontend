@@ -11,6 +11,7 @@ const NotificationDrawer = ({ onClose }) => {
   const [loading, setLoading] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [selectedNotification, setSelectedNotification] = useState(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const [vw, setVw] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth : 1200
@@ -105,8 +106,17 @@ const NotificationDrawer = ({ onClose }) => {
 
   const closeDropdown = () => setOpenDropdownId(null);
 
-  const openDetail = (n) => setSelectedNotification(n);
-  const closeDetail = () => setSelectedNotification(null);
+  const openDetail = (n) => {
+    setSelectedNotification(n);
+    setIsDetailOpen(true);
+  };
+
+  const closeDetail = () => {
+    setIsDetailOpen(false);
+    setTimeout(() => {
+      setSelectedNotification(null);
+    }, 280);
+  };
 
   return (
     <>
@@ -116,20 +126,8 @@ const NotificationDrawer = ({ onClose }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={onClose}
+        onClick={isDetailOpen ? closeDetail : onClose}
       />
-
-      {!isMobile && (
-        <NotificationDetailDrawer
-          isOpen={!!selectedNotification}
-          headerTop={headerTop}
-          rightOffset={drawerW}
-          width={detailW}
-          notification={selectedNotification}
-          onCloseDetail={closeDetail}
-          onMarkAsRead={markAsRead}
-        />
-      )}
 
       <motion.div
         style={{
@@ -257,17 +255,14 @@ const NotificationDrawer = ({ onClose }) => {
         </div>
       </motion.div>
 
-      {isMobile && (
-        <NotificationDetailDrawer
-          isOpen={!!selectedNotification}
-          headerTop={headerTop}
-          rightOffset={0}
-          width={detailW}
-          notification={selectedNotification}
-          onCloseDetail={closeDetail}
-          onMarkAsRead={markAsRead}
-        />
-      )}
+      <NotificationDetailDrawer
+        isOpen={isDetailOpen}
+        headerTop={headerTop}
+        width={detailW}
+        notification={selectedNotification}
+        onCloseDetail={closeDetail}
+        isMobile={isMobile}
+      />
     </>
   );
 };

@@ -102,7 +102,7 @@ const Navbar = ({ openToggle }) => {
           <ul className="hidden lg:flex items-center gap-1 list-none m-0 p-0">
             <li>
               <Link to="/" className="relative inline-flex items-center px-4 py-2 rounded-lg text-[14.5px] font-medium text-gray-700 hover:text-[#027840] hover:bg-[#027840]/5 transition-all duration-200 group">
-                Home
+                Homes
                 <span className="absolute bottom-[5px] left-4 right-4 h-0.5 bg-[#027840] rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
               </Link>
             </li>

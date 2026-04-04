@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
 const initialState = {
-  vendor: "",
+  vendorName: "",
   vendorId: null,
   newAccount: false,
   currentStep: 0,
@@ -24,14 +24,14 @@ export const useVendorStore = create(
       setVendorContext: (context) =>
         set((state) => {
           const vendorChanged =
-            context.vendor !== undefined &&
-            context.vendor !== state.vendor;
+            context.vendorName !== undefined &&
+            context.vendorName !== state.vendorName;
 
           return {
-            vendor:
-              context.vendor !== undefined
-                ? context.vendor
-                : state.vendor,
+            vendorName:
+              context.vendorName !== undefined
+                ? context.vendorName
+                : state.vendorName,
             vendorId:
               context.vendorId !== undefined
                 ? context.vendorId
@@ -92,7 +92,7 @@ export const useVendorStore = create(
       name: "vendor-store",
       storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
-        vendor: state.vendor,
+        vendorName: state.vendorName,
         vendorId: state.vendorId,
         newAccount: state.newAccount,
         currentStep: state.currentStep,

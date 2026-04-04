@@ -21,9 +21,11 @@ import { ThreeDots } from "react-loader-spinner";
 import { enrolment } from "../api/authApi";
 import { useNavigate } from "react-router-dom";
 import { useVendorStore } from "../stores/VendorStore";
+import { RiShieldCheckLine } from "react-icons/ri";
 
 const Zanders = () => {
   const store = useSelector((state) => state.vendor.vendorData);
+  const resetVendor = useVendorStore((state) => state.resetVendor);
   const vendorName = useVendorStore((state) => state.vendorName);
   const vendorConnection = useVendorStore((state) => state.vendorConnection);
   const setEnrolmentResponse = useVendorStore((state) => state.setEnrolmentResponse);
@@ -41,7 +43,10 @@ const Zanders = () => {
   const setVendorManufacturerChecked = useVendorStore((state) => state.setVendorManufacturerChecked);
   const [myLoader, setMyLoader] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const manufacturerDropdownRef = useRef(null); 
+  const manufacturerDropdownRef = useRef(null);
+  
+  // Adult Signature States
+  const [adultSignatureChecked, setAdultSignatureChecked] = useState(false);
   
   let dispatch = useDispatch();
   
@@ -51,6 +56,38 @@ const Zanders = () => {
       setCheckBoxesManufacturer(connectionData.manufacturer);
     }
   }, [connection]);
+
+  useEffect(() => {
+    const handleInputChange = () => {
+      const input = document.querySelector('input[name="adult_sig_threshold"]');
+      const feeIndicator = document.getElementById("feeIndicator");
+      if (input && feeIndicator && adultSignatureChecked) {
+        const price = parseFloat(input.value) || 0;
+        const fee = price >= 1000 ? 5 : 0;
+        
+        if (price > 0) {
+          feeIndicator.className = `mt-3 p-3.5 rounded-lg border-l-4 transition-all duration-300 ${
+            fee > 0
+              ? 'bg-gradient-to-br from-yellow-50 to-amber-50 border-l-orange-500'
+              : 'bg-gradient-to-br from-green-50 to-emerald-50 border-l-[#027840]'
+          }`;
+          
+          const feeText = feeIndicator.querySelector('p');
+          if (feeText) {
+            feeText.innerHTML = fee > 0 
+              ? `⚠️ Processing Fee: <strong>$${fee.toFixed(2)}</strong> (Total: $${(price + fee).toFixed(2)})`
+              : '✓ No additional fee';
+          }
+        }
+      }
+    };
+
+    const input = document.querySelector('input[name="adult_sig_threshold"]');
+    if (input) {
+      input.addEventListener("input", handleInputChange);
+      return () => input.removeEventListener("input", handleInputChange);
+    }
+  }, [adultSignatureChecked]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -65,87 +102,81 @@ const Zanders = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+
+
   const manufacturerDropdown = () => {
     setIsOpen(!isOpen);
   };
 
   const Schema = yup.object().shape({
-  percentage_markup: yup.string().nullable(),
-  fixed_markup: yup.string().nullable(),
-  shipping_cost: yup.string(),
-  stock_minimum: yup.string(),
-  stock_maximum: yup.string(),
-  serialized: yup.string(),
-  update_inventory: yup.string(),
-  send_orders: yup.string(),
-  update_tracking: yup.string(),
-});
+    percentage_markup: yup.string().nullable(),
+    fixed_markup: yup.string().nullable(),
+    shipping_cost: yup.string(),
+    stock_minimum: yup.string(),
+    stock_maximum: yup.string(),
+    serialized: yup.string(),
+    update_inventory: yup.string(),
+    send_orders: yup.string(),
+    update_tracking: yup.string(),
+    adult_signature: yup.boolean(),
+    adult_sig_threshold: yup.string().nullable(),
+  });
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
   } = useForm({
     resolver: yupResolver(Schema),
   });
 
+  const updateManufacturerState = (updated) => {
+    setCheckBoxesManufacturer(updated);
+    setVendorManufacturerChecked(
+      updated.filter((c) => c.checked).map((c) => c.label)
+    );
+  };
+
   const handleCheckBoxManufacturer = (ids) => {
-    if (!Array.isArray(ids)) {
-      ids = [ids];
-    }
-
-    const updatedCheckboxes = checkBoxesManufacturer.map((checkbox) => {
-      if (ids.includes(checkbox.id)) {
-        return { ...checkbox, checked: !checkbox.checked };
-      }
-      return checkbox;
-    });
-
-    setCheckBoxesManufacturer(updatedCheckboxes);
-    const manufacturer = updatedCheckboxes
-      .filter((checkbox) => checkbox.checked)
-      .map((checkbox) => checkbox.label);
-    setVendorManufacturerChecked(manufacturer);
+    const idArr = Array.isArray(ids) ? ids : [ids];
+    updateManufacturerState(
+      checkBoxesManufacturer.map((c) =>
+        idArr.includes(c.id) ? { ...c, checked: !c.checked } : c
+      )
+    );
   };
 
   const selectallManufacturer = (e) => {
     e.preventDefault();
-    const updatedCheckboxes = checkBoxesManufacturer.map((checkbox) => ({
-      ...checkbox,
-      checked: true,
-    }));
-    setCheckBoxesManufacturer(updatedCheckboxes);
-    const theSelectedManufacturer = updatedCheckboxes
-      .filter((checkbox) => checkbox.checked)
-      .map((checkbox) => checkbox.label);
-    setVendorManufacturerChecked(theSelectedManufacturer);
+    updateManufacturerState(
+      checkBoxesManufacturer.map((c) => ({ ...c, checked: true }))
+    );
   };
 
   const deselectallManufacturer = (e) => {
     e.preventDefault();
-    const deselect = checkBoxesManufacturer.map((checkbox) => ({
-      ...checkbox,
-      checked: false,
-    }));
-    setCheckBoxesManufacturer(deselect);
-    setVendorManufacturerChecked([]);
+    updateManufacturerState(
+      checkBoxesManufacturer.map((c) => ({ ...c, checked: false }))
+    );
   };
 
-  const cleanObject = (obj) => {
-    return Object.entries(obj).reduce((acc, [key, value]) => {
-      if (
-        value !== null &&
-        value !== undefined &&
-        value !== "" &&
-        !(Array.isArray(value) && value.length === 0)
-      ) {
-        acc[key] =
-          typeof value === "object" && !Array.isArray(value)
-            ? cleanObject(value)
-            : value;
-      }
-      return acc;
-    }, {});
+  const cleanObject = (obj) =>
+    Object.fromEntries(
+      Object.entries(obj).filter(
+        ([_, v]) =>
+          v !== null &&
+          v !== undefined &&
+          v !== "" &&
+          !(Array.isArray(v) && v.length === 0)
+      )
+    );
+
+  const handleAdultSignatureCheck = () => {
+    setAdultSignatureChecked(!adultSignatureChecked);
+    if (adultSignatureChecked) {
+      setValue("adult_sig_threshold", "");
+    }
   };
 
   const onSubmit = async (data) => {
@@ -156,8 +187,13 @@ const Zanders = () => {
       stock_minimum: data.stock_minimum === "" ? null : data.stock_minimum,
       stock_maximum: data.stock_maximum === "" ? null : data.stock_maximum,
       shipping_cost: data.shipping_cost === "" ? null : data.shipping_cost,
+      adult_signature: adultSignatureChecked,
+      adult_sig_threshold: adultSignatureChecked && data.adult_sig_threshold 
+        ? data.adult_sig_threshold 
+        : null,
     };
     const formData = cleanObject(rawFormData);
+    console.log("Submitting form data:", formData);
     if (manufacturerChecked.length === 0) {
       toast.error("Please select at least one Manufacturer");
       return;
@@ -168,9 +204,9 @@ const Zanders = () => {
       if ([200, 201, 202].includes(response.status)) {
         toast.success("Enrolment successful");
         setEnrolmentResponse(response.data);
-        // dispatch(handleNextStep(formData));
+        resetVendor();
         dispatch(clearVendorData());
-          navigate("/vendor/success-enrolment");
+        navigate("/vendor/success-enrolment");
       }
     } catch (err) {
       if (err.response) {
@@ -229,6 +265,79 @@ const Zanders = () => {
       <section className="mb-10">
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="bg-white py-10">
+            {/* Adult Signature Section - At the Top */}
+            <div className="px-5 mb-7">
+              <div className="bg-gradient-to-br from-[#f9fffe] to-[#f0fef8] border-2 border-[#d4f1e8] rounded-xl p-6 transition-all duration-300">
+                <div className="flex items-start gap-4">
+                  <div className="text-4xl text-[#027840] flex-shrink-0 pt-1">
+                    <RiShieldCheckLine />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <p className="text-base font-bold text-gray-900 m-0">Adult Signature Required</p>
+                        <p className="text-xs text-gray-600 leading-relaxed mt-1">
+                          Enable adult signature requirement for deliveries requiring recipient verification.
+                        </p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={adultSignatureChecked}
+                        onChange={handleAdultSignatureCheck}
+                        className="w-6 h-6 cursor-pointer accent-[#027840] rounded hover:scale-110 transition-transform duration-300 flex-shrink-0"
+                      />
+                    </div>
+
+                    {/* Status Badge */}
+                    <div className={`text-xs font-semibold px-3 py-1.5 rounded-md inline-block transition-all duration-300 ${
+                      adultSignatureChecked 
+                        ? 'bg-green-100 text-[#027840] shadow-sm' 
+                        : 'bg-gray-100 text-gray-500'
+                    }`}>
+                      {adultSignatureChecked ? '✓ Enabled' : 'Not enabled'}
+                    </div>
+
+                    {/* Price Input - Hidden until checkbox is checked */}
+                    <div className={`overflow-hidden transition-all duration-300 ${
+                      adultSignatureChecked ? 'mt-4 opacity-100 max-h-96' : 'mt-0 opacity-0 max-h-0'
+                    }`}>
+                      <div className="bg-white rounded-lg border-2 border-[#d4f1e8] p-4 shadow-sm">
+                        <label className="block text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wider">
+                          Adult Signature Price
+                        </label>
+                        <div className="relative flex items-center mb-3">
+                          <span className="absolute left-3.5 text-lg font-semibold text-[#027840]">$</span>
+                          <input
+                            {...register("adult_sig_threshold")}
+                            type="text"
+                            placeholder="0.00"
+                            onInput={(e) => {
+                              const value = e.target.value.replace(/[^0-9.]/g, "");
+                              if (value.split(".").length <= 2) {
+                                e.target.value = value;
+                              }
+                            }}
+                            className="w-full pl-9 pr-4 py-3 border-2 border-gray-300 rounded-lg text-base font-medium transition-all duration-300 bg-gray-50 focus:outline-none focus:border-[#027840] focus:bg-white focus:ring-4 focus:ring-[#027840]/10"
+                          />
+                        </div>
+
+                        {/* Fee Indicator */}
+                        <div className="mt-3 p-3.5 rounded-lg border-l-4 transition-all duration-300" id="feeIndicator">
+                          <p className="text-xs font-semibold text-gray-700 m-0">
+                            ✓ No additional fee
+                          </p>
+                        </div>
+
+                        <p className="text-xs text-gray-500 mt-2 leading-relaxed">
+                          💡 A $5.00 processing fee will be automatically added for orders over $1,000.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-12 mt-5 h-10 px-5">
               <h3 className="text-sm font-semibold col-span-6">Serialized:</h3>
               <div className="flex gap-2 h-[20px] col-span-6">

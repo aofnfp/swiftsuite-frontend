@@ -176,7 +176,7 @@ const HeldSKU = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-4">
+ <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center">
           <div className="flex justify-center mb-4">
             <div
@@ -193,7 +193,7 @@ const HeldSKU = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-white p-[4rem] md:p-[6rem]">
+    <div className="my-0 md:my-[7rem] mx-0 md:mx-10 bg-gradient-to-br from-white via-gray-50 to-white p-[4rem] md:p-[4rem]">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-12">
@@ -206,7 +206,7 @@ const HeldSKU = () => {
                 Held SKU Management
               </h1>
               <p className="text-gray-600 text-base mt-1">
-                Monitor and manage inventory holds across all accounts
+                Monitor and manage SKU
               </p>
             </div>
           </div>
@@ -354,7 +354,7 @@ const HeldSKU = () => {
                                 Held SKUs
                               </p>
                               <div className="flex flex-wrap gap-3">
-                                {filteredSkus.map((sku, skuIdx) => (
+                                {accountSkus.map((sku, skuIdx) => (
                                   <div
                                     key={`${account.id}-${sku}`}
                                     className="flex items-center gap-2 animate-fadeIn"

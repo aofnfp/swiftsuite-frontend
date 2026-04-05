@@ -76,7 +76,7 @@ const Navbar = ({ openToggle }) => {
     '/layout/teaminventory', '/layout/teamsaccounts', '/layout/custom_vendor_integration',
     '/layout/custom_vendor', '/layout/custom_vendors', '/layout/support-ticket', '/layout/faqs',
     '/layout/report', '/layout/help', '/vendors/payment-success', '/marketplace/success',
-    '/vendor/success-file', '/invite-success', '/vendor/success-enrolment', '/admin_layout', '/layout/log',
+    '/vendor/success-file', '/invite-success', '/vendor/success-enrolment', '/admin_layout', '/layout/log', '/layout/held_sku',
   ];
 
   const isHidden = hiddenRoutes.some(route => location.pathname.startsWith(route));

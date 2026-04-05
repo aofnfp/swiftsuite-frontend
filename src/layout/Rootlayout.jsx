@@ -45,6 +45,7 @@ import SuccessThanks from '../CustomVendors/SuccessThanks';
 import SupportTicket from '../Help/SupportTicket';
 import Faqs from '../Help/Faqs';
 import InventoryLog from '../inventory/log/InventoryLog';
+import HeldSKU from '../OrderPage/HeldSKU';
 
 
 const Rootlayout = ({ children }) => {
@@ -113,6 +114,7 @@ const bgClass = newBgPaths.includes(location.pathname) ? 'bg-[#f2f2f2]' : 'bg-[#
             <Route path="custom_vendors"  element={<CustomVendorInfo/>} />
             <Route path="/faqs" element={<Faqs/>} />
             <Route path='/support-ticket' element={<SupportTicket/>} />
+            <Route path="/held_sku" element={<HeldSKU/>} />
           </Routes>
           {children}
         </div>

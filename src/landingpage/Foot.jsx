@@ -50,6 +50,7 @@ const Foot = () => {
     '/vendor/success-enrolment',
     '/admin_layout',
     '/layout/log',
+    '/layout/held_sku'
   ];
 
   const isHidden = hiddenRoutes.some((route) =>

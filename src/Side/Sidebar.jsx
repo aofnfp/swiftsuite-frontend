@@ -3,19 +3,20 @@ import { motion } from "framer-motion";
 import { IoMdHelpCircleOutline } from "react-icons/io";
 import { LiaSignOutAltSolid } from "react-icons/lia";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { MdOutlineInventory, MdOutlineInventory2 } from "react-icons/md";
+import { MdOutlineInventory2, MdOutlineDashboard } from "react-icons/md";
 import swift from "../Images/swift.png";
 import { AppContext } from "../context/Dashboard";
 import SignOutButton from "../pages/SignOutButton";
 import { fetchVendorEnrolled } from "../api/authApi";
-import { Icon } from "@iconify/react";
-import { loadIcons } from "@iconify/react";
-import { MdOutlineDashboard } from "react-icons/md";
-import { toast } from "sonner";
+import { Icon, loadIcons } from "@iconify/react";
 
 const Sidebar = () => {
   const token = localStorage.getItem("token");
+  const isAdmin = localStorage.getItem("Admin") === "true";
   const { sideBarOpen, setSideBarOpen, isTablet } = useContext(AppContext);
+  const navigate = useNavigate();
+  const sidebarRef = useRef();
+  const { pathname } = useLocation();
 
   loadIcons([
     "mdi:report-multiple",
@@ -27,18 +28,13 @@ const Sidebar = () => {
 
   const [host, setHost] = useState(false);
   const [market, setMarket] = useState(false);
+  const [ordersOpen, setOrdersOpen] = useState(false);
   const [vendorIdentifier, setVendorIdentifier] = useState(false);
   const [vendorEnrolled, setVendorEnrolled] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
-
   const [allVendorEnrolled, setAllVendorEnrolled] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
-
-  const isAdmin = localStorage.getItem("Admin") === "true";
-  const navigate = useNavigate();
-  const sidebarRef = useRef();
-  const { pathname } = useLocation();
 
   const isAssetsActive =
     pathname.includes("/layout/catalogue") ||
@@ -53,7 +49,8 @@ const Sidebar = () => {
     pathname.includes("/layout/customercare");
 
   const isMarketplaceFlow =
-    pathname.includes("/layout/mymarket") || pathname.includes("/layout/market");
+    pathname.includes("/layout/mymarket") ||
+    pathname.includes("/layout/market");
 
   const isVendorActive =
     pathname.includes("/layout/editenrollment") ||
@@ -67,22 +64,18 @@ const Sidebar = () => {
     pathname.includes("/layout/faqs") ||
     pathname.includes("/layout/support-ticket");
 
+  const isOrdersActive =
+    pathname.includes("/layout/order") ||
+    pathname.includes("/layout/held_sku");
+
   const getVendorEnrolled = async () => {
     try {
       const data = await fetchVendorEnrolled();
       setAllVendorEnrolled(data);
     } catch (err) {
-      console.log(err);
       if (err?.response?.status === 401) {
         localStorage.removeItem("token");
         navigate("/signin");
-        return;
-      }
-      if (err?.response?.data?.detail) {
-        // toast.error(
-        //   err?.response?.data?.message ||
-        //     "Your subscription is inactive. Please renew to access this feature"
-        // );
       }
     }
   };
@@ -94,12 +87,12 @@ const Sidebar = () => {
     getVendorEnrolled();
     setHost(isAssetsActive);
     setAdminOpen(isAdminActive);
+    setOrdersOpen(isOrdersActive);
     if (isHelpActive) setHelpOpen(true);
-  }, [token, isAssetsActive, isAdminActive, isHelpActive]);
+  }, [token, isAssetsActive, isAdminActive, isHelpActive, isOrdersActive]);
 
   useEffect(() => {
-    if (isTablet) setSideBarOpen(false);
-    else setSideBarOpen(true);
+    setSideBarOpen(!isTablet);
   }, [isTablet, setSideBarOpen]);
 
   useEffect(() => {
@@ -113,29 +106,35 @@ const Sidebar = () => {
     ) {
       setHost(true);
     }
-    if (
-      pathname.includes("/layout/teams") ||
-      pathname.includes("/layout/teaminventory") ||
-      pathname.includes("/layout/teamorders") ||
-      pathname.includes("/layout/teamsaccounts") ||
-      pathname.includes("/layout/customercare")
-    ) {
+
+    if (isAdminActive) {
       setAdminOpen(true);
     }
+
+    if (
+      pathname.includes("/layout/order") ||
+      pathname.includes("/layout/held_sku")
+    ) {
+      setOrdersOpen(true);
+    }
+
     if (isHelpActive) setHelpOpen(true);
-  }, [pathname, isHelpActive]);
+  }, [pathname, isAdminActive, isHelpActive]);
 
   const overlayClicked = () => setSideBarOpen(false);
+
   const toggleUp = () => {
-  setHost((p) => !p);
-  setMarket(false);
-  setAdminOpen(false);
-  setHelpOpen(false);
-};
+    setHost((p) => !p);
+    setMarket(false);
+    setOrdersOpen(false);
+    setAdminOpen(false);
+    setHelpOpen(false);
+  };
 
   const handleCloseDropdowns = () => {
     setMarket(false);
     setHost(false);
+    setOrdersOpen(false);
     setVendorIdentifier(false);
     setVendorEnrolled(false);
     setAdminOpen(false);
@@ -145,7 +144,11 @@ const Sidebar = () => {
   const Nav_animation = isTablet
     ? {
         open: { x: 0, width: "13rem", transition: { damping: 40 } },
-        closed: { x: -250, width: 0, transition: { damping: 40, delay: 0.15 } },
+        closed: {
+          x: -250,
+          width: 0,
+          transition: { damping: 40, delay: 0.15 },
+        },
       }
     : {
         open: { width: "16rem", transition: { damping: 40 } },
@@ -159,7 +162,7 @@ const Sidebar = () => {
         className={`md:hidden fixed inset-0 max-h-screen z-[998] opacity-30 ${
           sideBarOpen ? "block" : "hidden"
         }`}
-      ></div>
+      />
 
       <motion.div
         ref={sidebarRef}
@@ -201,24 +204,19 @@ const Sidebar = () => {
                         : ""
                     } hover:bg-[#027840] hover:rounded`}
                   >
-                    <Icon
-                      icon="tdesign:catalog"
-                      width="23"
-                      height="23"
-                      className="catalog-icon"
-                    />
+                    <Icon icon="tdesign:catalog" width="23" height="23" />
                     <span>Assets</span>
                   </div>
                 )}
               </NavLink>
             </li>
 
-            <li className={`mt-[-4%] ${host ? "block" : "hidden"}`}>
+            <li className={`${host ? "block" : "hidden"} mt-1 space-y-1`}>
               <Link to="/layout/catalogue" onClick={handleCloseDropdowns}>
                 <p
                   className={`${
                     pathname === "/layout/catalogue"
-                      ? "text-[#089451] font-bold "
+                      ? "text-[#089451] font-bold"
                       : "text-[#089451] opacity-[0.6]"
                   } hover:bg-[#027840] hover:text-white hover:rounded px-[3.9rem]`}
                 >
@@ -230,8 +228,8 @@ const Sidebar = () => {
                 <p
                   className={`${
                     pathname === "/layout/product"
-                      ? "text-[#089451] font-bold "
-                      : "text-[#089451] opacity-[0.6] "
+                      ? "text-[#089451] font-bold"
+                      : "text-[#089451] opacity-[0.6]"
                   } hover:bg-[#027840] hover:text-white hover:rounded px-[3.9rem]`}
                 >
                   Product
@@ -243,6 +241,7 @@ const Sidebar = () => {
               onClick={() => {
                 setMarket((p) => !p);
                 setHost(false);
+                setOrdersOpen(false);
                 setAdminOpen(false);
                 setHelpOpen(false);
               }}
@@ -263,10 +262,10 @@ const Sidebar = () => {
               </NavLink>
             </li>
 
-            <li className={`mt-[-4%] ${market ? "block" : "hidden"}`}>
+            <li className={`${market ? "block" : "hidden"} mt-1`}>
               <NavLink to="/layout/log">
                 <p
-                  className={` ${
+                  className={`${
                     pathname === "/layout/log"
                       ? "text-[#089451] font-bold"
                       : "text-[#089451] opacity-[0.6]"
@@ -277,7 +276,6 @@ const Sidebar = () => {
               </NavLink>
             </li>
 
-
             <li onClick={handleCloseDropdowns}>
               <Link to="/layout/mymarket">
                 <div
@@ -287,12 +285,7 @@ const Sidebar = () => {
                       : ""
                   } hover:bg-[#027840] hover:rounded`}
                 >
-                  <Icon
-                    icon="mdi:marketplace-outline"
-                    width="23"
-                    height="23"
-                    className="catalog-icon"
-                  />
+                  <Icon icon="mdi:marketplace-outline" width="23" height="23" />
                   <span>Marketplace</span>
                 </div>
               </Link>
@@ -308,35 +301,53 @@ const Sidebar = () => {
                         : ""
                     } hover:bg-[#027840] hover:rounded`}
                   >
-                    <Icon
-                      icon="mynaui:cart-solid"
-                      width="23"
-                      height="23"
-                      className="catalog-icon"
-                    />
+                    <Icon icon="mynaui:cart-solid" width="23" height="23" />
                     <span>Vendors</span>
                   </div>
                 )}
               </NavLink>
             </li>
 
-            <li onClick={handleCloseDropdowns}>
+            <li
+              onClick={() => {
+                setOrdersOpen((p) => !p);
+                setHost(false);
+                setMarket(false);
+                setAdminOpen(false);
+                setHelpOpen(false);
+              }}
+            >
               <NavLink to="/layout/order">
                 {({ isActive }) => (
                   <div
                     className={`flex items-center gap-8 w-full px-2 hover:text-white ${
-                      isActive ? "bg-[#027840] rounded-[6px] text-white" : ""
+                      isActive || pathname.includes("/layout/held_sku")
+                        ? "bg-[#027840] rounded-[6px] text-white"
+                        : ""
                     } hover:bg-[#027840] hover:rounded`}
                   >
                     <Icon
                       icon="material-symbols:order-approve-outline"
                       width="23"
                       height="23"
-                      className="catalog-icon"
                     />
                     <span>Orders</span>
                   </div>
                 )}
+              </NavLink>
+            </li>
+
+            <li className={`${ordersOpen ? "block" : "hidden"} mt-1`}>
+              <NavLink to="/layout/held_sku">
+                <p
+                  className={`${
+                    pathname === "/layout/held_sku"
+                      ? "text-[#089451] font-bold"
+                      : "text-[#089451] opacity-[0.6]"
+                  } hover:bg-[#027840] hover:text-white hover:rounded px-[3.9rem]`}
+                >
+                  SKU
+                </p>
               </NavLink>
             </li>
 
@@ -348,12 +359,7 @@ const Sidebar = () => {
                       isActive ? "bg-[#027840] rounded-[6px] text-white" : ""
                     } hover:bg-[#027840] hover:rounded`}
                   >
-                    <Icon
-                      icon="mdi:report-multiple"
-                      width="23"
-                      height="23"
-                      className="catalog-icon"
-                    />
+                    <Icon icon="mdi:report-multiple" width="23" height="23" />
                     <span>Reports</span>
                   </div>
                 )}
@@ -381,12 +387,12 @@ const Sidebar = () => {
               </NavLink>
             </li>
 
-            <li className={`mt-[-4%] ${helpOpen ? "block" : "hidden"}`}>
+            <li className={`${helpOpen ? "block" : "hidden"} mt-1 space-y-1`}>
               <NavLink to="/layout/faqs" onClick={handleCloseDropdowns}>
                 <p
                   className={`${
                     pathname === "/layout/faqs"
-                      ? "text-[#089451] font-bold "
+                      ? "text-[#089451] font-bold"
                       : "text-[#089451] opacity-[0.6]"
                   } hover:bg-[#027840] hover:text-white hover:rounded px-[3.9rem]`}
                 >
@@ -417,12 +423,10 @@ const Sidebar = () => {
                   openModal();
                 }}
               >
-                {() => (
-                  <div className="flex items-center gap-8 w-full px-2 hover:bg-[#027840] hover:rounded hover:text-white">
-                    <LiaSignOutAltSolid size={23} className="min-w-max" />
-                    <span>Sign Out</span>
-                  </div>
-                )}
+                <div className="flex items-center gap-8 w-full px-2 hover:bg-[#027840] hover:rounded hover:text-white">
+                  <LiaSignOutAltSolid size={23} className="min-w-max" />
+                  <span>Sign Out</span>
+                </div>
               </NavLink>
             </li>
           </ul>

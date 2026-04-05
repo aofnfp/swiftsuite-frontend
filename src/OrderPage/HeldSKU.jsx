@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { ChevronDown, Package, Trash2, Eye, AlertCircle, Loader, Lock } from 'lucide-react'
+import { ChevronDown, Package, Trash2, Eye, AlertCircle, Loader, Lock, Search, X } from 'lucide-react'
 
 const HeldSKU = () => {
   const [accounts, setAccounts] = useState([])
@@ -11,95 +11,7 @@ const HeldSKU = () => {
   const [detailsLoading, setDetailsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [deletingSkus, setDeletingSkus] = useState(new Set())
-  const [useDummyData, setUseDummyData] = useState(true)
-
-  // Dummy data for testing
-  const dummyAccounts = [
-    { id: 1, name: 'aof-fx-account', user: 12, vendor: 3 },
-    { id: 3, name: 'aof-rsr-account', user: 12, vendor: 1 },
-    { id: 6, name: 'lipsey-account', user: 12, vendor: 2 },
-  ]
-
-  const dummyHeldSkus = {
-    1: ['SKU-001', 'SKU-042', 'SKU-157'],
-    3: ['SKU-892', 'SKU-456'],
-    6: ['SKU-234', 'SKU-567', 'SKU-789', 'SKU-101'],
-  }
-
-  const dummySkuDetails = {
-    '1-SKU-001': {
-      sku: 'SKU-001',
-      quantity: 25,
-      status: 'On Hold',
-      reason: 'Pending approval',
-      created_date: '2024-01-15',
-      hold_reason: 'Quality check',
-    },
-    '1-SKU-042': {
-      sku: 'SKU-042',
-      quantity: 12,
-      status: 'On Hold',
-      reason: 'Inventory verification',
-      created_date: '2024-01-14',
-      hold_reason: 'Stock discrepancy',
-    },
-    '1-SKU-157': {
-      sku: 'SKU-157',
-      quantity: 8,
-      status: 'On Hold',
-      reason: 'Quality control pending',
-      created_date: '2024-01-16',
-      hold_reason: 'Inspection required',
-    },
-    '3-SKU-892': {
-      sku: 'SKU-892',
-      quantity: 50,
-      status: 'On Hold',
-      reason: 'Awaiting supplier confirmation',
-      created_date: '2024-01-13',
-      hold_reason: 'Supplier issue',
-    },
-    '3-SKU-456': {
-      sku: 'SKU-456',
-      quantity: 18,
-      status: 'On Hold',
-      reason: 'Damaged in shipment',
-      created_date: '2024-01-15',
-      hold_reason: 'Damage claim pending',
-    },
-    '6-SKU-234': {
-      sku: 'SKU-234',
-      quantity: 75,
-      status: 'On Hold',
-      reason: 'Price verification',
-      created_date: '2024-01-12',
-      hold_reason: 'Price mismatch',
-    },
-    '6-SKU-567': {
-      sku: 'SKU-567',
-      quantity: 42,
-      status: 'On Hold',
-      reason: 'Missing documentation',
-      created_date: '2024-01-14',
-      hold_reason: 'Compliance check',
-    },
-    '6-SKU-789': {
-      sku: 'SKU-789',
-      quantity: 33,
-      status: 'On Hold',
-      reason: 'Recall investigation',
-      created_date: '2024-01-16',
-      hold_reason: 'Safety hold',
-    },
-    '6-SKU-101': {
-      sku: 'SKU-101',
-      quantity: 20,
-      status: 'On Hold',
-      reason: 'Awaiting authorization',
-      created_date: '2024-01-17',
-      hold_reason: 'Approval required',
-    },
-  }
+  const [searchQuery, setSearchQuery] = useState('')
 
   const getToken = () => localStorage.getItem('token')
 
@@ -110,16 +22,6 @@ const HeldSKU = () => {
         setLoading(true)
         setError(null)
         const token = getToken()
-
-        if (useDummyData) {
-          // Simulate loading delay
-          await new Promise((resolve) => setTimeout(resolve, 500))
-          setAccounts(dummyAccounts)
-          setHeldSkus(dummyHeldSkus)
-          setSkuDetails(dummySkuDetails)
-          setLoading(false)
-          return
-        }
 
         const response = await fetch(
           'https://service.swiftsuite.app/api/v2/vendor-account/',
@@ -133,6 +35,29 @@ const HeldSKU = () => {
         if (!response.ok) throw new Error('Failed to fetch accounts')
         const data = await response.json()
         setAccounts(data)
+
+        // Fetch held SKUs for all accounts
+        const allSkus = {}
+        for (const account of data) {
+          try {
+            const skuResponse = await fetch(
+              `https://service.swiftsuite.app/orderApp/held-sku/${account.id}/`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                },
+              }
+            )
+            if (skuResponse.ok) {
+              const skuData = await skuResponse.json()
+              allSkus[account.id] = skuData.held_skus || []
+            }
+          } catch (err) {
+            console.error(`Error fetching SKUs for account ${account.id}:`, err)
+          }
+        }
+        setHeldSkus(allSkus)
       } catch (err) {
         setError(err.message || 'Error loading accounts')
       } finally {
@@ -141,7 +66,7 @@ const HeldSKU = () => {
     }
 
     fetchAccounts()
-  }, [useDummyData])
+  }, [])
 
   // Fetch held SKUs for an account
   const fetchHeldSkus = async (accountId) => {
@@ -231,11 +156,23 @@ const HeldSKU = () => {
       setExpandedAccount(null)
     } else {
       setExpandedAccount(accountId)
-      if (!useDummyData && !heldSkus[accountId]) {
+      if (!heldSkus[accountId]) {
         await fetchHeldSkus(accountId)
       }
     }
   }
+
+  // Filter accounts and SKUs based on search query
+  const filteredAccounts = accounts.filter((account) => {
+    const accountMatches = account.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase())
+    const skusForAccount = heldSkus[account.id] || []
+    const skuMatches = skusForAccount.some((sku) =>
+      sku.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    return accountMatches || skuMatches
+  })
 
   if (loading) {
     return (
@@ -256,46 +193,52 @@ const HeldSKU = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-white p-6 md:p-[120px]">
+    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-white p-[4rem] md:p-[6rem]">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-12">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-lg" style={{ backgroundColor: '#02784015' }}>
-                <Lock className="w-8 h-8" style={{ color: '#027840' }} />
-              </div>
-              <div>
-                <h1 className="text-4xl font-bold text-gray-900">
-                  Held SKU Management
-                </h1>
-                <p className="text-gray-600 text-base mt-1">
-                  Monitor and manage inventory holds across all accounts
-                </p>
-              </div>
+          <div className="flex items-center gap-4 mb-6">
+            <div className="p-3 rounded-lg" style={{ backgroundColor: '#02784015' }}>
+              <Lock className="w-8 h-8" style={{ color: '#027840' }} />
             </div>
-            {useDummyData && (
-              <button
-                onClick={() => setUseDummyData(false)}
-                className="text-sm px-4 py-2 rounded-lg border-2 transition-all"
-                style={{
-                  borderColor: '#027840',
-                  color: '#027840',
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#027840'
-                  e.target.style.color = 'white'
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'transparent'
-                  e.target.style.color = '#027840'
-                }}
-              >
-                Switch to Live Data
-              </button>
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900">
+                Held SKU Management
+              </h1>
+              <p className="text-gray-600 text-base mt-1">
+                Monitor and manage inventory holds across all accounts
+              </p>
+            </div>
+          </div>
+
+          {/* Search Bar */}
+          <div className="relative max-w-md">
+            <div className="relative flex items-center">
+              <Search className="absolute left-4 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search account or SKU..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-2 rounded-lg border-2 border-gray-200 focus:outline-none focus:border-gray-300 transition-colors bg-white text-gray-900 text-sm"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-4 p-1 hover:bg-gray-100 rounded transition-colors text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+            {searchQuery && (
+              <div className="mt-2 text-xs text-gray-600">
+                Found {filteredAccounts.length} account{filteredAccounts.length !== 1 ? 's' : ''}
+              </div>
             )}
           </div>
-          <div className="h-1 w-20 rounded-full" style={{ backgroundColor: '#027840' }}></div>
+
+          <div className="h-1 w-20 rounded-full mt-6" style={{ backgroundColor: '#027840' }}></div>
         </div>
 
         {/* Error Alert */}
@@ -327,9 +270,26 @@ const HeldSKU = () => {
                     Connect your first vendor account to get started
                   </p>
                 </div>
+              ) : filteredAccounts.length === 0 ? (
+                <div className="p-12 rounded-xl border-2 border-dashed border-gray-200 text-center bg-gray-50">
+                  <Search className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-600 text-lg font-medium">
+                    No results found
+                  </p>
+                  <p className="text-gray-500 text-sm mt-2">
+                    Try searching with a different account name or SKU
+                  </p>
+                </div>
               ) : (
-                accounts.map((account, idx) => {
+                filteredAccounts.map((account, idx) => {
                   const skuCount = heldSkus[account.id]?.length || 0
+                  const accountSkus = heldSkus[account.id] || []
+                  const filteredSkus = searchQuery
+                    ? accountSkus.filter((sku) =>
+                        sku.toLowerCase().includes(searchQuery.toLowerCase())
+                      )
+                    : accountSkus
+
                   return (
                     <div
                       key={account.id}
@@ -388,13 +348,13 @@ const HeldSKU = () => {
                       {/* Held SKUs Section */}
                       {expandedAccount === account.id && (
                         <div className="border-t-2 border-gray-100 bg-gradient-to-b from-gray-50 to-white">
-                          {heldSkus[account.id] && heldSkus[account.id].length > 0 ? (
+                          {accountSkus && accountSkus.length > 0 ? (
                             <div className="p-6 space-y-4">
                               <p className="text-gray-700 text-sm font-bold uppercase tracking-wider">
                                 Held SKUs
                               </p>
                               <div className="flex flex-wrap gap-3">
-                                {heldSkus[account.id].map((sku, skuIdx) => (
+                                {filteredSkus.map((sku, skuIdx) => (
                                   <div
                                     key={`${account.id}-${sku}`}
                                     className="flex items-center gap-2 animate-fadeIn"
@@ -452,7 +412,7 @@ const HeldSKU = () => {
                                         `${account.id}-${sku}`
                                       )}
                                       className="p-3 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                                      title="Delete SKU"
+                                      title="Remove SKU"
                                     >
                                       {deletingSkus.has(`${account.id}-${sku}`) ? (
                                         <Loader className="w-4 h-4 animate-spin" />
@@ -549,16 +509,21 @@ const HeldSKU = () => {
                         disabled={deletingSkus.has(
                           `${selectedSku.accountId}-${selectedSku.sku}`
                         )}
-                        className="w-full mt-6 px-4 py-3 bg-red-600 text-white rounded-lg font-bold transition-all hover:bg-red-700 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full mt-6 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg font-bold transition-all hover:shadow-lg hover:from-red-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none flex items-center justify-center gap-2"
                       >
                         {deletingSkus.has(
                           `${selectedSku.accountId}-${selectedSku.sku}`
                         ) ? (
-                          <Loader className="w-4 h-4 animate-spin" />
+                          <>
+                            <Loader className="w-4 h-4 animate-spin" />
+                            <span>Removing...</span>
+                          </>
                         ) : (
-                          <Trash2 className="w-4 h-4" />
+                          <>
+                            <Trash2 className="w-4 h-4" />
+                            <span>Remove SKU</span>
+                          </>
                         )}
-                        Delete SKU
                       </button>
                     </>
                   )}

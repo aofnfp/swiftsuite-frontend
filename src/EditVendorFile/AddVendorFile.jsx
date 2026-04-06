@@ -1,3 +1,4 @@
+// AddVendorFile.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -13,25 +14,20 @@ const AddVendorFile = ({ vendorNames = [], searchTerm = "" }) => {
   const { subscribed } = useSelector((state) => state.permission);
   const [showModal, setShowModal] = useState(false);
   const [loadingVendorId, setLoadingVendorId] = useState(null);
+
   const setVendorContext = useVendorStore((state) => state.setVendorContext);
+  const setCurrentStep = useVendorStore((state) => state.setCurrentStep);
 
   useEffect(() => {
     if (!subscribed) setShowModal(true);
   }, [subscribed]);
 
-  const {
-    data: vendors = [],
-    isLoading,
-    refetch,
-  } = useQuery({
+  const { data: vendors = [], isLoading } = useQuery({
     queryKey: ["vendors"],
     queryFn: fetchAllVendors,
     staleTime: 0,
     retry: false,
-    onError: () =>
-      toast.error("Failed to load vendors. Please try again.", {
-        toastId: "load-vendors-error",
-      }),
+    onError: () => toast.error("Failed to load vendors. Please try again."),
   });
 
   const filteredItems = useMemo(() => {
@@ -48,8 +44,10 @@ const AddVendorFile = ({ vendorNames = [], searchTerm = "" }) => {
     }
 
     setLoadingVendorId(vendorId);
+
     try {
       const response = await vendorSelection(vendorId);
+
       const vendorsToUpperCase = ["rsr", "cwr", "ssi"];
       const formattedVendorName = vendorsToUpperCase.includes(
         vendorName.toLowerCase()
@@ -58,19 +56,26 @@ const AddVendorFile = ({ vendorNames = [], searchTerm = "" }) => {
         : vendorName.charAt(0).toUpperCase() +
           vendorName.slice(1).toLowerCase();
 
+      const accounts = Array.isArray(response)
+        ? response
+        : Array.isArray(response?.data)
+        ? response.data
+        : [];
+
+      const isNewAccount = accounts.length === 0;
+      const nextStep = isNewAccount ? 1 : 0;
+
       setVendorContext({
-        newAccount: response.length === 0,
-        vendorId: vendorId,
+        newAccount: isNewAccount,
+        vendorId,
         vendorName: formattedVendorName,
         fromVendor: true,
       });
 
-      await refetch();
+      setCurrentStep(nextStep);
       navigate(`/layout/enrolment?vendor=${formattedVendorName}`);
     } catch {
-      toast.error("Vendor is unavailable. Please try again.", {
-        toastId: "vendor-unavailable",
-      });
+      toast.error("Vendor is unavailable. Please try again.");
     } finally {
       setLoadingVendorId(null);
     }
@@ -78,7 +83,7 @@ const AddVendorFile = ({ vendorNames = [], searchTerm = "" }) => {
 
   const VendorCard = ({ item }) => {
     const isEnrolled = vendorNames.some(
-      (name) => name.toLowerCase() === item.name?.toLowerCase()
+      (name) => (name || "").toLowerCase() === item.name?.toLowerCase()
     );
     const isAvailable = item.available !== false;
     const isLoadingVendor = loadingVendorId === item.id;
@@ -140,33 +145,6 @@ const AddVendorFile = ({ vendorNames = [], searchTerm = "" }) => {
     );
   };
 
-  const RequestCard = () => (
-    <div className="bg-white shadow border text-sm rounded-[16px] p-[20px] flex flex-col justify-between">
-      <div className="mt-6">
-        <h3 className="font-semibold text-[16px] mb-2">
-          Custom Supplier Integration
-        </h3>
-        <p className="text-[13px] text-gray-600 mb-6">
-          Can’t find your supplier? Just send us a request! We’ll integrate them
-          as soon as possible so you can keep all your orders and data in one
-          place.
-        </p>
-      </div>
-      <button
-        onClick={() => {
-          if (!subscribed) {
-            setShowModal(true);
-            return;
-          }
-          navigate("/layout/custom_vendor_integration");
-        }}
-        className="py-2 w-[150px] rounded-[8px] bg-[#027840] text-white font-semibold h-[40px] border border-[rgba(2,120,64,0.4)] hover:bg-[rgba(2,120,64,0.05)] hover:text-black"
-      >
-        Send Request
-      </button>
-    </div>
-  );
-
   return (
     <div className="mb-5 mx-auto">
       <Toaster richColors position="top-right" />
@@ -193,18 +171,9 @@ const AddVendorFile = ({ vendorNames = [], searchTerm = "" }) => {
         </div>
       ) : (
         <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-4">
-          {filteredItems.length ? (
-            <>
-              {filteredItems.map((item) => (
-                <VendorCard key={item.id} item={item} />
-              ))}
-              <RequestCard />
-            </>
-          ) : (
-            <div className="col-span-full text-center text-gray-500">
-              No vendors found.
-            </div>
-          )}
+          {filteredItems.map((item) => (
+            <VendorCard key={item.id} item={item} />
+          ))}
         </div>
       )}
     </div>
@@ -212,3 +181,4 @@ const AddVendorFile = ({ vendorNames = [], searchTerm = "" }) => {
 };
 
 export default AddVendorFile;
+

@@ -26,7 +26,6 @@ const VendorPage = () => {
 
   const vendorId = useVendorStore((state) => state.vendorId);
   const newAccount = useVendorStore((state) => state.newAccount);
-  const currentStep = useVendorStore((state) => state.currentStep);
   const setVendorContext = useVendorStore((state) => state.setVendorContext);
   const setVendorConnection = useVendorStore((state) => state.setVendorConnection);
   const setCurrentStep = useVendorStore((state) => state.setCurrentStep);
@@ -36,21 +35,25 @@ const VendorPage = () => {
   const [loadingAccounts, setLoadingAccounts] = useState(true);
   const [loadingAccountId, setLoadingAccountId] = useState(null);
 
+  // Reset showAccountSelection when newAccount changes
+  useEffect(() => {
+    if (newAccount) {
+      setShowAccountSelection(false);
+    }
+  }, [newAccount]);
+
   useEffect(() => {
     const fetchAccounts = async () => {
       if (!token) return toast.error("Authentication token missing.");
 
       try {
         setLoadingAccounts(true);
-        const response = await fetch(
-          "https://service.swiftsuite.app/api/v2/vendor-account/",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const response = await fetch("https://service.swiftsuite.app/api/v2/vendor-account/", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
         if (!response.ok) throw new Error(`Error: ${response.status}`);
         const data = await response.json();
@@ -66,17 +69,10 @@ const VendorPage = () => {
     fetchAccounts();
   }, [token, vendorId]);
 
-  useEffect(() => {
-    if (newAccount) {
-      dispatch(handleNextStep({}));
-      setCurrentStep(1);
-      setShowAccountSelection(false);
-    }
-  }, [newAccount, dispatch, setCurrentStep]);
-
   const handleBack = () => {
-    if (showAccountSelection) {
+    if (showAccountSelection || newAccount) {
       setShowAccountSelection(false);
+      setVendorContext({ newAccount: false });
     } else {
       navigate("/layout/editenrollment");
     }
@@ -89,6 +85,8 @@ const VendorPage = () => {
 
   const handleNewAccount = () => {
     setVendorContext({ newAccount: true });
+    dispatch(handleNextStep({}));
+    setCurrentStep(1);
   };
 
   const handleAccountSelect = async (item) => {
@@ -193,7 +191,7 @@ const VendorPage = () => {
                 </button>
               </div>
             </motion.div>
-          ) : showAccountSelection ? (
+          ) : (
             <motion.div
               key="account-selection-view"
               initial={{ x: 80, opacity: 0 }}
@@ -228,9 +226,7 @@ const VendorPage = () => {
                         <span className="font-medium">{item.name || `Account ${item.id}`}</span>
                       </div>
 
-                      {loadingAccountId === item.id && (
-                        <ThreeDots height="20" width="20" color="#4fa94d" />
-                      )}
+                      {loadingAccountId === item.id && <ThreeDots height="20" width="20" color="#4fa94d" />}
                     </motion.div>
                   ))
                 ) : (
@@ -238,7 +234,7 @@ const VendorPage = () => {
                 )}
               </div>
             </motion.div>
-          ) : null}
+          )}
         </div>
       </AnimatePresence>
     </section>

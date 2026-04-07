@@ -27,7 +27,6 @@ const WooSection = ({
             <p>
               <img src="https://i.postimg.cc/Wbfbs7QB/woocommerce.png" alt="woocommerce" className="w-20 h-10" />
             </p>
-            <div className="text-gray-600">Toggle</div>
           </div>
           <div></div>
         </div>

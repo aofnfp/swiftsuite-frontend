@@ -1,33 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Ebay from './Ebaydata/Ebay';
 import Amazon from './Amazondata/Amazon';
 import Walmart from './Walmartdata/Walmart';
 import Shopify from './Shopifydata/Shopify';
 import Woocommerce from './Woocommercedata/Woocommerce';
+import { useMarketplaceStore } from '../stores/marketplaceStore';
 
 const MarketParent = () => {
   const { state } = useLocation();
-  const [marketPlace, setMarketPlace] = useState('');
+  const marketPlace = useMarketplaceStore((state) => state.marketPlace);
+  const setMarketPlace = useMarketplaceStore((state) => state.setMarketPlace);
 
   useEffect(() => {
     if (state?.marketPlace) { 
       setMarketPlace(state.marketPlace);
-      localStorage.setItem(
-        'marketPlace',
-        JSON.stringify({ name: state.marketPlace })
-      );
-    } else {
-      try {
-        const stored = JSON.parse(localStorage.getItem('marketPlace'));
-        if (stored?.name) {
-          setMarketPlace(stored.name);
-        }
-      } catch (err) {
-        console.error('Error parsing marketPlace from localStorage:', err);
-      }
     }
-  }, [state]);
+  }, [state, setMarketPlace]);
 
   const marketplaceComponents = {
     shopify: Shopify,

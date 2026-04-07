@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
 import { Button, Modal } from 'antd';
-// import { ToastContainer, toast } from 'react-toastify';
 import { Toaster, toast } from 'sonner';
 import gif from './images/gif.gif';
+import { useMarketplaceStore } from '../../stores/marketplaceStore';
 
-const AccessModal = ({ modal2Open, authorization_code, setModal2Open, setAuthorization_code }) => {
+const AccessModal = () => {
   const userIdString = localStorage.getItem('userId');
   const userId = userIdString ? JSON.parse(userIdString) : null;
   const token = localStorage.getItem('token');
+  
+  const modal2Open = useMarketplaceStore((state) => state.modal2Open);
+  const setModal2Open = useMarketplaceStore((state) => state.setModal2Open);
+  const authorization_code = useMarketplaceStore((state) => state.authorizationCode);
+  const setAuthorization_code = useMarketplaceStore((state) => state.setAuthorizationCode);
+  const setConnectClickedState = useMarketplaceStore((state) => state.setConnectClicked);
+  const setConnectTime = useMarketplaceStore((state) => state.setConnectTime);
   
   const [myLoader, setMyLoader] = useState(false);
 
@@ -29,7 +36,8 @@ const AccessModal = ({ modal2Open, authorization_code, setModal2Open, setAuthori
       setMyLoader(false);    
       if (response.status === 200) {
         toast.success("Connection Successful!");
-        localStorage.removeItem('connectClicked');
+        setConnectClickedState(false);
+        setConnectTime(null);
         setModal2Open(false);
       } else if (response.status === 400) {
         toast.error("Invalid Access Code!");

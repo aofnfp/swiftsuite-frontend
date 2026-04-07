@@ -22,12 +22,33 @@ export const useListingStore = create(
       setIsMappingChecked: (value) => set({ isMappingChecked: !!value }),
       setIsGiftChecked: (value) => set({ isGiftChecked: !!value }),
       setDescription: (value) => set({ description: value || "" }),
-      setSelectedWooCategories: (arr) =>
-        set({ selectedWooCategories: Array.isArray(arr) ? arr : [] }),
-      setWcAttributes: (arr) =>
-        set({ wcAttributes: Array.isArray(arr) ? arr : [] }),
-      setSelectedValues: (obj) =>
-        set({ selectedValues: obj && typeof obj === "object" ? obj : {} }),
+      setSelectedWooCategories: (update) =>
+        set((state) => ({
+          selectedWooCategories:
+            typeof update === "function"
+              ? update(state.selectedWooCategories)
+              : Array.isArray(update)
+              ? update
+              : [],
+        })),
+      setWcAttributes: (update) =>
+        set((state) => ({
+          wcAttributes:
+            typeof update === "function"
+              ? update(state.wcAttributes)
+              : Array.isArray(update)
+              ? update
+              : [],
+        })),
+      setSelectedValues: (update) =>
+        set((state) => ({
+          selectedValues:
+            typeof update === "function"
+              ? update(state.selectedValues)
+              : update && typeof update === "object"
+              ? update
+              : {},
+        })),
       setThumbnailImage: (value) => set({ thumbnailImage: value || "" }),
     }),
     {

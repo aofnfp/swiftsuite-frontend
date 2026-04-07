@@ -13,6 +13,7 @@ import { FaRegCircleDot } from "react-icons/fa6";
 import { marketPlaces } from "./Data";
 import SubscriptionModal from "../pages/SubscriptionModal";
 import { marketplaceEnrolment } from "../api/authApi";
+import { useMarketplaceStore } from "../stores/marketplaceStore";
 
 const UpdateMarket = () => {
   const [markets, setMarkets] = useState([]); 
@@ -25,6 +26,10 @@ const UpdateMarket = () => {
   const token = localStorage.getItem("token");
   const userId = JSON.parse(localStorage.getItem("userId"));
   const subscribed = useSelector((state) => state.permission?.subscribed ?? false);
+
+  const setMarketList = useMarketplaceStore((state) => state.setMarketList);
+  const setSubmittedMarketPlace = useMarketplaceStore((state) => state.setSubmittedMarketPlace);
+  const setMarketPlaceStore = useMarketplaceStore((state) => state.setMarketPlace);
 
   const marketplacesToFetch = ["Ebay", "woocommerce"];
 
@@ -69,13 +74,14 @@ const UpdateMarket = () => {
     setExpanded((prev) => ({ ...prev, [name]: !prev[name] }));
   };
 
- const handleEditClick = (marketplace) => {
-  localStorage.setItem("MarketList", "false");
-  localStorage.setItem("submittedMarketPlace", marketplace);
-  navigate("/layout/market", {
-    state: { marketPlace: marketplace },
-  });
-};
+  const handleEditClick = (marketplace) => {
+    setMarketList(false);
+    setSubmittedMarketPlace(marketplace);
+    setMarketPlaceStore(marketplace);
+    navigate("/layout/market", {
+      state: { marketPlace: marketplace },
+    });
+  };
 
   return (
     <div className="w-full">

@@ -1,13 +1,17 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { marketPlaces } from "../MarketEnrollment/Data";
 import SubscriptionModal from "../pages/SubscriptionModal";
+import { useMarketplaceStore } from "../stores/marketplaceStore";
 
 const MarketList = () => {
   const navigate = useNavigate();
   const { subscribed } = useSelector((state) => state.permission); 
-  const [showModal, setShowModal] = useState(false);
+  const setMarketPlace = useMarketplaceStore((state) => state.setMarketPlace);
+  const setMarketList = useMarketplaceStore((state) => state.setMarketList);
+  const showModal = useMarketplaceStore((state) => state.modal2Open);
+  const setShowModal = useMarketplaceStore((state) => state.setModal2Open);
 
   const handleMarketplaceClick = (marketplaceName, available) => {
     if (!available) return;
@@ -16,8 +20,8 @@ const MarketList = () => {
       setShowModal(true); 
       return;
     }
-
-    localStorage.setItem("MarketList", "true");
+    setMarketPlace(marketplaceName);
+    setMarketList(true);
     navigate("/layout/market", {
       state: { marketPlace: marketplaceName },
     });

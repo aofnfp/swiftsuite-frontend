@@ -7,10 +7,12 @@ import { IoIosArrowDropleft, IoIosArrowDropright } from "react-icons/io";
 import MarketList from "./MarketList";
 import UpdateMarket from "./UpdateMarket";
 import SubscriptionModal from "../pages/SubscriptionModal";
+import { useMarketplaceStore } from "../stores/marketplaceStore";
 
 const MyMarket = () => {
   const { subscribed } = useSelector((state) => state.permission);
-  const [showModal, setShowModal] = useState(false);
+  const showModal = useMarketplaceStore((state) => state.modal2Open);
+  const setShowModal = useMarketplaceStore((state) => state.setModal2Open);
 
   const [data, setData] = useState([
     {
@@ -32,15 +34,14 @@ const MyMarket = () => {
 
   const [loader, setLoader] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [entriesPerPage, setEntriesPerPage] = useState(
-    () => Number(localStorage.getItem("marketPerPage")) || 10
-  );
+  const entriesPerPage = useMarketplaceStore((state) => state.marketPerPage);
+  const setEntriesPerPage = useMarketplaceStore((state) => state.setMarketPerPage);
   const [currentPage, setCurrentPage] = useState(1);
   const [view, setView] = useState("marketplaces");
 
   useEffect(() => {
     if (!subscribed) setShowModal(true);
-  }, [subscribed]);
+  }, [subscribed, setShowModal]);
 
   const handleSearchChange = useCallback((e) => {
     const sanitizedValue = e.target.value.replace(/[<>]/g, "");
@@ -51,9 +52,8 @@ const MyMarket = () => {
   const handleEntriesChange = useCallback((e) => {
     const value = Number(e.target.value);
     setEntriesPerPage(value);
-    localStorage.setItem("marketPerPage", value);
     setCurrentPage(1);
-  }, []);
+  }, [setEntriesPerPage]);
 
   const handleNextPage = useCallback(() => {
     setCurrentPage((prev) => prev + 1);

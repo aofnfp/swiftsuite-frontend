@@ -50,7 +50,6 @@ const ItemSpecificsSection = ({
           <p>
             <img src="https://i.postimg.cc/3xZSgy9Z/ebay.png" alt="eBay" className="w-20 h-10" />
           </p>
-          <p className="text-gray-600">Toggle</p>
         </div>
       </div>
       {isEbayOpen && (

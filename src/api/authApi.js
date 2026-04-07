@@ -102,16 +102,28 @@ export const updateEnrolment = async (identifier, formData) => {
 }
 
 // Marketplace Enrolment
-export const marketplaceEnrolment = async (userId, marketplacePlatform) => {
-  const response = await axiosInstance.put(`/marketplaceApp/complete_enrolment_or_update/${userId}/${marketplacePlatform}/`);
+export const marketplaceEnrolment = async (userId, marketplacePlatform, payload = {}) => {
+  const response = await axiosInstance.put(`/marketplaceApp/complete_enrolment_or_update/${userId}/${marketplacePlatform}/`, payload);
   return response.data;
 };
 
-// Ebay OAuth Callback
-export const ebayOAuthCallback = async (userId) => {
-  const response = await axiosInstance.post(`/marketplaceApp/oauth/callback/${userId}/Ebay/`, {authorization_code: ""});
-  return response.data;
+// Marketplace OAuth Callback
+export const marketplaceOAuthCallback = async (userId, marketplacePlatform, authorization_code) => {
+  const response = await axiosInstance.post(`/marketplaceApp/oauth/callback/${userId}/${marketplacePlatform}/`, { authorization_code });
+  return response;
 }
+
+// WooCommerce Enrolment
+export const woocommerceEnrolment = async (userId, payload) => {
+  const response = await axiosInstance.post(`/marketplaceApp/woocommerce_enrolment/${userId}/`, payload);
+  return response;
+};
+
+// Test WooCommerce Connection
+export const testWoocommerceConnection = async (userId) => {
+  const response = await axiosInstance.get(`/marketplaceApp/test_woocommerce_connection/${userId}/woocommerce/`);
+  return response;
+};
 
 // Product Modal
 export const productModal = async (userId, selectedProductId, productChange, selectedProductCatalogue) => {
@@ -180,12 +192,6 @@ export const deleteVendorAccount = async (accountId) => {
   const response = await axiosInstance.delete(`/api/v2/vendor-account/${accountId}/`);
   return response.data;
 }
-
-// Complete Enrolment or Update
-export const completeEnrolmentOrUpdate = async (userId, payload) => {
-  const response = await axiosInstance.put(`/marketplaceApp/complete_enrolment_or_update/${userId}/Ebay/`, payload);
-  return response.data;
-};
 
 // Refresh Ebay Connection
 export const refreshEbaySilentConnection = async (userId) => {

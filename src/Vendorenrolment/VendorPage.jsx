@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import img1 from '../Images/VendorFirstPage.png';
-import { handleNextStep, setVendorAccount } from '../redux/vendor';
-import { useDispatch } from 'react-redux';
-import { ThreeDots } from 'react-loader-spinner';
-import { Toaster, toast } from 'sonner';
-import { CgProfile } from 'react-icons/cg';
-import { AnimatePresence, motion } from 'framer-motion';
+import React, { useEffect, useState } from "react";
+import img1 from "../Images/VendorFirstPage.png";
+import { useDispatch } from "react-redux";
+import { handleNextStep, setVendorAccount } from "../redux/vendor";
+import { ThreeDots } from "react-loader-spinner";
+import { Toaster, toast } from "sonner";
+import { CgProfile } from "react-icons/cg";
+import { AnimatePresence, motion } from "framer-motion";
 import { MdOutlineArrowBackIos } from "react-icons/md";
-import { useNavigate } from 'react-router-dom';
-import { useVendorStore } from '../stores/VendorStore';
+import { useNavigate } from "react-router-dom";
+import { useVendorStore } from "../stores/VendorStore";
 
 const AccountSkeleton = () => (
   <div className="w-full max-w-md py-3 px-4 rounded border border-[#E7F2ED] shadow-md my-3 animate-pulse">
@@ -21,52 +21,62 @@ const AccountSkeleton = () => (
 
 const VendorPage = () => {
   const dispatch = useDispatch();
-  const token = localStorage.getItem('token');
-  const storedVendorId = useVendorStore((state) => state.vendorId);
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+
+  const vendorId = useVendorStore((state) => state.vendorId);
+  const newAccount = useVendorStore((state) => state.newAccount);
   const setVendorContext = useVendorStore((state) => state.setVendorContext);
   const setVendorConnection = useVendorStore((state) => state.setVendorConnection);
   const setCurrentStep = useVendorStore((state) => state.setCurrentStep);
-  const navigate = useNavigate()
+
   const [vendorAccounts, setVendorAccounts] = useState([]);
   const [showAccountSelection, setShowAccountSelection] = useState(false);
-  const [loadingAccountId, setLoadingAccountId] = useState(null);
   const [loadingAccounts, setLoadingAccounts] = useState(true);
+  const [loadingAccountId, setLoadingAccountId] = useState(null);
+
+  // Reset showAccountSelection when newAccount changes
+  useEffect(() => {
+    if (newAccount) {
+      setShowAccountSelection(false);
+    }
+  }, [newAccount]);
 
   useEffect(() => {
     const fetchAccounts = async () => {
+      if (!token) return toast.error("Authentication token missing.");
+
       try {
         setLoadingAccounts(true);
-
-        const response = await fetch('https://service.swiftsuite.app/api/v2/vendor-account/', {
-          method: 'GET',
+        const response = await fetch("https://service.swiftsuite.app/api/v2/vendor-account/", {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
+            "Content-Type": "application/json",
           },
         });
 
         if (!response.ok) throw new Error(`Error: ${response.status}`);
-
         const data = await response.json();
-        const filtered = data?.filter(a => String(a.vendor) === String(storedVendorId)) || [];
-
+        const filtered = data?.filter((a) => String(a.vendor) === String(vendorId)) || [];
         setVendorAccounts(filtered);
       } catch (err) {
-        toast.error('Failed to load vendor accounts.');
-        setVendorAccounts([]);
+        toast.error("Failed to load vendor accounts.");
       } finally {
         setLoadingAccounts(false);
       }
     };
 
-    if (!token) {
-      toast.error('Authentication token missing. Please log in again.');
-      return;
-    }
-
     fetchAccounts();
-  }, [token, storedVendorId]);
+  }, [token, vendorId]);
+
+  const handleBack = () => {
+    if (showAccountSelection || newAccount) {
+      setShowAccountSelection(false);
+      setVendorContext({ newAccount: false });
+    } else {
+      navigate("/layout/editenrollment");
+    }
+  };
 
   const handleExistingAccount = () => {
     setVendorContext({ newAccount: false });
@@ -79,18 +89,10 @@ const VendorPage = () => {
     setCurrentStep(1);
   };
 
-  const handleBack = () => {
-    if (showAccountSelection) {
-      setShowAccountSelection(false); 
-    } else {
-      navigate("/layout/editenrollment") 
-    }
-  };
-
   const handleAccountSelect = async (item) => {
     const {
       id,
-      vendor,
+      vendor: accountVendor,
       ftp_username,
       ftp_password,
       host,
@@ -103,10 +105,15 @@ const VendorPage = () => {
 
     setLoadingAccountId(id);
 
-    setVendorContext({ vendorId: vendor });
+    setVendorContext({
+      vendor: accountVendor,
+      vendorId: accountVendor,
+      accountId: id,
+      newAccount: false,
+    });
 
     const payload = {
-      ...(vendor && { vendor }),
+      vendor: accountVendor,
       ...(ftp_username && { ftp_username }),
       ...(ftp_password && { ftp_password }),
       ...(host && { host }),
@@ -118,26 +125,24 @@ const VendorPage = () => {
     };
 
     try {
-      const response = await fetch('https://service.swiftsuite.app/api/v2/vendor-test/', {
+      const response = await fetch("https://service.swiftsuite.app/api/v2/vendor-test/", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) throw new Error(`Failed: ${response.status}`);
-
       const result = await response.json();
-      setVendorConnection(result);
 
-      dispatch(setVendorAccount({ accountId: id, vendorId: vendor }));
-      dispatch(handleNextStep({ account: id, vendor }));
-      setCurrentStep(3);
+      setVendorConnection(result);
+      dispatch(setVendorAccount({ accountId: id, vendorId: accountVendor }));
+      dispatch(handleNextStep({ account: id, vendor: accountVendor }));
+      setCurrentStep(2);
     } catch (error) {
-      toast.error('An unexpected error occurred. Please try again.');
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setLoadingAccountId(null);
     }
@@ -145,8 +150,6 @@ const VendorPage = () => {
 
   return (
     <section className="p-8 max-w-4xl mx-auto bg-white font-mirza">
-
-      
       <button
         onClick={handleBack}
         className="border py-2 px-3 rounded-[8px] bg-[#BB8232] text-white flex w-[5rem] justify-center items-center gap-1"
@@ -159,9 +162,7 @@ const VendorPage = () => {
 
       <AnimatePresence mode="wait">
         <div className="w-full" style={{ minHeight: 500 }}>
-
-          
-          {!showAccountSelection ? (
+          {!showAccountSelection && !newAccount ? (
             <motion.div
               key="initial-view"
               initial={{ opacity: 0 }}
@@ -191,8 +192,6 @@ const VendorPage = () => {
               </div>
             </motion.div>
           ) : (
-
-
             <motion.div
               key="account-selection-view"
               initial={{ x: 80, opacity: 0 }}
@@ -206,8 +205,6 @@ const VendorPage = () => {
               </p>
 
               <div className="w-full flex flex-col justify-center items-center">
-
-                
                 {loadingAccounts ? (
                   <>
                     <AccountSkeleton />
@@ -229,16 +226,13 @@ const VendorPage = () => {
                         <span className="font-medium">{item.name || `Account ${item.id}`}</span>
                       </div>
 
-                      {loadingAccountId === item.id && (
-                        <ThreeDots height="20" width="20" color="#4fa94d" />
-                      )}
+                      {loadingAccountId === item.id && <ThreeDots height="20" width="20" color="#4fa94d" />}
                     </motion.div>
                   ))
                 ) : (
                   <p className="text-red-600">No accounts found.</p>
                 )}
               </div>
-
             </motion.div>
           )}
         </div>

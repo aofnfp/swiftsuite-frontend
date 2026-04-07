@@ -384,7 +384,6 @@ const Listing = () => {
         itemSpecificArray.forEach((field) => {
           formattedFields[field] = "";
         });
-        // Override fields that have valid choices (dropdowns)
         Object.entries(validChoices).forEach(([key, options]) => {
           formattedFields[key] = Array.isArray(options) ? options : "";
         });

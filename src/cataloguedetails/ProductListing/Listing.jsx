@@ -182,7 +182,7 @@ const Listing = () => {
         !isDropdownButton
       ) {
         setIsDropdownOpen(null);
-        setFilterValues("");
+        setFilterValues({});
       }
     }
 
@@ -352,7 +352,7 @@ const Listing = () => {
     setSelectedValues((prev) => ({ ...prev, [fieldName]: label }));
     setCustomInputValues((prev) => ({ ...prev, [fieldName]: "" }));
     setFilterValues((prev) => ({ ...prev, [fieldName]: "" }));
-    setIsDropdownOpen(false);
+    setIsDropdownOpen(null);
   };
 
   const filteredOptions = (fieldName, options) => {
@@ -911,6 +911,19 @@ const Listing = () => {
               dropdownRef={dropdownRef}
               handleListingChange={handleListingChange}
             />
+            <WooSection
+              isWoocommerce={isWoocommerce}
+              isWoocommerceOpen={isWoocommerceOpen}
+              setIsWoocommerceOpen={setIsWoocommerceOpen}
+              handleWooCommerceCategory={handleWooCommerceCategory}
+              loadingWooCategories={loadingWooCategories}
+              wooCategories={wooCategories}
+              selectedWooCategories={selectedWooCategories}
+              setSelectedWooCategories={setSelectedWooCategories}
+              productListing={productListing}
+              wcAttributes={wcAttributes}
+              setWcAttributes={setWcAttributes}
+            />
             <PreferencesSection productListing={productListing} setProductListing={setProductListing} enableCharity={enableCharity} setEnableCharity={setEnableCharity} />
               {isShopify && (
                 <div className="bg-gray-50 p-4 rounded border border-gray-300">
@@ -923,19 +936,6 @@ const Listing = () => {
                   </p>
                 </div>
               )}
-              <WooSection
-                isWoocommerce={isWoocommerce}
-                isWoocommerceOpen={isWoocommerceOpen}
-                setIsWoocommerceOpen={setIsWoocommerceOpen}
-                handleWooCommerceCategory={handleWooCommerceCategory}
-                loadingWooCategories={loadingWooCategories}
-                wooCategories={wooCategories}
-                selectedWooCategories={selectedWooCategories}
-                setSelectedWooCategories={setSelectedWooCategories}
-                productListing={productListing}
-                wcAttributes={wcAttributes}
-                setWcAttributes={setWcAttributes}
-              />
               {isWalmart && (
                 <div className="bg-gray-50 p-4 rounded border border-gray-300">
                   <p>

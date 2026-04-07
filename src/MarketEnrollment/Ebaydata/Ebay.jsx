@@ -7,7 +7,6 @@ import { countries } from './EbayCountries';
 import { FaRegRectangleXmark } from "react-icons/fa6";
 import { FaRegCheckSquare } from "react-icons/fa";
 import { MdArrowDropDown } from "react-icons/md";
-import axios from 'axios';
 import { FiRefreshCw } from "react-icons/fi";
 import { TbPlugConnected } from "react-icons/tb";
 import gif from './images/gif.gif';
@@ -16,8 +15,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Toaster, toast } from 'sonner';
 import Tooltip from '@mui/material/Tooltip';
 import { ArrowLeft } from 'react-feather';
-import { completeEnrolmentOrUpdate, refreshEbayConnection, refreshEbaySilentConnection } from '../../api/authApi';
+import { marketplaceEnrolment, marketplaceOAuthCallback, refreshEbayConnection, refreshEbaySilentConnection } from '../../api/authApi';
 import { extractStoreId } from '../../utils/utils';
+
+import { useMarketplaceStore } from '../../stores/marketplaceStore';
 
 const Ebay = () => {
   const store = useSelector(state => state.vendor.vendorData);
@@ -26,32 +27,56 @@ const Ebay = () => {
   const userId = userIdString ? JSON.parse(userIdString) : null;
   const navigate = useNavigate();
   const vendorName = localStorage.getItem('vendorName');
-  const [connectClickedState, setConnectClickedState] = useState(localStorage.getItem('connectClicked') === 'true');
 
-  const [hasResponse, setHasResponse] = useState(false);
-  const [ebayConnected, setEbayConnected] = useState(false);
-  const [policiesLoaded, setPoliciesLoaded] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showAccessCodeButton, setShowAccessCodeButton] = useState(false);
-  
-  const [shipPolicyToggle, setShipPolicyToggle] = useState(false);
-  const [returnPolicyToggle, setReturnPolicyToggle] = useState(false);
-  const [paymentPolicyToggle, setPaymentPolicyToggle] = useState(false);
-  const [shipPolicyArray, setShipPolicyArray] = useState([]);
-  const [returnPolicyArray, setReturnPolicyArray] = useState([]);
-  const [paymentPolicyArray, setPaymentPolicyArray] = useState([]);
-  
-  const [authorization_code, setAuthorization_code] = useState('');
-  const [refreshIcon, setRefreshIcon] = useState(false);
-  const [isRotate, setIsRotate] = useState(false);
-  const [isRotating, setIsRotating] = useState(false);
-  const [modal2Open, setModal2Open] = useState(false);
-  
-  const [selectedCountry, setSelectedCountry] = useState("");
-  const [storeDetails, setStoreDetails] = useState('');
-  const [shipname, setShipname] = useState('');
-  const [returnname, setReturnname] = useState('');
-  const [paymentname, setPaymentname] = useState('');
+  const connectClickedState = useMarketplaceStore((state) => state.connectClicked);
+  const setConnectClickedState = useMarketplaceStore((state) => state.setConnectClicked);
+  const ebayConnected = useMarketplaceStore((state) => state.ebayConnected);
+  const setEbayConnected = useMarketplaceStore((state) => state.setEbayConnected);
+  const policiesLoaded = useMarketplaceStore((state) => state.policiesLoaded);
+  const setPoliciesLoaded = useMarketplaceStore((state) => state.setPoliciesLoaded);
+  const isSubmitting = useMarketplaceStore((state) => state.isSubmitting);
+  const setIsSubmitting = useMarketplaceStore((state) => state.setIsSubmitting);
+  const showAccessCodeButton = useMarketplaceStore((state) => state.showAccessCodeButton);
+  const setShowAccessCodeButton = useMarketplaceStore((state) => state.setShowAccessCodeButton);
+  const shipPolicyToggle = useMarketplaceStore((state) => state.shipPolicyToggle);
+  const setShipPolicyToggle = useMarketplaceStore((state) => state.setShipPolicyToggle);
+  const returnPolicyToggle = useMarketplaceStore((state) => state.returnPolicyToggle);
+  const setReturnPolicyToggle = useMarketplaceStore((state) => state.setReturnPolicyToggle);
+  const paymentPolicyToggle = useMarketplaceStore((state) => state.paymentPolicyToggle);
+  const setPaymentPolicyToggle = useMarketplaceStore((state) => state.setPaymentPolicyToggle);
+  const shipPolicyArray = useMarketplaceStore((state) => state.shipPolicyArray);
+  const setShipPolicyArray = useMarketplaceStore((state) => state.setShipPolicyArray);
+  const returnPolicyArray = useMarketplaceStore((state) => state.returnPolicyArray);
+  const setReturnPolicyArray = useMarketplaceStore((state) => state.setReturnPolicyArray);
+  const paymentPolicyArray = useMarketplaceStore((state) => state.paymentPolicyArray);
+  const setPaymentPolicyArray = useMarketplaceStore((state) => state.setPaymentPolicyArray);
+  const authorization_code = useMarketplaceStore((state) => state.authorizationCode);
+  const setAuthorization_code = useMarketplaceStore((state) => state.setAuthorizationCode);
+  const refreshIcon = useMarketplaceStore((state) => state.refreshIcon);
+  const setRefreshIcon = useMarketplaceStore((state) => state.setRefreshIcon);
+  const isRotate = useMarketplaceStore((state) => state.isRotate);
+  const setIsRotate = useMarketplaceStore((state) => state.setIsRotate);
+  const isRotating = useMarketplaceStore((state) => state.isRotating);
+  const setIsRotating = useMarketplaceStore((state) => state.setIsRotating);
+  const modal2Open = useMarketplaceStore((state) => state.modal2Open);
+  const setModal2Open = useMarketplaceStore((state) => state.setModal2Open);
+  const selectedCountry = useMarketplaceStore((state) => state.selectedCountry);
+  const setSelectedCountry = useMarketplaceStore((state) => state.setSelectedCountry);
+  const storeDetails = useMarketplaceStore((state) => state.storeDetails);
+  const setStoreDetails = useMarketplaceStore((state) => state.setStoreDetails);
+  const shipname = useMarketplaceStore((state) => state.shipName);
+  const setShipname = useMarketplaceStore((state) => state.setShipName);
+  const returnname = useMarketplaceStore((state) => state.returnName);
+  const setReturnname = useMarketplaceStore((state) => state.setReturnName);
+  const paymentname = useMarketplaceStore((state) => state.paymentName);
+  const setPaymentname = useMarketplaceStore((state) => state.setPaymentName);
+  const hasResponse = useMarketplaceStore((state) => state.hasResponse);
+  const setHasResponse = useMarketplaceStore((state) => state.setHasResponse);
+  const connectTime = useMarketplaceStore((state) => state.connectTime);
+  const setConnectTime = useMarketplaceStore((state) => state.setConnectTime);
+  const marketList = useMarketplaceStore((state) => state.marketList);
+  const setMarketList = useMarketplaceStore((state) => state.setMarketList);
+  const setSubmittedMarketPlace = useMarketplaceStore((state) => state.setSubmittedMarketPlace);
 
   const timeoutRef = useRef(null);
   const accessCodeTimeoutRef = useRef(null);
@@ -245,12 +270,12 @@ const Ebay = () => {
         payment_policy: JSON.stringify(data.payment_policy),
         store_id: extractStoreId(data.store_id),
       };
-      const response = await completeEnrolmentOrUpdate(userId, payload);
+      const response = await marketplaceEnrolment(userId, 'Ebay', payload);
       if (response) {
         toast.success("eBay enrollment successful!");
-        localStorage.setItem("submittedMarketPlace", response.marketplace_name);
-        localStorage.removeItem('connectClicked');
+        setSubmittedMarketPlace(response.marketplace_name);
         setConnectClickedState(false);
+        setConnectTime(null);
         navigate('/marketplace/success');
       }
     } catch (error) {
@@ -276,7 +301,6 @@ const Ebay = () => {
         const newStoreId = extractStoreId(data.ebay_store_id); 
         setStoreDetails(newStoreId);
         setValue('store_id', newStoreId); 
-        localStorage.setItem('refreshData', JSON.stringify(data));
         return data;
       }
     } catch (error) {
@@ -306,7 +330,6 @@ const Ebay = () => {
         setStoreDetails(newStoreId);
         setValue('store_id', newStoreId); 
         toast.success("eBay connection refreshed successfully!");
-        localStorage.setItem('refreshData', JSON.stringify(data));
         return data;
       }
     } catch (error) {
@@ -325,19 +348,16 @@ const Ebay = () => {
     setIsRotate(true);
     try {
       const now = Date.now();
-      localStorage.setItem('connectClicked', 'true');
-      localStorage.setItem('connectTime', now.toString());
-
       setConnectClickedState(true);
+      setConnectTime(now.toString());
       setShowAccessCodeButton(true);
 
       const ebayConnectEndpoint = 'https://service.swiftsuite.app/marketplaceApp/get_auth_code/Ebay';
       window.open(ebayConnectEndpoint, '_blank');
 
       timeoutRef.current = setTimeout(() => {
-        localStorage.removeItem('connectClicked');
-        localStorage.removeItem('connectTime');
         setConnectClickedState(false);
+        setConnectTime(null);
         setShowAccessCodeButton(false);
       }, 15 * 60 * 1000);
 
@@ -351,7 +371,7 @@ const Ebay = () => {
     } finally {
       setIsRotate(false);
     }
-  }, []);
+  }, [setConnectClickedState, setConnectTime, setShowAccessCodeButton, setIsRotate]);
 
   const sendCode = useCallback(async () => {
     if (!authorization_code.trim()) {
@@ -360,21 +380,12 @@ const Ebay = () => {
     }
 
     try {
-      const endpoint = `https://service.swiftsuite.app/marketplaceApp/oauth/callback/${userId}/Ebay/`;
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        body: JSON.stringify({ authorization_code }),
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-      });
+      const response = await marketplaceOAuthCallback(userId, 'Ebay', authorization_code);
 
       if (response.status === 200) {
         toast.success("eBay connection successful!");
-        localStorage.removeItem('connectClicked');
         setConnectClickedState(false);
+        setConnectTime(null);
         setShowAccessCodeButton(false);
         setModal2Open(false);
         setAuthorization_code('');
@@ -399,27 +410,18 @@ const Ebay = () => {
     } catch (error) {
       toast.error("Connection error:", error);
     }
-  }, [authorization_code, token, refreshEbaySilent]);
+  }, [authorization_code, userId, refreshEbaySilent, setConnectClickedState, setConnectTime, setShowAccessCodeButton, setModal2Open, setAuthorization_code]);
 
   useEffect(() => {
     const loadInitialData = async () => {
       try {
         const refreshData = await refreshEbaySilent();
         
-        const marketList = localStorage.getItem('MarketList');
-        if (marketList !== 'true') {
-          const endpoint = `https://service.swiftsuite.app/marketplaceApp/complete_enrolment_or_update/${userId}/Ebay/`;
-          
-          const response = await axios.put(endpoint, {}, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            }
-          });
+        if (marketList !== true) {
+          const response = await marketplaceEnrolment(userId, 'Ebay');
 
-          if (response.status === 200) {
-            const data = response.data;
+          if (response) {
+            const data = response;
             const parsePolicy = (policyString) => {
               try {
                 if (!policyString) return { id: '', name: '' };
@@ -479,12 +481,11 @@ const Ebay = () => {
 
   useEffect(() => {
     if (connectClickedState) {
-      const connectTimeStr = localStorage.getItem('connectTime');
       const currentTime = Date.now();
 
-      if (connectTimeStr) {
-        const connectTime = parseInt(connectTimeStr);
-        const elapsed = currentTime - connectTime;
+      if (connectTime) {
+        const parsedConnectTime = parseInt(connectTime);
+        const elapsed = currentTime - parsedConnectTime;
 
         const accessCodeRemaining = 6 * 60 * 1000 - elapsed;
         const fullTimeoutRemaining = 15 * 60 * 1000 - elapsed;
@@ -500,20 +501,18 @@ const Ebay = () => {
 
         if (fullTimeoutRemaining > 0) {
           timeoutRef.current = setTimeout(() => {
-            localStorage.removeItem('connectClicked');
-            localStorage.removeItem('connectTime');
             setConnectClickedState(false);
+            setConnectTime(null);
             setShowAccessCodeButton(false);
           }, fullTimeoutRemaining);
         } else {
-          localStorage.removeItem('connectClicked');
-          localStorage.removeItem('connectTime');
           setConnectClickedState(false);
+          setConnectTime(null);
           setShowAccessCodeButton(false);
         }
       }
     }
-  }, [connectClickedState]);
+  }, [connectClickedState, connectTime, setConnectClickedState, setConnectTime, setShowAccessCodeButton]);
 
   useEffect(() => {
     return () => {
@@ -1125,13 +1124,7 @@ useEffect(() => {
         </section>
         <Toaster position="top-right" />
       </div>
-      <AccessModal
-        modal2Open={modal2Open}
-        authorization_code={authorization_code}
-        setModal2Open={setModal2Open}
-        setAuthorization_code={setAuthorization_code}
-        sendCode={sendCode}
-      />
+      <AccessModal />
     </>
   );
 };

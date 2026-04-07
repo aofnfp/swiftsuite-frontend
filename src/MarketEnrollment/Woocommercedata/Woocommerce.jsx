@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -10,8 +10,9 @@ import ResponsiveTooltip from "../ResponsiveTooltip";
 import { Toaster, toast } from "sonner";
 import { Link, useNavigate } from 'react-router-dom';
 import { ThreeDots } from 'react-loader-spinner';
-import axios from 'axios';
 import { ArrowLeft } from 'react-feather';
+import { marketplaceEnrolment, woocommerceEnrolment, testWoocommerceConnection } from '../../api/authApi';
+import { useMarketplaceStore } from '../../stores/marketplaceStore';
 
 
 
@@ -23,19 +24,33 @@ const Woocommerce = () => {
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
 
-  const [price, setPrice] = useState(false);
-  const [quantity, setQuantity] = useState(false);
-  const [enforcement, setEnforcement] = useState(false);
-  const [msrp, setMsrp] = useState(false);
-  const [sendMinPrice, setSendMinPrice] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState('');
-  const [productStatus, setProductStatus] = useState('Publish');
-  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [apiKeysLoading, setApiKeysLoading] = useState(false);
-  const [connectStoreLoading, setConnectStoreLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [hasExistingEnrolment, setHasExistingEnrolment] = useState(false);
+  const price = useMarketplaceStore((state) => state.wcPriceUpdate);
+  const setPrice = useMarketplaceStore((state) => state.setWcPriceUpdate);
+  const quantity = useMarketplaceStore((state) => state.wcQuantityUpdate);
+  const setQuantity = useMarketplaceStore((state) => state.setWcQuantityUpdate);
+  const enforcement = useMarketplaceStore((state) => state.wcMapEnforcement);
+  const setEnforcement = useMarketplaceStore((state) => state.setWcMapEnforcement);
+  const msrp = useMarketplaceStore((state) => state.wcAutoPopulateMsrp);
+  const setMsrp = useMarketplaceStore((state) => state.setWcAutoPopulateMsrp);
+  const sendMinPrice = useMarketplaceStore((state) => state.wcSendMinPrice);
+  const setSendMinPrice = useMarketplaceStore((state) => state.setWcSendMinPrice);
+  const selectedCountry = useMarketplaceStore((state) => state.selectedCountry);
+  const setSelectedCountry = useMarketplaceStore((state) => state.setSelectedCountry);
+  const productStatus = useMarketplaceStore((state) => state.wcProductStatus);
+  const setProductStatus = useMarketplaceStore((state) => state.setWcProductStatus);
+  const isStatusDropdownOpen = useMarketplaceStore((state) => state.wcStatusDropdownOpen);
+  const setIsStatusDropdownOpen = useMarketplaceStore((state) => state.setWcStatusDropdownOpen);
+  const loading = useMarketplaceStore((state) => state.wcLoading);
+  const setLoading = useMarketplaceStore((state) => state.setWcLoading);
+  const apiKeysLoading = useMarketplaceStore((state) => state.wcApiKeysLoading);
+  const setApiKeysLoading = useMarketplaceStore((state) => state.setWcApiKeysLoading);
+  const connectStoreLoading = useMarketplaceStore((state) => state.wcConnectStoreLoading);
+  const setConnectStoreLoading = useMarketplaceStore((state) => state.setWcConnectStoreLoading);
+  const initialLoading = useMarketplaceStore((state) => state.wcInitialLoading);
+  const setInitialLoading = useMarketplaceStore((state) => state.setWcInitialLoading);
+  const hasExistingEnrolment = useMarketplaceStore((state) => state.wcHasExistingEnrolment);
+  const setHasExistingEnrolment = useMarketplaceStore((state) => state.setWcHasExistingEnrolment);
+  const resetWcStore = useMarketplaceStore((state) => state.resetWcStore);
 
   const Schema = yup.object().shape({
     wc_consumer_url: yup
@@ -117,30 +132,20 @@ const Woocommerce = () => {
   const wcConsumerKey = watch('wc_consumer_key');
   const wcConsumerSecret = watch('wc_consumer_secret');
 
+  const marketList = useMarketplaceStore((state) => state.marketList);
+
   const loadExistingEnrolment = useCallback(async () => {
-    if (!userId || !token || localStorage.getItem('MarketList') === 'true') {
+    if (!userId || !token || marketList === true) {
       setInitialLoading(false);
       return;
     }
 
     try {
       setInitialLoading(true);
-      const endpoint = `https://service.swiftsuite.app/marketplaceApp/complete_enrolment_or_update/${userId}/woocommerce/`;
+      const response = await marketplaceEnrolment(userId, 'woocommerce');
 
-      const response = await axios.put(
-        endpoint,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-        }
-      );
-
-      if (response.status === 200) {
-        const data = response.data;
+      if (response) {
+        const data = response;
 
         const formPayload = {
           marketplace_name: data.marketplace_name || 'woocommerce',
@@ -235,25 +240,15 @@ const Woocommerce = () => {
 
     try {
       setLoading(true);
-      const endpoint = hasExistingEnrolment
-        ? `https://service.swiftsuite.app/marketplaceApp/complete_enrolment_or_update/${userId}/woocommerce/`
-        : `https://service.swiftsuite.app/marketplaceApp/woocommerce_enrolment/${userId}/`;
-      const method = hasExistingEnrolment ? 'PUT' : 'POST';
-      const response = await fetch(endpoint, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-      console.log(response)
-      const result = await response.json();
-      if (response.ok) {
+      const response = hasExistingEnrolment
+        ? await marketplaceEnrolment(userId, 'woocommerce', payload)
+        : await woocommerceEnrolment(userId, payload);
+
+      if (response.status === 200 || response.status === 201) {
         toast.success('WooCommerce account configured successfully! 🎉');
         navigate('/marketplace/success');
       } else {
-        console.log(result)
+        const result = response.data;
         if (result === "User is already enrolled in WooCommerce marketplace."){
           toast.error(result)
         }else {
@@ -274,7 +269,7 @@ const Woocommerce = () => {
     setValue('region', val);
   };
 
-  const toggleStatusDropdown = () => setIsStatusDropdownOpen((v) => !v);
+  const toggleStatusDropdown = () => setIsStatusDropdownOpen(!isStatusDropdownOpen);
   const handleStatusSelect = (status) => {
     setProductStatus(status);
     setValue('wc_product_status', status);
@@ -310,12 +305,8 @@ const Woocommerce = () => {
   const handleConnectStore = async () => {
   setConnectStoreLoading(true);
 
-  const userId = JSON.parse(localStorage.getItem("userId"));
-
   try {
-    const res = await axios.get(
-      `https://service.swiftsuite.app/marketplaceApp/test_woocommerce_connection/${userId}/woocommerce/`
-    );
+    const res = await testWoocommerceConnection(userId);
 
     toast.success(res.data?.message || "WooCommerce connection successful");
   } catch (err) {

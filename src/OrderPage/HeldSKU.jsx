@@ -1,5 +1,177 @@
 import React, { useState, useEffect } from 'react'
-import { ChevronDown, Package, Trash2, Eye, AlertCircle, Loader, Lock, Search, X } from 'lucide-react'
+import { ChevronDown, Package, Trash2, Eye, AlertCircle, Loader, Lock, Search, X, Plus } from 'lucide-react'
+
+const SkeletonLoader = () => {
+  return (
+    <div className="space-y-4">
+      {[1, 2, 3].map((idx) => (
+        <div
+          key={idx}
+          className="rounded-xl border-2 border-gray-200 overflow-hidden bg-white shadow-sm animate-pulse"
+        >
+          <div className="p-6 flex items-center justify-between">
+            <div className="flex items-center gap-5 flex-1">
+              <div className="w-16 h-16 rounded-lg bg-emerald-100 animate-pulse" />
+              <div className="flex-1 space-y-3">
+                <div className="h-6 w-40 rounded-lg bg-emerald-100 animate-pulse" />
+                <div className="h-5 w-32 rounded-lg bg-emerald-100 animate-pulse" />
+              </div>
+            </div>
+            <div className="w-6 h-6 rounded-lg bg-emerald-100 animate-pulse" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+const AddSKUModal = ({ isOpen, accountId, accountName, onClose, onSkuAdded }) => {
+  const [skuInput, setSkuInput] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const handleAddSku = async () => {
+    if (!skuInput.trim()) {
+      setError('Please enter a SKU')
+      return
+    }
+
+    try {
+      setLoading(true)
+      setError(null)
+      const token = localStorage.getItem('token')
+
+      const response = await fetch(
+        `https://service.swiftsuite.app/orderApp/held-sku/${accountId}/${skuInput.trim()}/`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({}),
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error('Failed to add SKU')
+      }
+
+      setSkuInput('')
+      onSkuAdded()
+      onClose()
+    } catch (err) {
+      setError(err.message || 'Error adding SKU')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !loading) {
+      handleAddSku()
+    }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-xl shadow-xl w-full max-w-md"
+        style={{ animation: 'slideUp 0.3s ease-out' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="p-6 border-b-2 border-gray-100 flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-gray-900">Add SKU</h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 space-y-5">
+          <div>
+            <p className="text-sm text-gray-600 mb-3">
+              Adding SKU to <span className="font-bold text-gray-900">{accountName}</span>
+            </p>
+          </div>
+
+          {error && (
+            <div className="p-4 border-l-4 border-red-500 bg-red-50 rounded-lg flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+              <p className="text-red-700 text-sm font-medium">{error}</p>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <label className="block text-sm font-bold text-gray-900">
+              SKU Number
+            </label>
+            <input
+              type="text"
+              value={skuInput}
+              onChange={(e) => setSkuInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Enter SKU (e.g., SKU-12345)"
+              className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:outline-none focus:border-emerald-700 transition-colors bg-white text-gray-900 font-mono"
+              disabled={loading}
+              autoFocus
+            />
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-6 border-t-2 border-gray-100 flex gap-3">
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="flex-1 px-4 py-3 border-2 border-gray-200 text-gray-900 rounded-lg font-bold transition-all hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleAddSku}
+            disabled={loading}
+            className="flex-1 px-4 py-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-bold transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <Loader className="w-4 h-4 animate-spin" />
+                <span>Adding...</span>
+              </>
+            ) : (
+              <>
+                <Plus className="w-4 h-4" />
+                <span>Add SKU</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        <style>{`
+          @keyframes slideUp {
+            from {
+              opacity: 0;
+              transform: translateY(10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `}</style>
+      </div>
+    </div>
+  )
+}
 
 const HeldSKU = () => {
   const [accounts, setAccounts] = useState([])
@@ -12,10 +184,10 @@ const HeldSKU = () => {
   const [error, setError] = useState(null)
   const [deletingSkus, setDeletingSkus] = useState(new Set())
   const [searchQuery, setSearchQuery] = useState('')
+  const [addSkuModal, setAddSkuModal] = useState({ isOpen: false, accountId: null, accountName: null })
 
   const getToken = () => localStorage.getItem('token')
 
-  // Fetch vendor accounts
   useEffect(() => {
     const fetchAccounts = async () => {
       try {
@@ -36,7 +208,6 @@ const HeldSKU = () => {
         const data = await response.json()
         setAccounts(data)
 
-        // Fetch held SKUs for all accounts
         const allSkus = {}
         for (const account of data) {
           try {
@@ -68,7 +239,6 @@ const HeldSKU = () => {
     fetchAccounts()
   }, [])
 
-  // Fetch held SKUs for an account
   const fetchHeldSkus = async (accountId) => {
     try {
       const token = getToken()
@@ -92,7 +262,6 @@ const HeldSKU = () => {
     }
   }
 
-  // Fetch SKU details
   const fetchSkuDetails = async (accountId, sku) => {
     try {
       setDetailsLoading(true)
@@ -121,7 +290,6 @@ const HeldSKU = () => {
     }
   }
 
-  // Delete SKU
   const deleteSku = async (accountId, sku) => {
     try {
       setDeletingSkus((prev) => new Set([...prev, `${accountId}-${sku}`]))
@@ -137,7 +305,6 @@ const HeldSKU = () => {
         }
       )
       if (!response.ok) throw new Error('Failed to delete SKU')
-      // Refresh the held SKUs for this account
       await fetchHeldSkus(accountId)
       setSelectedSku(null)
     } catch (err) {
@@ -162,7 +329,6 @@ const HeldSKU = () => {
     }
   }
 
-  // Filter accounts and SKUs based on search query
   const filteredAccounts = accounts.filter((account) => {
     const accountMatches = account.name
       .toLowerCase()
@@ -176,30 +342,53 @@ const HeldSKU = () => {
 
   if (loading) {
     return (
- <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="flex justify-center mb-4">
-            <div
-              className="relative w-16 h-16 rounded-full border-4 border-gray-200"
-              style={{ borderTopColor: '#027840' }}
-            >
-              <Loader className="w-12 h-12 animate-spin mx-auto mt-2" style={{ color: '#027840' }} />
+      <div className="my-0 md:my-28 mx-0 md:mx-10 bg-gradient-to-br from-white via-gray-50 to-white p-16">
+        <div className="max-w-7xl mx-auto">
+          {/* Header Skeleton */}
+          <div className="mb-12">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-16 h-16 rounded-lg bg-emerald-100 animate-pulse" />
+              <div className="flex-1 space-y-3">
+                <div className="h-10 w-64 rounded-lg bg-emerald-100 animate-pulse" />
+                <div className="h-5 w-48 rounded-lg bg-emerald-100 animate-pulse" />
+              </div>
             </div>
           </div>
-          <p className="text-gray-700 text-lg font-medium">Loading vendor accounts...</p>
+
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <SkeletonLoader />
+            </div>
+
+            {/* Details Panel Skeleton */}
+            <div className="lg:col-span-1">
+              <div className="rounded-xl border-2 border-gray-200 p-8 bg-white shadow-sm h-fit animate-pulse">
+                <div className="h-6 w-32 rounded-lg bg-emerald-100 mb-6" />
+                <div className="space-y-4">
+                  {[1, 2, 3].map((idx) => (
+                    <div key={idx} className="space-y-2">
+                      <div className="h-4 w-24 rounded-lg bg-emerald-100" />
+                      <div className="h-12 w-full rounded-lg bg-emerald-100" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="my-0 md:my-[7rem] mx-0 md:mx-10 bg-gradient-to-br from-white via-gray-50 to-white p-[4rem] md:p-[4rem]">
+    <div className="my-0 md:my-28 mx-0 md:mx-10 bg-gradient-to-br from-white via-gray-50 to-white p-16">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-12">
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 rounded-lg" style={{ backgroundColor: '#02784015' }}>
-              <Lock className="w-8 h-8" style={{ color: '#027840' }} />
+            <div className="p-3 rounded-lg bg-emerald-50">
+              <Lock className="w-8 h-8 text-emerald-700" />
             </div>
             <div>
               <h1 className="text-4xl font-bold text-gray-900">
@@ -238,7 +427,7 @@ const HeldSKU = () => {
             )}
           </div>
 
-          <div className="h-1 w-20 rounded-full mt-6" style={{ backgroundColor: '#027840' }}></div>
+          <div className="h-1 w-20 rounded-full mt-6 bg-emerald-700" />
         </div>
 
         {/* Error Alert */}
@@ -281,45 +470,23 @@ const HeldSKU = () => {
                   </p>
                 </div>
               ) : (
-                filteredAccounts.map((account, idx) => {
+                filteredAccounts.map((account) => {
                   const skuCount = heldSkus[account.id]?.length || 0
                   const accountSkus = heldSkus[account.id] || []
-                  const filteredSkus = searchQuery
-                    ? accountSkus.filter((sku) =>
-                        sku.toLowerCase().includes(searchQuery.toLowerCase())
-                      )
-                    : accountSkus
 
                   return (
                     <div
                       key={account.id}
                       className="rounded-xl border-2 border-gray-200 overflow-hidden bg-white shadow-sm hover:shadow-lg transition-all duration-300"
-                      style={{
-                        animation: `slideIn 0.4s ease-out ${idx * 50}ms backwards`,
-                      }}
+                      style={{ animation: 'slideIn 0.4s ease-out' }}
                     >
-                      <style>{`
-                        @keyframes slideIn {
-                          from {
-                            opacity: 0;
-                            transform: translateY(20px);
-                          }
-                          to {
-                            opacity: 1;
-                            transform: translateY(0);
-                          }
-                        }
-                      `}</style>
                       {/* Account Header */}
-                      <button
-                        onClick={() => toggleAccount(account.id)}
-                        className="w-full p-6 flex items-center justify-between hover:bg-gray-50/50 transition-colors"
-                      >
-                        <div className="flex items-center gap-5 flex-1 text-left">
-                          <div
-                            className="p-4 rounded-lg text-white font-bold text-xl w-16 h-16 flex items-center justify-center"
-                            style={{ backgroundColor: '#027840' }}
-                          >
+                      <div className="p-6 flex items-center justify-between border-b-2 border-gray-100 hover:bg-gray-50/50 transition-colors">
+                        <button
+                          onClick={() => toggleAccount(account.id)}
+                          className="flex items-center gap-5 flex-1 text-left"
+                        >
+                          <div className="p-4 rounded-lg bg-emerald-700 text-white font-bold text-xl w-16 h-16 flex items-center justify-center flex-shrink-0">
                             {account.name.charAt(0).toUpperCase()}
                           </div>
                           <div className="flex-1">
@@ -327,23 +494,33 @@ const HeldSKU = () => {
                               {account.name}
                             </h3>
                             <div className="flex items-center gap-4 mt-2">
-                              <span
-                                className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold text-white"
-                                style={{ backgroundColor: '#027840' }}
-                              >
+                              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold text-white bg-emerald-700">
                                 <Lock className="w-4 h-4" />
                                 {skuCount} SKU{skuCount !== 1 ? 's' : ''} Held
                               </span>
                             </div>
                           </div>
+                        </button>
+
+                        <div className="flex items-center gap-3 flex-shrink-0">
+                          <button
+                            onClick={() =>
+                              setAddSkuModal({
+                                isOpen: true,
+                                accountId: account.id,
+                                accountName: account.name,
+                              })
+                            }
+                            className="p-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg transition-all duration-200 hover:shadow-md"
+                            title="Add SKU"
+                          >
+                            <Plus className="w-5 h-5" />
+                          </button>
+                          <ChevronDown
+                            className={`w-6 h-6 text-gray-400 transition-transform duration-300 ${expandedAccount === account.id ? 'rotate-180' : 'rotate-0'}`}
+                          />
                         </div>
-                        <ChevronDown
-                          className="w-6 h-6 text-gray-400 transition-transform duration-300 flex-shrink-0"
-                          style={{
-                            transform: expandedAccount === account.id ? 'rotate(180deg)' : 'rotate(0deg)',
-                          }}
-                        />
-                      </button>
+                      </div>
 
                       {/* Held SKUs Section */}
                       {expandedAccount === account.id && (
@@ -354,63 +531,26 @@ const HeldSKU = () => {
                                 Held SKUs
                               </p>
                               <div className="flex flex-wrap gap-3">
-                                {accountSkus.map((sku, skuIdx) => (
+                                {accountSkus.map((sku) => (
                                   <div
                                     key={`${account.id}-${sku}`}
-                                    className="flex items-center gap-2 animate-fadeIn"
-                                    style={{
-                                      animation: `slideUp 0.3s ease-out ${skuIdx * 80}ms backwards`,
-                                    }}
+                                    className="flex items-center gap-2"
+                                    style={{ animation: 'slideUp 0.3s ease-out' }}
                                   >
-                                    <style>{`
-                                      @keyframes slideUp {
-                                        from {
-                                          opacity: 0;
-                                          transform: translateY(10px);
-                                        }
-                                        to {
-                                          opacity: 1;
-                                          transform: translateY(0);
-                                        }
-                                      }
-                                    `}</style>
                                     <button
-                                      onClick={() =>
-                                        fetchSkuDetails(account.id, sku)
-                                      }
-                                      className="px-4 py-3 border-2 rounded-lg text-sm font-bold transition-all duration-200 flex items-center gap-2 hover:shadow-md"
-                                      style={{
-                                        borderColor: '#027840',
-                                        color: '#027840',
-                                        backgroundColor:
-                                          selectedSku?.sku === sku &&
-                                          selectedSku?.accountId === account.id
-                                            ? '#02784015'
-                                            : 'transparent',
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        e.target.style.backgroundColor = '#027840'
-                                        e.target.style.color = 'white'
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        e.target.style.backgroundColor =
-                                          selectedSku?.sku === sku &&
-                                          selectedSku?.accountId === account.id
-                                            ? '#02784015'
-                                            : 'transparent'
-                                        e.target.style.color = '#027840'
-                                      }}
+                                      onClick={() => fetchSkuDetails(account.id, sku)}
+                                      className={`px-4 py-3 border-2 border-emerald-700 rounded-lg text-sm font-bold transition-all duration-200 flex items-center gap-2 hover:shadow-md hover:bg-emerald-700 hover:text-white ${
+                                        selectedSku?.sku === sku && selectedSku?.accountId === account.id
+                                          ? 'bg-emerald-50 text-emerald-700'
+                                          : 'bg-transparent text-emerald-700'
+                                      }`}
                                     >
                                       <span className="font-mono">{sku}</span>
                                       <Eye className="w-4 h-4" />
                                     </button>
                                     <button
-                                      onClick={() =>
-                                        deleteSku(account.id, sku)
-                                      }
-                                      disabled={deletingSkus.has(
-                                        `${account.id}-${sku}`
-                                      )}
+                                      onClick={() => deleteSku(account.id, sku)}
+                                      disabled={deletingSkus.has(`${account.id}-${sku}`)}
                                       className="p-3 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                                       title="Remove SKU"
                                     >
@@ -452,29 +592,16 @@ const HeldSKU = () => {
                 <div className="space-y-5">
                   {detailsLoading ? (
                     <div className="flex flex-col items-center justify-center py-12">
-                      <div className="relative w-12 h-12 mb-4">
-                        <div
-                          className="absolute inset-0 rounded-full border-3 border-gray-200"
-                          style={{ borderTopColor: '#027840' }}
-                        >
-                          <Loader className="w-6 h-6 animate-spin" style={{ color: '#027840' }} />
-                        </div>
-                      </div>
+                      <Loader className="w-8 h-8 animate-spin text-emerald-700 mb-4" />
                       <p className="text-gray-600 text-sm font-medium">Loading details...</p>
                     </div>
                   ) : (
                     <>
-                      <div
-                        className="rounded-lg p-5 border-2"
-                        style={{
-                          borderColor: '#02784040',
-                          backgroundColor: '#02784008',
-                        }}
-                      >
+                      <div className="rounded-lg p-5 border-2 border-emerald-200 bg-emerald-50">
                         <p className="text-gray-500 text-xs uppercase tracking-widest font-bold mb-2">
                           SKU Number
                         </p>
-                        <p className="text-2xl font-bold font-mono" style={{ color: '#027840' }}>
+                        <p className="text-2xl font-bold font-mono text-emerald-700">
                           {selectedSku.sku}
                         </p>
                       </div>
@@ -482,9 +609,7 @@ const HeldSKU = () => {
                       {skuDetails[`${selectedSku.accountId}-${selectedSku.sku}`] && (
                         <div className="rounded-lg p-5 space-y-4 border-2 border-gray-100 bg-gray-50">
                           {Object.entries(
-                            skuDetails[
-                              `${selectedSku.accountId}-${selectedSku.sku}`
-                            ]
+                            skuDetails[`${selectedSku.accountId}-${selectedSku.sku}`]
                           )
                             .filter(([key]) => key !== 'sku')
                             .map(([key, value]) => (
@@ -503,17 +628,11 @@ const HeldSKU = () => {
                       )}
 
                       <button
-                        onClick={() =>
-                          deleteSku(selectedSku.accountId, selectedSku.sku)
-                        }
-                        disabled={deletingSkus.has(
-                          `${selectedSku.accountId}-${selectedSku.sku}`
-                        )}
-                        className="w-full mt-6 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg font-bold transition-all hover:shadow-lg hover:from-red-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none flex items-center justify-center gap-2"
+                        onClick={() => deleteSku(selectedSku.accountId, selectedSku.sku)}
+                        disabled={deletingSkus.has(`${selectedSku.accountId}-${selectedSku.sku}`)}
+                        className="w-full mt-6 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none flex items-center justify-center gap-2"
                       >
-                        {deletingSkus.has(
-                          `${selectedSku.accountId}-${selectedSku.sku}`
-                        ) ? (
+                        {deletingSkus.has(`${selectedSku.accountId}-${selectedSku.sku}`) ? (
                           <>
                             <Loader className="w-4 h-4 animate-spin" />
                             <span>Removing...</span>
@@ -538,6 +657,46 @@ const HeldSKU = () => {
           </div>
         </div>
       </div>
+
+      {/* Add SKU Modal */}
+      <AddSKUModal
+        isOpen={addSkuModal.isOpen}
+        accountId={addSkuModal.accountId}
+        accountName={addSkuModal.accountName}
+        onClose={() =>
+          setAddSkuModal({ isOpen: false, accountId: null, accountName: null })
+        }
+        onSkuAdded={() => {
+          if (addSkuModal.accountId) {
+            fetchHeldSkus(addSkuModal.accountId)
+          }
+        }}
+      />
+
+      {/* Global Animations */}
+      <style>{`
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateX(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+      `}</style>
     </div>
   )
 }

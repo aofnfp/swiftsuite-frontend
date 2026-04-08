@@ -35,7 +35,6 @@ const VendorPage = () => {
   const [loadingAccounts, setLoadingAccounts] = useState(true);
   const [loadingAccountId, setLoadingAccountId] = useState(null);
 
-  // Reset showAccountSelection when newAccount changes
   useEffect(() => {
     if (newAccount) {
       setShowAccountSelection(false);

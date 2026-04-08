@@ -11,13 +11,13 @@ const SkeletonLoader = () => {
         >
           <div className="p-6 flex items-center justify-between">
             <div className="flex items-center gap-5 flex-1">
-              <div className="w-16 h-16 rounded-lg bg-green-100 animate-pulse" />
+              <div className="w-16 h-16 rounded-lg bg-emerald-100 animate-pulse" />
               <div className="flex-1 space-y-3">
-                <div className="h-6 w-40 rounded-lg bg-green-100 animate-pulse" />
-                <div className="h-5 w-32 rounded-lg bg-green-100 animate-pulse" />
+                <div className="h-6 w-40 rounded-lg bg-emerald-100 animate-pulse" />
+                <div className="h-5 w-32 rounded-lg bg-emerald-100 animate-pulse" />
               </div>
             </div>
-            <div className="w-6 h-6 rounded-lg bg-green-100 animate-pulse" />
+            <div className="w-6 h-6 rounded-lg bg-emerald-100 animate-pulse" />
           </div>
         </div>
       ))}
@@ -81,7 +81,8 @@ const AddSKUModal = ({ isOpen, accountId, accountName, onClose, onSkuAdded }) =>
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-xl w-full max-w-md animate-[slideUp_0.3s_ease-out]"
+        className="bg-white rounded-xl shadow-xl w-full max-w-md"
+        style={{ animation: 'slideUp 0.3s ease-out' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -120,7 +121,7 @@ const AddSKUModal = ({ isOpen, accountId, accountName, onClose, onSkuAdded }) =>
               onChange={(e) => setSkuInput(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Enter SKU (e.g., SKU-12345)"
-              className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:outline-none focus:border-green-700 transition-colors bg-white text-gray-900 font-mono"
+              className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:outline-none focus:border-emerald-700 transition-colors bg-white text-gray-900 font-mono"
               disabled={loading}
               autoFocus
             />
@@ -139,7 +140,7 @@ const AddSKUModal = ({ isOpen, accountId, accountName, onClose, onSkuAdded }) =>
           <button
             onClick={handleAddSku}
             disabled={loading}
-            className="flex-1 px-4 py-3 bg-green-700 hover:bg-green-800 text-white rounded-lg font-bold transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-bold transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -154,6 +155,19 @@ const AddSKUModal = ({ isOpen, accountId, accountName, onClose, onSkuAdded }) =>
             )}
           </button>
         </div>
+
+        <style>{`
+          @keyframes slideUp {
+            from {
+              opacity: 0;
+              transform: translateY(10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `}</style>
       </div>
     </div>
   )
@@ -333,10 +347,10 @@ const HeldSKU = () => {
           {/* Header Skeleton */}
           <div className="mb-12">
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 rounded-lg bg-green-100 animate-pulse" />
+              <div className="w-16 h-16 rounded-lg bg-emerald-100 animate-pulse" />
               <div className="flex-1 space-y-3">
-                <div className="h-10 w-64 rounded-lg bg-green-100 animate-pulse" />
-                <div className="h-5 w-48 rounded-lg bg-green-100 animate-pulse" />
+                <div className="h-10 w-64 rounded-lg bg-emerald-100 animate-pulse" />
+                <div className="h-5 w-48 rounded-lg bg-emerald-100 animate-pulse" />
               </div>
             </div>
           </div>
@@ -350,12 +364,12 @@ const HeldSKU = () => {
             {/* Details Panel Skeleton */}
             <div className="lg:col-span-1">
               <div className="rounded-xl border-2 border-gray-200 p-8 bg-white shadow-sm h-fit animate-pulse">
-                <div className="h-6 w-32 rounded-lg bg-green-100 mb-6" />
+                <div className="h-6 w-32 rounded-lg bg-emerald-100 mb-6" />
                 <div className="space-y-4">
                   {[1, 2, 3].map((idx) => (
                     <div key={idx} className="space-y-2">
-                      <div className="h-4 w-24 rounded-lg bg-green-100" />
-                      <div className="h-12 w-full rounded-lg bg-green-100" />
+                      <div className="h-4 w-24 rounded-lg bg-emerald-100" />
+                      <div className="h-12 w-full rounded-lg bg-emerald-100" />
                     </div>
                   ))}
                 </div>
@@ -373,8 +387,8 @@ const HeldSKU = () => {
         {/* Header */}
         <div className="mb-12">
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 rounded-lg bg-green-50">
-              <Lock className="w-8 h-8 text-green-700" />
+            <div className="p-3 rounded-lg bg-emerald-50">
+              <Lock className="w-8 h-8 text-emerald-700" />
             </div>
             <div>
               <h1 className="text-4xl font-bold text-gray-900">
@@ -413,7 +427,7 @@ const HeldSKU = () => {
             )}
           </div>
 
-          <div className="h-1 w-20 rounded-full mt-6 bg-green-700" />
+          <div className="h-1 w-20 rounded-full mt-6 bg-emerald-700" />
         </div>
 
         {/* Error Alert */}
@@ -456,14 +470,15 @@ const HeldSKU = () => {
                   </p>
                 </div>
               ) : (
-                filteredAccounts.map((account, idx) => {
+                filteredAccounts.map((account) => {
                   const skuCount = heldSkus[account.id]?.length || 0
                   const accountSkus = heldSkus[account.id] || []
 
                   return (
                     <div
                       key={account.id}
-                      className="rounded-xl border-2 border-gray-200 overflow-hidden bg-white shadow-sm hover:shadow-lg transition-all duration-300 animate-[slideIn_0.4s_ease-out_both]"
+                      className="rounded-xl border-2 border-gray-200 overflow-hidden bg-white shadow-sm hover:shadow-lg transition-all duration-300"
+                      style={{ animation: 'slideIn 0.4s ease-out' }}
                     >
                       {/* Account Header */}
                       <div className="p-6 flex items-center justify-between border-b-2 border-gray-100 hover:bg-gray-50/50 transition-colors">
@@ -471,7 +486,7 @@ const HeldSKU = () => {
                           onClick={() => toggleAccount(account.id)}
                           className="flex items-center gap-5 flex-1 text-left"
                         >
-                          <div className="p-4 rounded-lg bg-green-700 text-white font-bold text-xl w-16 h-16 flex items-center justify-center flex-shrink-0">
+                          <div className="p-4 rounded-lg bg-emerald-700 text-white font-bold text-xl w-16 h-16 flex items-center justify-center flex-shrink-0">
                             {account.name.charAt(0).toUpperCase()}
                           </div>
                           <div className="flex-1">
@@ -479,7 +494,7 @@ const HeldSKU = () => {
                               {account.name}
                             </h3>
                             <div className="flex items-center gap-4 mt-2">
-                              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold text-white bg-green-700">
+                              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold text-white bg-emerald-700">
                                 <Lock className="w-4 h-4" />
                                 {skuCount} SKU{skuCount !== 1 ? 's' : ''} Held
                               </span>
@@ -496,7 +511,7 @@ const HeldSKU = () => {
                                 accountName: account.name,
                               })
                             }
-                            className="p-3 bg-green-700 hover:bg-green-800 text-white rounded-lg transition-all duration-200 hover:shadow-md"
+                            className="p-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg transition-all duration-200 hover:shadow-md"
                             title="Add SKU"
                           >
                             <Plus className="w-5 h-5" />
@@ -516,17 +531,18 @@ const HeldSKU = () => {
                                 Held SKUs
                               </p>
                               <div className="flex flex-wrap gap-3">
-                                {accountSkus.map((sku, skuIdx) => (
+                                {accountSkus.map((sku) => (
                                   <div
                                     key={`${account.id}-${sku}`}
-                                    className="flex items-center gap-2 animate-[slideUp_0.3s_ease-out_both]"
+                                    className="flex items-center gap-2"
+                                    style={{ animation: 'slideUp 0.3s ease-out' }}
                                   >
                                     <button
                                       onClick={() => fetchSkuDetails(account.id, sku)}
-                                      className={`px-4 py-3 border-2 border-green-700 rounded-lg text-sm font-bold transition-all duration-200 flex items-center gap-2 hover:shadow-md hover:bg-green-700 hover:text-white ${
+                                      className={`px-4 py-3 border-2 border-emerald-700 rounded-lg text-sm font-bold transition-all duration-200 flex items-center gap-2 hover:shadow-md hover:bg-emerald-700 hover:text-white ${
                                         selectedSku?.sku === sku && selectedSku?.accountId === account.id
-                                          ? 'bg-green-50 text-green-700'
-                                          : 'bg-transparent text-green-700'
+                                          ? 'bg-emerald-50 text-emerald-700'
+                                          : 'bg-transparent text-emerald-700'
                                       }`}
                                     >
                                       <span className="font-mono">{sku}</span>
@@ -576,16 +592,16 @@ const HeldSKU = () => {
                 <div className="space-y-5">
                   {detailsLoading ? (
                     <div className="flex flex-col items-center justify-center py-12">
-                      <Loader className="w-8 h-8 animate-spin text-green-700 mb-4" />
+                      <Loader className="w-8 h-8 animate-spin text-emerald-700 mb-4" />
                       <p className="text-gray-600 text-sm font-medium">Loading details...</p>
                     </div>
                   ) : (
                     <>
-                      <div className="rounded-lg p-5 border-2 border-green-200 bg-green-50">
+                      <div className="rounded-lg p-5 border-2 border-emerald-200 bg-emerald-50">
                         <p className="text-gray-500 text-xs uppercase tracking-widest font-bold mb-2">
                           SKU Number
                         </p>
-                        <p className="text-2xl font-bold font-mono text-green-700">
+                        <p className="text-2xl font-bold font-mono text-emerald-700">
                           {selectedSku.sku}
                         </p>
                       </div>
@@ -656,6 +672,31 @@ const HeldSKU = () => {
           }
         }}
       />
+
+      {/* Global Animations */}
+      <style>{`
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateX(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+      `}</style>
     </div>
   )
 }

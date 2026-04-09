@@ -10,6 +10,7 @@ import {
   handleNextStep,
   handlePreviousStep,
 } from "../redux/vendor";
+import { useNavigate } from "react-router-dom";
 import { Toaster, toast } from "sonner";
 import { FaCircleCheck } from "react-icons/fa6";
 import { AiFillCloseCircle } from "react-icons/ai";
@@ -17,7 +18,6 @@ import { MdInfo, MdLightbulb } from "react-icons/md";
 import ResponsiveTooltip from "./ResponsiveTooltip";
 import { ThreeDots } from "react-loader-spinner";
 import { enrolment } from "../api/authApi";
-import { useNavigate } from "react-router-dom";
 import { useVendorStore } from "../stores/VendorStore";
 
 const Lipsey = () => {
@@ -28,7 +28,7 @@ const Lipsey = () => {
   const setCurrentStep = useVendorStore((state) => state.setCurrentStep);
 
   const navigate = useNavigate();
-  
+
   const [checkBoxesProduct, setCheckBoxesProduct] = useState([]);
   const [checkBoxesManufacturer, setCheckBoxesManufacturer] = useState([]);
   const [myLoader, setMyLoader] = useState(false);
@@ -262,8 +262,7 @@ const Lipsey = () => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="w-full bg-white py-6 shadow-xl rounded-xl">
 
-            {/* Adult Signature Section */}
-            <div className="grid grid-cols-12 mt-5 h-10 px-5 items-center">
+            <div className="grid grid-cols-12 h-10 px-5 items-center">
               <h3 className="text-sm font-semibold col-span-6">Adult Signature Required:</h3>
               <div className="flex gap-2 col-span-6">
                 <input
@@ -299,11 +298,8 @@ const Lipsey = () => {
               </div>
             </div>
 
-            {/* Product Type & Manufacturer - No Gap */}
             <div className="px-6 mt-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                
-                {/* Categories */}
                 <div className="flex items-center">
                   <label className="block text-sm font-medium text-gray-700 w-[110px] flex-shrink-0">
                     Categories
@@ -318,9 +314,7 @@ const Lipsey = () => {
                     >
                       <div className="flex items-center px-3 h-full justify-between">
                         <span className={productChecked.length === 0 ? "text-gray-400" : "text-gray-700"}>
-                          {productChecked.length === 0 
-                            ? "Select Products" 
-                            : `${productChecked.length} selected`}
+                          {productChecked.length === 0 ? "Select Products" : `${productChecked.length} selected`}
                         </span>
                         <div className="flex items-center gap-3">
                           {isOpen ? <IoIosArrowUp size={18} /> : <IoChevronDown size={18} />}
@@ -369,7 +363,6 @@ const Lipsey = () => {
                   </div>
                 </div>
 
-                {/* Manufacturer - No Gap */}
                 <div className="flex items-center">
                   <label className="block text-sm font-medium text-gray-700 w-[110px] flex-shrink-0">
                     Manufacturer
@@ -384,9 +377,7 @@ const Lipsey = () => {
                     >
                       <div className="flex items-center px-3 h-full justify-between">
                         <span className={manufacturerChecked.length === 0 ? "text-gray-400" : "text-gray-700"}>
-                          {manufacturerChecked.length === 0 
-                            ? "Select Manufacturer" 
-                            : `${manufacturerChecked.length} selected`}
+                          {manufacturerChecked.length === 0 ? "Select Manufacturer" : `${manufacturerChecked.length} selected`}
                         </span>
                         <div className="flex items-center gap-3">
                           {manufacturerOpen ? <IoIosArrowUp size={18} /> : <IoChevronDown size={18} />}
@@ -437,7 +428,6 @@ const Lipsey = () => {
               </div>
             </div>
 
-            {/* Pricing Option */}
             <div className="px-6 mb-6 mt-10">
               <h1 className="text-lg font-bold mb-4 text-green-700 border-b border-gray-300">
                 Pricing Option
@@ -453,13 +443,14 @@ const Lipsey = () => {
                       type="text"
                       placeholder="6"
                       className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                      onInput={restrictToNumbersAndDecimals}
+                      onInput={(e) => {
+                        restrictToNumbersAndDecimals(e);
+                        setValue("percentage_markup", e.target.value, { shouldValidate: true });
+                      }}
                     />
                   </div>
                   {errors.percentage_markup && (
-                    <p className="mt-1 text-sm text-red-600 ms-[50%]">
-                      {errors.percentage_markup.message}
-                    </p>
+                    <p className="mt-1 text-sm text-red-600 ms-[50%]">This field is required</p>
                   )}
                 </div>
 
@@ -473,13 +464,14 @@ const Lipsey = () => {
                       type="text"
                       placeholder="8"
                       className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                      onInput={restrictToNumbersAndDecimals}
+                      onInput={(e) => {
+                        restrictToNumbersAndDecimals(e);
+                        setValue("fixed_markup", e.target.value, { shouldValidate: true });
+                      }}
                     />
                   </div>
                   {errors.fixed_markup && (
-                    <p className="mt-1 text-sm text-red-600 ms-[50%]">
-                      {errors.fixed_markup.message}
-                    </p>
+                    <p className="mt-1 text-sm text-red-600 ms-[50%]">This field is required</p>
                   )}
                 </div>
               </div>
@@ -494,18 +486,18 @@ const Lipsey = () => {
                     type="text"
                     placeholder="6"
                     className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                    onInput={restrictToNumbersAndDecimals}
+                    onInput={(e) => {
+                      restrictToNumbersAndDecimals(e);
+                      setValue("shipping_cost", e.target.value, { shouldValidate: true });
+                    }}
                   />
                   {errors.shipping_cost && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.shipping_cost.message}
-                    </p>
+                    <p className="mt-1 text-sm text-red-600">{errors.shipping_cost.message}</p>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Inventory */}
             <div className="px-6 mb-6">
               <h1 className="text-lg font-bold mb-4 text-green-700 border-b border-gray-300">
                 Inventory
@@ -520,12 +512,13 @@ const Lipsey = () => {
                     type="text"
                     placeholder="2"
                     className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                    onInput={restrictToIntegers}
+                    onInput={(e) => {
+                      restrictToIntegers(e);
+                      setValue("stock_minimum", e.target.value, { shouldValidate: true });
+                    }}
                   />
                   {errors.stock_minimum && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.stock_minimum.message}
-                    </p>
+                    <p className="mt-1 text-sm text-red-600">{errors.stock_minimum.message}</p>
                   )}
                 </div>
 
@@ -538,18 +531,18 @@ const Lipsey = () => {
                     type="text"
                     placeholder="10"
                     className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                    onInput={restrictToIntegers}
+                    onInput={(e) => {
+                      restrictToIntegers(e);
+                      setValue("stock_maximum", e.target.value, { shouldValidate: true });
+                    }}
                   />
                   {errors.stock_maximum && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.stock_maximum.message}
-                    </p>
+                    <p className="mt-1 text-sm text-red-600">{errors.stock_maximum.message}</p>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Integration Settings */}
             <h1 className="ms-5 lg:text-xl font-bold mt-5 text-green-700 border-b border-gray-300">
               Integration Settings
             </h1>
@@ -616,11 +609,7 @@ const Lipsey = () => {
                 disabled={myLoader}
                 className="bg-[#027840] text-white hover:bg-white hover:text-[#089451] border border-[#089451] font-semibold py-2 px-8 rounded-[8px] transition-all flex justify-center items-center w-[200px] gap-2"
               >
-                {myLoader ? (
-                  <ThreeDots height="20" width="60" color="#fff" />
-                ) : (
-                  "Next"
-                )}
+                {myLoader ? <ThreeDots height="20" width="60" color="#fff" /> : "Next"}
               </button>
             </div>
           </div>

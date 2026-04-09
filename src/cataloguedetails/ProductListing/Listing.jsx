@@ -51,13 +51,13 @@ const Listing = () => {
   const [loader, setLoader] = useState(false);
   const [loading, setLoading] = useState(false);
   const [itemSpecificFields, setItemSpecificFields] = useState({});
-  const selectedValues = useListingStore((state) => state.selectedValues);
-  const setSelectedValues = useListingStore((state) => state.setSelectedValues);
+  const [selectedValues, setSelectedValues] = useState({});
   const [isLoadingCategory, setIsLoadingCategory] = useState(false);
   const [firstCategory, setFirstCategory] = useState([]) || [];
   const [filterValues, setFilterValues] = useState({});
   const description = useListingStore((state) => state.description);
   const setDescription = useListingStore((state) => state.setDescription);
+
   const [itemCategory, setItemCategory] = useState("");
   const [shippingCost, setShippingCost] = useState("");
   const [isEbay, setIsEbay] = useState(false);

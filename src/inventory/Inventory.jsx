@@ -39,6 +39,7 @@ const Inventory = () => {
   const { subscribed } = useSelector((state) => state.permission);
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
+  console.log(userId)
 
   const inventoryRef = useRef();
   const activeRequestRef = useRef(0);
@@ -46,6 +47,7 @@ const Inventory = () => {
   const navigate = useNavigate();
 
   const search_query = useInventoryPrefsStore((state) => state.inventorySearchQuery);
+  const setSearch_query = useInventoryPrefsStore((state) => state.setInventorySearchQuery);
   const setInventorySearchQuery = useInventoryPrefsStore((state) => state.setInventorySearchQuery);
   const viewMode = useInventoryPrefsStore((state) => state.viewMode);
   const setViewMode = useInventoryPrefsStore((state) => state.setViewMode);

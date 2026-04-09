@@ -14,6 +14,7 @@ export const useInventoryPrefsStore = create(
       inventoryLogSearchTerm: "",
       inventorySortConfig: { key: "", direction: "" },
       inventoryDetailActiveTab: "details",
+      search_query: "",
       
       setInventoryProductPerPage: (value) =>
         set({ inventoryProductPerPage: Number(value) || 20 }),
@@ -25,6 +26,7 @@ export const useInventoryPrefsStore = create(
       setMultiSelect: (value) => set({ multiSelect: !!value }),
       setInventorySearchQuery: (q) => set({ inventorySearchQuery: q || "" }),
       setInventorySavedSearchTerm: (q) => set({ inventorySavedSearchTerm: q || "" }),
+      setSearch_query: (q) => set({ search_query: q || "" }),
       setInventoryLogSearchTerm: (q) => set({ inventoryLogSearchTerm: q || "" }),
       setInventorySortConfig: (config) =>
         set({
@@ -40,6 +42,7 @@ export const useInventoryPrefsStore = create(
       name: "inventory-prefs",
       storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
+        search_query: state.search_query,
         inventoryProductPerPage: state.inventoryProductPerPage,
         inventorySavedProductPerPage: state.inventorySavedProductPerPage,
         inventoryLogSavedProductPerPage: state.inventoryLogSavedProductPerPage,

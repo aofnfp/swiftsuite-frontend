@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import { useLocation } from "react-router-dom";
-
 import Vendorenrolment from "./Vendorenrolment";
 import Fpicredential from "./Fpicredential";
 import Fpioption from "./Fpioption";
@@ -17,12 +16,12 @@ import { BsCheckCircleFill } from "react-icons/bs";
 import { AnimatePresence, motion } from "framer-motion";
 import { useVendorStore } from "../stores/VendorStore";
 
-import lipsey from "../../public/image/vendor enrol/lipsey.png";
-import fragrancex from "../../public/image/vendor enrol/fragrancex.png";
-import zanders from "../../public/image/vendor enrol/zanders.png";
-import cwr from "../../public/image/vendor enrol/cwr.png";
-import ssi from "../../public/image/vendor enrol/ssi.png";
-import rsr from "../../public/image/vendor enrol/rsr.png";
+import lipsey from "../Images/vendorEnrol/lipseyImage.png"
+import fragrancex from "../Images/vendorEnrol/fragrancexImage.png";
+import zanders from "../images/vendorEnrol/zandersImage.png";
+import cwr from "../Images/vendorEnrol/cwrImage.png";
+import ssi from "../Images/vendorEnrol/ssiImage.png";
+import rsr from "../Images/vendorEnrol/rsrImage.png";
 
 const Enrolment = () => {
   const vendorName = useVendorStore((state) => state.vendorName);

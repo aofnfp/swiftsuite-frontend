@@ -18,7 +18,7 @@ import { useVendorStore } from "../stores/VendorStore";
 
 import lipsey from "../Images/vendorEnrol/lipseyImage.png"
 import fragrancex from "../Images/vendorEnrol/fragrancexImage.png";
-import zanders from "../images/vendorEnrol/zandersImage.png";
+import zanders from "../Images/vendorEnrol/zandersImage.png";
 import cwr from "../Images/vendorEnrol/cwrImage.png";
 import ssi from "../Images/vendorEnrol/ssiImage.png";
 import rsr from "../Images/vendorEnrol/rsrImage.png";

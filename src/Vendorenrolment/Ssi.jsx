@@ -17,6 +17,7 @@ import { useVendorStore } from "../stores/VendorStore";
 
 const Ssi = () => {
   const store = useSelector(state => state.vendor.vendorData);
+  const resetVendor = useVendorStore((state) => state.resetVendor);
   let token = localStorage.getItem('token');
   const vendorName = useVendorStore((state) => state.vendorName);
   const vendorConnection = useVendorStore((state) => state.vendorConnection);
@@ -144,13 +145,12 @@ const Ssi = () => {
     })
       .then((response) => {
         if ([200, 201, 202].includes(response.status)) {
-          toast.success('Enrolment successful');
-          setEnrolmentResponse(response.data);
-          setMyLoader(false);
-          // dispatch(handleNextStep(formData));
-          dispatch(clearVendorData());
-          navigate("/vendor/success-enrolment");
-        }
+                toast.success("Enrolment successful");
+                setEnrolmentResponse(response.data);
+                resetVendor();
+                dispatch(clearVendorData());
+                navigate("/vendor/success-enrolment");
+       }
       })
       .catch((err) => {
         setMyLoader(false);

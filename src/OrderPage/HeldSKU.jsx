@@ -11,13 +11,13 @@ const SkeletonLoader = () => {
         >
           <div className="p-6 flex items-center justify-between">
             <div className="flex items-center gap-5 flex-1">
-              <div className="w-16 h-16 rounded-lg bg-emerald-100 animate-pulse" />
+              <div className="w-16 h-16 rounded-lg bg-gray-200 animate-pulse" />
               <div className="flex-1 space-y-3">
-                <div className="h-6 w-40 rounded-lg bg-emerald-100 animate-pulse" />
-                <div className="h-5 w-32 rounded-lg bg-emerald-100 animate-pulse" />
+                <div className="h-6 w-40 rounded-lg bg-gray-200 animate-pulse" />
+                <div className="h-5 w-32 rounded-lg bg-gray-200 animate-pulse" />
               </div>
             </div>
-            <div className="w-6 h-6 rounded-lg bg-emerald-100 animate-pulse" />
+            <div className="w-6 h-6 rounded-lg bg-gray-200 animate-pulse" />
           </div>
         </div>
       ))}
@@ -347,10 +347,10 @@ const HeldSKU = () => {
           {/* Header Skeleton */}
           <div className="mb-12">
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 rounded-lg bg-emerald-100 animate-pulse" />
+              <div className="w-16 h-16 rounded-lg bg-gray-200 animate-pulse" />
               <div className="flex-1 space-y-3">
-                <div className="h-10 w-64 rounded-lg bg-emerald-100 animate-pulse" />
-                <div className="h-5 w-48 rounded-lg bg-emerald-100 animate-pulse" />
+                <div className="h-10 w-64 rounded-lg bg-gray-200 animate-pulse" />
+                <div className="h-5 w-48 rounded-lg bg-gray-200 animate-pulse" />
               </div>
             </div>
           </div>
@@ -364,12 +364,12 @@ const HeldSKU = () => {
             {/* Details Panel Skeleton */}
             <div className="lg:col-span-1">
               <div className="rounded-xl border-2 border-gray-200 p-8 bg-white shadow-sm h-fit animate-pulse">
-                <div className="h-6 w-32 rounded-lg bg-emerald-100 mb-6" />
+                <div className="h-6 w-32 rounded-lg bg-gray-200 mb-6" />
                 <div className="space-y-4">
                   {[1, 2, 3].map((idx) => (
                     <div key={idx} className="space-y-2">
-                      <div className="h-4 w-24 rounded-lg bg-emerald-100" />
-                      <div className="h-12 w-full rounded-lg bg-emerald-100" />
+                      <div className="h-4 w-24 rounded-lg bg-gray-200" />
+                      <div className="h-12 w-full rounded-lg bg-gray-200" />
                     </div>
                   ))}
                 </div>

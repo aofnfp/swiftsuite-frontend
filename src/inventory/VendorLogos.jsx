@@ -1,11 +1,11 @@
 import React from 'react'
 
-import lipsey from "../../public/image/vendor enrol/lipsey.png";
-import fragrancex from "../../public/image/vendor enrol/fragrancex.png";
-import zanders from "../../public/image/vendor enrol/zanders.png";
-import cwr from "../../public/image/vendor enrol/cwr.png";
-import ssi from "../../public/image/vendor enrol/ssi.png";
-import rsr from "../../public/image/vendor enrol/rsr.png";
+import lipsey from "../Images/vendorEnrol/lipseyImage.png";
+import fragrancex from "../Images/vendorEnrol/fragrancexImage.png";
+import zanders from "../Images/vendorEnrol/zandersImage.png";
+import cwr from "../Images/vendorEnrol/cwrImage.png";
+import ssi from "../Images/vendorEnrol/ssiImage.png";
+import rsr from "../Images/vendorEnrol/rsrImage.png";
 
 const vendorLogos = {
   fragrancex,

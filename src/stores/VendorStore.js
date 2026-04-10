@@ -27,6 +27,32 @@ export const useVendorStore = create(
             context.vendorName !== undefined &&
             context.vendorName !== state.vendorName;
 
+          if (vendorChanged) {
+            return {
+              ...initialState,
+              vendorName:
+                context.vendorName !== undefined
+                  ? context.vendorName
+                  : "",
+              vendorId:
+                context.vendorId !== undefined
+                  ? context.vendorId
+                  : null,
+              newAccount:
+                context.newAccount !== undefined
+                  ? Boolean(context.newAccount)
+                  : false,
+              fromVendor:
+                context.fromVendor !== undefined
+                  ? Boolean(context.fromVendor)
+                  : false,
+              accountId:
+                context.accountId !== undefined
+                  ? context.accountId
+                  : null,
+            };
+          }
+
           return {
             vendorName:
               context.vendorName !== undefined
@@ -48,7 +74,6 @@ export const useVendorStore = create(
               context.accountId !== undefined
                 ? context.accountId
                 : state.accountId,
-            currentStep: vendorChanged ? 0 : state.currentStep,
           };
         }),
 
@@ -74,7 +99,7 @@ export const useVendorStore = create(
           currentStep: Number.isNaN(Number(step)) ? 0 : Number(step),
         }),
 
-      resetVendor: () => set(initialState),
+      resetVendor: () => set({ ...initialState }),
 
       setVendorCategoryChecked: (arr) =>
         set({ vendorCategoryChecked: Array.isArray(arr) ? arr : [] }),

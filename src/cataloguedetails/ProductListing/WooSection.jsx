@@ -2,6 +2,7 @@ import React from "react";
 import { Button } from "@heroui/react";
 import GetWooCategory from "./GetWooCategory";
 import AttributeAdder from "./AttributeAdder";
+import { BiChevronDown, BiChevronUp } from "react-icons/bi";
 
 const WooSection = ({
   isWoocommerce,
@@ -27,8 +28,10 @@ const WooSection = ({
             <p>
               <img src="https://i.postimg.cc/Wbfbs7QB/woocommerce.png" alt="woocommerce" className="w-20 h-10" />
             </p>
+            <div className="text-gray-500">
+              {isWoocommerceOpen ? <BiChevronUp size={30} /> : <BiChevronDown size={30}/>}
+            </div>
           </div>
-          <div></div>
         </div>
       )}
       {isWoocommerceOpen && isWoocommerce && (

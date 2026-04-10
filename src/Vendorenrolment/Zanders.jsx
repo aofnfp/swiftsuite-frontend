@@ -29,7 +29,7 @@ const Zanders = () => {
 
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
-  
+
   const [checkBoxesManufacturer, setCheckBoxesManufacturer] = useState([]);
   const [isChecked, setIsChecked] = useState(false);
   const [inventory, setInventory] = useState(false);
@@ -38,11 +38,11 @@ const Zanders = () => {
   const [adultSignatureChecked, setAdultSignatureChecked] = useState(false);
   const [myLoader, setMyLoader] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  
+
   const manufacturerChecked = useVendorStore((state) => state.vendorManufacturerChecked);
   const setVendorManufacturerChecked = useVendorStore((state) => state.setVendorManufacturerChecked);
   const manufacturerDropdownRef = useRef(null);
-  
+
   let dispatch = useDispatch();
 
   useEffect(() => {
@@ -61,8 +61,6 @@ const Zanders = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const manufacturerDropdown = () => setIsOpen(!isOpen);
-
   const Schema = yup.object().shape({
     percentage_markup: yup.string().nullable(),
     fixed_markup: yup.string().nullable(),
@@ -80,8 +78,8 @@ const Zanders = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
     setValue,
+    formState: { errors },
   } = useForm({
     resolver: yupResolver(Schema),
   });
@@ -115,6 +113,14 @@ const Zanders = () => {
     );
   };
 
+  const handleAdultSignatureCheck = () => {
+    const newValue = !adultSignatureChecked;
+    setAdultSignatureChecked(newValue);
+    if (!newValue) {
+      setValue("adult_sig_threshold", "");
+    }
+  };
+
   const cleanObject = (obj) =>
     Object.fromEntries(
       Object.entries(obj).filter(
@@ -125,14 +131,6 @@ const Zanders = () => {
           !(Array.isArray(v) && v.length === 0)
       )
     );
-
-  const handleAdultSignatureCheck = () => {
-    const newValue = !adultSignatureChecked;
-    setAdultSignatureChecked(newValue);
-    if (!newValue) {
-      setValue("adult_sig_threshold", "");
-    }
-  };
 
   const onSubmit = async (data) => {
     const thresholdValue = adultSignatureChecked && data.adult_sig_threshold
@@ -214,7 +212,6 @@ const Zanders = () => {
               <h3 className="text-sm font-semibold col-span-6">Adult Signature Required:</h3>
               <div className="flex gap-2 col-span-6">
                 <input
-                  {...register("adult_signature")}
                   type="checkbox"
                   checked={adultSignatureChecked}
                   onChange={handleAdultSignatureCheck}
@@ -275,14 +272,11 @@ const Zanders = () => {
                 >
                   <div
                     className="flex items-center px-3 cursor-pointer justify-between h-full"
-                    onClick={manufacturerDropdown}
+                    onClick={() => setIsOpen(!isOpen)}
                   >
                     <span className={manufacturerChecked.length === 0 ? "text-gray-400" : "text-gray-700"}>
-                      {manufacturerChecked.length === 0 
-                        ? "Select Manufacturer" 
-                        : `${manufacturerChecked.length} selected`}
+                      {manufacturerChecked.length === 0 ? "Select Manufacturer" : `${manufacturerChecked.length} selected`}
                     </span>
-
                     <div className="flex items-center gap-3">
                       {isOpen ? <IoIosArrowUp size={18} /> : <IoChevronDown size={18} />}
                       <div className="-mr-1">
@@ -311,7 +305,6 @@ const Zanders = () => {
                           Deselect All
                         </button>
                       </div>
-
                       <div className="px-3 space-y-2">
                         {checkBoxesManufacturer.map((checkbox) => (
                           <div key={checkbox.id} className="flex justify-between items-center py-1">
@@ -346,33 +339,35 @@ const Zanders = () => {
                       type="text"
                       placeholder="6"
                       className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                      onInput={restrictToNumbersAndDecimals}
+                      onInput={(e) => {
+                        restrictToNumbersAndDecimals(e);
+                        setValue("percentage_markup", e.target.value, { shouldValidate: true });
+                      }}
                     />
                   </div>
                   {errors.percentage_markup && (
-                    <p className="mt-1 text-sm text-red-600 ms-[50%]">
-                      {errors.percentage_markup.message}
-                    </p>
+                    <p className="mt-1 text-sm text-red-600 ms-[50%]">This field is required</p>
                   )}
                 </div>
 
                 <div>
                   <div className="flex items-center">
                     <label className="block text-sm font-medium text-gray-700 mb-1 md:w-[50%] w-[80%]">
-                      Fixed Markup 
+                      Fixed Markup
                     </label>
                     <input
                       {...register("fixed_markup")}
                       type="text"
                       placeholder="8"
                       className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                      onInput={restrictToNumbersAndDecimals}
+                      onInput={(e) => {
+                        restrictToNumbersAndDecimals(e);
+                        setValue("fixed_markup", e.target.value, { shouldValidate: true });
+                      }}
                     />
                   </div>
                   {errors.fixed_markup && (
-                    <p className="mt-1 text-sm text-red-600 ms-[50%]">
-                      {errors.fixed_markup.message}
-                    </p>
+                    <p className="mt-1 text-sm text-red-600 ms-[50%]">This field is required</p>
                   )}
                 </div>
               </div>
@@ -387,12 +382,13 @@ const Zanders = () => {
                     type="text"
                     placeholder="6"
                     className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                    onInput={restrictToNumbersAndDecimals}
+                    onInput={(e) => {
+                      restrictToNumbersAndDecimals(e);
+                      setValue("shipping_cost", e.target.value, { shouldValidate: true });
+                    }}
                   />
                   {errors.shipping_cost && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.shipping_cost.message}
-                    </p>
+                    <p className="mt-1 text-sm text-red-600">{errors.shipping_cost.message}</p>
                   )}
                 </div>
               </div>
@@ -412,12 +408,13 @@ const Zanders = () => {
                     type="text"
                     placeholder="2"
                     className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                    onInput={restrictToIntegers}
+                    onInput={(e) => {
+                      restrictToIntegers(e);
+                      setValue("stock_minimum", e.target.value, { shouldValidate: true });
+                    }}
                   />
                   {errors.stock_minimum && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.stock_minimum.message}
-                    </p>
+                    <p className="mt-1 text-sm text-red-600">{errors.stock_minimum.message}</p>
                   )}
                 </div>
 
@@ -430,12 +427,13 @@ const Zanders = () => {
                     type="text"
                     placeholder="10"
                     className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                    onInput={restrictToIntegers}
+                    onInput={(e) => {
+                      restrictToIntegers(e);
+                      setValue("stock_maximum", e.target.value, { shouldValidate: true });
+                    }}
                   />
                   {errors.stock_maximum && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.stock_maximum.message}
-                    </p>
+                    <p className="mt-1 text-sm text-red-600">{errors.stock_maximum.message}</p>
                   )}
                 </div>
               </div>
@@ -507,11 +505,7 @@ const Zanders = () => {
                 disabled={myLoader}
                 className="bg-[#027840] text-white hover:bg-white hover:text-[#089451] border border-[#089451] font-semibold py-2 px-8 rounded-[8px] transition-all flex justify-center items-center w-[200px] gap-2"
               >
-                {myLoader ? (
-                  <ThreeDots height="20" width="60" color="#fff" />
-                ) : (
-                  "Next"
-                )}
+                {myLoader ? <ThreeDots height="20" width="60" color="#fff" /> : "Next"}
               </button>
             </div>
           </div>

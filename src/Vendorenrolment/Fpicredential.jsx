@@ -9,8 +9,8 @@ import { BsEyeSlashFill } from "react-icons/bs";
 import { Toaster, toast } from "sonner";
 import { ThreeDots } from "react-loader-spinner";
 import { fpiCredential } from "../api/authApi";
-
 import { useVendorStore } from "../stores/VendorStore";
+
 const Fpicredential = () => {
   const vendorName = useVendorStore((state) => state.vendorName);
   const vendorId = useVendorStore((state) => state.vendorId);
@@ -22,7 +22,6 @@ const Fpicredential = () => {
   const store = useSelector((state) => state.vendor.vendorData);
 
   const [confirmVisible, setConfirmVisible] = useState(false);
-  const [dispatchCheck, setDispatchCheck] = useState(false);
   const [myLoader, setMyLoader] = useState(false);
 
   const createSchema = (vendorName) => {
@@ -51,7 +50,7 @@ const Fpicredential = () => {
           ? yup.string().required("Password is required")
           : yup.string().notRequired(),
       name:
-        vendorName.toLowerCase() === "rsr"
+        vendorName.toLowerCase() === "rsr" || vendorName.toLowerCase() === "fragrancex"
           ? yup.string().required("account name is required")
           : yup.string().notRequired(),
       POS:
@@ -84,63 +83,70 @@ const Fpicredential = () => {
       name: "",
       apiAccessId: "",
       apiAccessKey: "",
+      host: "",
+      ftp_username: "",
+      ftp_password: "",
+      Username: "",
+      Password: "",
+      POS: "",
     },
   });
 
   const togglePasswordVisibility = (field) => {
-    if (field === "ftp_password" || field == "Password") {
+    if (field === "ftp_password" || field === "Password") {
       setConfirmVisible(!confirmVisible);
     }
   };
 
   const dispatch = useDispatch();
+
   const onSubmit = async (data) => {
     setMyLoader(true);
 
-    const form = {
-      ...store,
-      ...data,
-      vendor_name,
+    const currentAccountData = (() => {
+      if ((vendor_name || "").toLowerCase() === "fragrancex") {
+        return {
+          name: data.name || "",
+          apiAccessId: data.apiAccessId || "",
+          apiAccessKey: data.apiAccessKey || "",
+        };
+      }
+
+      if ((vendor_name || "").toLowerCase() === "rsr") {
+        return {
+          Username: data.Username || "",
+          Password: data.Password || "",
+          POS: data.POS || "",
+        };
+      }
+
+      return {
+        name: data.name || "",
+        ftp_username: data.ftp_username || "",
+        ftp_password: data.ftp_password || "",
+        host: data.host || "",
+      };
+    })();
+
+    const credentialPayload = Object.fromEntries(
+      Object.entries({
+        vendor: vendorId,
+        ...currentAccountData,
+      }).filter(([, value]) => value !== null && value !== undefined && value !== "")
+    );
+
+    const nextFormState = {
       vendor: vendorId,
-      account_data: {
-        ftp_username: data.ftp_username || null,
-        ftp_password: data.ftp_password || null,
-        host: data.host || null,
-        POS: data.POS || null,
-        apiAccessId: data.apiAccessId || null,
-        apiAccessKey: data.apiAccessKey || null,
-        Username: data.Username || null,
-        Password: data.Password || null,
-        name: data.name || null,
-      },
+      vendor_name,
+      identifier: store?.identifier || "",
+      account_data: currentAccountData,
     };
 
-    // Build a clean payload by removing null/undefined/empty values
-    const buildPayload = (obj) =>
-      Object.fromEntries(
-        Object.entries(obj).filter(
-          ([_, value]) => value !== null && value !== undefined && value !== ""
-        )
-      );
-
-    const payload = buildPayload({
-      vendor: vendorId,
-      ftp_username: form.account_data.ftp_username,
-      ftp_password: form.account_data.ftp_password,
-      host: form.account_data.host,
-      apiAccessId: form.account_data.apiAccessId,
-      apiAccessKey: form.account_data.apiAccessKey,
-      Username: form.account_data.Username,
-      Password: form.account_data.Password,
-      POS: form.account_data.POS,
-      name: form.account_data.name,
-    });
     try {
-      const response = await fpiCredential(payload);
+      const response = await fpiCredential(credentialPayload);
       setVendorConnection(response.data);
       toast.success("Connection Successful!");
-      setDispatchCheck(true);
-      dispatch(handleNextStep(form));
+      dispatch(handleNextStep(nextFormState));
       nextStep();
     } catch (error) {
       if (
@@ -148,8 +154,10 @@ const Fpicredential = () => {
         error.request?.withCredentials === false
       ) {
         toast.error("Invalid credentials!");
-      } else if (error.response.data.error) {
+      } else if (error.response?.data?.error) {
         toast.error(error.response.data.error);
+      } else {
+        toast.error("Something went wrong.");
       }
     } finally {
       setMyLoader(false);
@@ -157,16 +165,31 @@ const Fpicredential = () => {
   };
 
   useEffect(() => {
-    if (store) {
-      setValue("host", store.host);
-      setValue("ftp_username", store.ftp_username);
+    if ((vendor_name || "").toLowerCase() !== "rsr" && (vendor_name || "").toLowerCase() !== "fragrancex") {
+      setValue("host", store?.account_data?.host || "");
+      setValue("ftp_username", store?.account_data?.ftp_username || "");
+      setValue("ftp_password", store?.account_data?.ftp_password || "");
+      setValue("name", store?.account_data?.name || "");
     }
-  }, [store, setValue]);
+
+    if ((vendor_name || "").toLowerCase() === "fragrancex") {
+      setValue("name", store?.account_data?.name || "");
+      setValue("apiAccessId", store?.account_data?.apiAccessId || "");
+      setValue("apiAccessKey", store?.account_data?.apiAccessKey || "");
+    }
+
+    if ((vendor_name || "").toLowerCase() === "rsr") {
+      setValue("Username", store?.account_data?.Username || "");
+      setValue("Password", store?.account_data?.Password || "");
+      setValue("POS", store?.account_data?.POS || "");
+    }
+  }, [store, setValue, vendor_name]);
 
   const handlePrevious = () => {
     dispatch(handlePreviousStep());
     setCurrentStep(0);
   };
+
   return (
     <>
       <section>
@@ -177,7 +200,6 @@ const Fpicredential = () => {
             className="bg-white p-6 rounded-lg shadow-lg"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Vendor Name */}
               <div className="flex flex-col">
                 <label className="font-semibold mb-1">Vendor Name:</label>
                 <input
@@ -189,7 +211,6 @@ const Fpicredential = () => {
                 />
               </div>
 
-              {/* Account Name */}
               <div className="flex flex-col">
                 <label className="font-semibold mb-1">Account Name:</label>
                 <input
@@ -205,7 +226,6 @@ const Fpicredential = () => {
                 )}
               </div>
 
-              {/* Vendor-specific fields */}
               {vendor_name === "Fragrancex" && (
                 <>
                   <div className="flex flex-col">
@@ -369,7 +389,6 @@ const Fpicredential = () => {
               )}
             </div>
 
-            {/* Buttons */}
             <div className="mt-10 flex justify-center items-center gap-10">
               <button
                 onClick={handlePrevious}

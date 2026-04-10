@@ -22,7 +22,7 @@ import { useVendorStore } from "../stores/VendorStore";
 
 const Rsr = () => {
   const store = useSelector((state) => state.vendor.vendorData);
-  let dispatch = useDispatch();
+  const resetVendor = useVendorStore((state) => state.resetVendor);
   const vendorConnection = useVendorStore((state) => state.vendorConnection);
   const setEnrolmentResponse = useVendorStore((state) => state.setEnrolmentResponse);
   const setCurrentStep = useVendorStore((state) => state.setCurrentStep);
@@ -47,6 +47,8 @@ const Rsr = () => {
   const manufacturerChecked = useVendorStore((state) => state.vendorManufacturerChecked);
   const setVendorManufacturerChecked = useVendorStore((state) => state.setVendorManufacturerChecked);
 
+  let dispatch = useDispatch();
+
   useEffect(() => {
     if (vendorConnection?.category) {
       setCheckBoxesCategory(vendorConnection.category);
@@ -69,7 +71,7 @@ const Rsr = () => {
     oversized: yup.string(),
     returnable: yup.string(),
     third_party_marketplaces: yup.string(),
-    adult_sig_required: yup.boolean(),
+    adult_signature: yup.boolean(),
     adult_sig_threshold: yup.string().nullable(),
   });
 
@@ -171,7 +173,6 @@ const Rsr = () => {
       stock_minimum: data.stock_minimum || null,
       stock_maximum: data.stock_maximum || null,
       shipping_cost: data.shipping_cost || null,
-      shippable: ["Y", "N"],
       adult_signature: adultSignatureChecked,
       adult_sig_threshold: adultSignatureChecked && data.adult_sig_threshold 
         ? data.adult_sig_threshold 
@@ -181,17 +182,19 @@ const Rsr = () => {
     const formData = cleanObject(rawFormData);
 
     if (categoryChecked.length === 0) {
-      return toast.error("Please select at least one category.");
+      toast.error("Please select at least one category.");
+      return;
     }
     if (manufacturerChecked.length === 0) {
-      return toast.error("Please select at least one Manufacturer");
+      toast.error("Please select at least one Manufacturer");
+      return;
     }
 
     setMyLoader(true);
     try {
       const response = await enrolment(formData);
       if ([200, 201, 202].includes(response.status)) {
-        toast.success("Enrolment successful and Processing in the background");
+        toast.success("Enrolment successful");
         setEnrolmentResponse(response.data);
         dispatch(clearVendorData());
         navigate("/vendor/success-enrolment");
@@ -200,7 +203,7 @@ const Rsr = () => {
       if (err.response) {
         const { status, data } = err.response;
         if (status === 400 && data.error) {
-          toast.error(data.error || "Invalid data provided.");
+          toast.error(data.error);
         } else if (status === 500) {
           toast.error("An internal server issue has occurred. Please contact support.");
         } else {
@@ -236,12 +239,10 @@ const Rsr = () => {
     <>
       <Toaster position="top-right" />
       <section className="mb-10">
-        <h1 className="ms-5 lg:text-xl text-sm font-bold my-3">Product Type</h1>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="bg-white p-6 shadow-lg rounded-xl max-w-4xl mx-auto">
 
-            {/* Adult Signature Section */}
-            <div className="grid grid-cols-12 h-10  items-center">
+            <div className="grid grid-cols-12 h-10 items-center">
               <h3 className="text-sm font-semibold col-span-6">Adult Signature Required:</h3>
               <div className="flex gap-2 col-span-6">
                 <input
@@ -256,8 +257,8 @@ const Rsr = () => {
               </div>
             </div>
 
-            <div className={`grid grid-cols-12 px-5 items-center overflow-hidden transition-all duration-500 ease-in-out ${
-              adultSignatureChecked ? "max-h-[120px] opacity-100 mt-3" : "max-h-0 opacity-0 mt-0"
+            <div className={`grid grid-cols-12 items-center overflow-hidden transition-all duration-500 ease-in-out ${
+              adultSignatureChecked ? "max-h-[120px] opacity-100 mt-4" : "max-h-0 opacity-0 mt-0"
             }`}>
               <label className="text-sm font-semibold col-span-6">
                 Adult Sig Threshold:
@@ -277,7 +278,6 @@ const Rsr = () => {
               </div>
             </div>
 
-            {/* Category Dropdown */}
             <div className="grid grid-cols-12 mt-8">
               <label className="mt-2 text-sm font-semibold h-8 md:col-span-6 col-span-5">
                 Category Name:
@@ -339,7 +339,6 @@ const Rsr = () => {
               </div>
             </div>
 
-            {/* Manufacturer Dropdown */}
             <div className="grid grid-cols-12 mt-8">
               <label className="mt-2 text-sm font-semibold h-8 md:col-span-6 col-span-5">
                 Select Manufacturer:
@@ -401,7 +400,6 @@ const Rsr = () => {
               </div>
             </div>
 
-            {/* Blocked from dropship - Perfectly aligned */}
             <div className="grid grid-cols-12 mt-10 h-10 items-center">
               <h3 className="text-sm font-semibold col-span-6">
                 Blocked from dropship for pricing automation
@@ -420,7 +418,6 @@ const Rsr = () => {
               </div>
             </div>
 
-            {/* Pricing Option */}
             <div className="mb-8 border-t border-gray-200 pt-6 mt-10">
               <h2 className="text-lg font-semibold mb-4 text-green-700 border-b border-gray-300">
                 Pricing Option
@@ -436,7 +433,10 @@ const Rsr = () => {
                       type="text"
                       placeholder="6"
                       className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                      onInput={restrictToNumbersAndDecimals}
+                      onInput={(e) => {
+                        restrictToNumbersAndDecimals(e);
+                        setValue("percentage_markup", e.target.value, { shouldValidate: true });
+                      }}
                     />
                   </div>
                   {errors.percentage_markup && (
@@ -454,7 +454,10 @@ const Rsr = () => {
                       type="text"
                       placeholder="8"
                       className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                      onInput={restrictToNumbersAndDecimals}
+                      onInput={(e) => {
+                        restrictToNumbersAndDecimals(e);
+                        setValue("fixed_markup", e.target.value, { shouldValidate: true });
+                      }}
                     />
                   </div>
                   {errors.fixed_markup && (
@@ -473,20 +476,22 @@ const Rsr = () => {
                     type="text"
                     placeholder="6"
                     className="border md:w-[31%] w-full border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                    onInput={restrictToNumbersAndDecimals}
+                    onInput={(e) => {
+                      restrictToNumbersAndDecimals(e);
+                      setValue("shipping_cost", e.target.value, { shouldValidate: true });
+                    }}
                   />
                 </div>
               </div>
             </div>
 
-            {/* Inventory */}
             <div className="mb-8 border-t border-gray-200 pt-6">
               <h2 className="text-lg font-semibold mb-4 text-green-700 border-b border-gray-300">
                 Inventory
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex items-center">
-                  <label className="block text-sm font-medium mb-1 md:w-[70%] w-[80%]">
+                  <label className="block text-sm font-medium text-gray-700 mb-1 md:w-[70%] w-[80%]">
                     Stock Minimum
                   </label>
                   <input
@@ -494,11 +499,14 @@ const Rsr = () => {
                     type="text"
                     placeholder="2"
                     className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                    onInput={restrictToIntegers}
+                    onInput={(e) => {
+                      restrictToIntegers(e);
+                      setValue("stock_minimum", e.target.value, { shouldValidate: true });
+                    }}
                   />
                 </div>
                 <div className="flex items-center">
-                  <label className="block text-sm font-medium mb-1 md:w-[50%] w-[80%]">
+                  <label className="block text-sm font-medium text-gray-700 mb-1 md:w-[50%] w-[80%]">
                     Stock Maximum
                   </label>
                   <input
@@ -506,13 +514,15 @@ const Rsr = () => {
                     type="text"
                     placeholder="10"
                     className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                    onInput={restrictToIntegers}
+                    onInput={(e) => {
+                      restrictToIntegers(e);
+                      setValue("stock_maximum", e.target.value, { shouldValidate: true });
+                    }}
                   />
                 </div>
               </div>
             </div>
 
-            {/* Integration Settings */}
             <div className="mb-8 border-t border-gray-200 pt-6">
               <h1 className="lg:text-xl font-bold mt-5 text-green-700 border-b border-gray-300">
                 Integration Settings

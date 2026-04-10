@@ -7,29 +7,26 @@ import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import {
   clearVendorData,
-  handleNextStep,   
+  handleNextStep,
   handlePreviousStep,
 } from "../redux/vendor";
 import { useNavigate } from "react-router-dom";
 import { Toaster, toast } from "sonner";
-import { MdInfo } from "react-icons/md";
+import { MdInfo, MdLightbulb } from "react-icons/md";
 import ResponsiveTooltip from "./ResponsiveTooltip";
 import { ThreeDots } from "react-loader-spinner";
 import { enrolment } from "../api/authApi";
-
-
 import { useVendorStore } from "../stores/VendorStore";
 
-
 const Cwr = () => {
-  const vendorName = useVendorStore((state) => state.vendorName);
+  const store = useSelector((state) => state.vendor.vendorData);
+  const resetVendor = useVendorStore((state) => state.resetVendor);
   const vendorConnection = useVendorStore((state) => state.vendorConnection);
   const setEnrolmentResponse = useVendorStore((state) => state.setEnrolmentResponse);
   const setCurrentStep = useVendorStore((state) => state.setCurrentStep);
-  const connection = vendorConnection;
-  const store = useSelector((state) => state.vendor.vendorData);
-  let dispatch = useDispatch();
+
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [checkBoxesCategory, setCheckBoxesCategory] = useState([]);
   const [truck, setTruck] = useState(false);
@@ -39,157 +36,139 @@ const Cwr = () => {
   const [inventory, setInventory] = useState(false);
   const [order, setOrder] = useState(false);
   const [tracking, setTracking] = useState(false);
-  const [host, setHost] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-  const [categoryChecked, setCategoryChecked] = useState([]);
+  const [adultSignatureChecked, setAdultSignatureChecked] = useState(false);
   const [myLoader, setMyLoader] = useState(false);
-  const [selectedOption, setSelectedOption] = useState("");
+
+  const [categoryChecked, setCategoryChecked] = useState([]);
 
   useEffect(() => {
-    if (connection && connection.category) {
-      setCheckBoxesCategory(connection.category);
+    if (vendorConnection?.category) {
+      setCheckBoxesCategory(vendorConnection.category);
     }
-  }, [connection]);
+  }, [vendorConnection]);
 
   const Schema = yup.object().shape({
-  percentage_markup: yup.string().nullable(),
-  fixed_markup: yup.string().nullable(),
-  shipping_cost: yup.string(),
-  stock_minimum: yup.string(),
-  stock_maximum: yup.string(),
-  cost_average: yup.string(),
-  update_inventory: yup.string(),
-  send_orders: yup.string(),
-  update_tracking: yup.string(),
-  oversized: yup.string(),
-  returnable: yup.string(),
-  truck_freight: yup.string(),
-  third_party_marketplaces: yup.string(),
-});
+    percentage_markup: yup.string().nullable(),
+    fixed_markup: yup.string().nullable(),
+    shipping_cost: yup.string(),
+    stock_minimum: yup.string(),
+    stock_maximum: yup.string(),
+    cost_average: yup.string(),
+    update_inventory: yup.string(),
+    send_orders: yup.string(),
+    update_tracking: yup.string(),
+    oversized: yup.string(),
+    returnable: yup.string(),
+    truck_freight: yup.string(),
+    third_party_marketplaces: yup.string(),
+    adult_signature: yup.boolean(),
+    adult_sig_threshold: yup.string().nullable(),
+  });
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(Schema),
   });
 
-  // Reusable function to restrict input to integers only
   const restrictToIntegers = (e) => {
-    e.target.value = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers (no decimals)
+    e.target.value = e.target.value.replace(/[^0-9]/g, "");
   };
 
-  // Reusable function to restrict input to numbers and decimals
   const restrictToNumbersAndDecimals = (e) => {
-    e.target.value = e.target.value.replace(/[^0-9.]/g, ""); // Allow only numbers and decimals
-    if (e.target.value.split(".").length > 2) {
-      // Restrict to one decimal point
+    e.target.value = e.target.value.replace(/[^0-9.]/g, "");
+    if ((e.target.value.match(/\./g) || []).length > 1) {
       e.target.value = e.target.value.replace(/\.(?=.*\.)/g, "");
     }
   };
 
-  const handleCheckBoxCategory = (ids) => {
-    if (!Array.isArray(ids)) {
-      ids = [ids];
-    }
-    const updatedCheckboxes = checkBoxesCategory.map((checkbox) => {
-      if (ids.includes(checkbox.id)) {
-        return { ...checkbox, checked: !checkbox.checked };
-      }
-      return checkbox;
-    });
-    setCheckBoxesCategory(updatedCheckboxes);
-    const category = updatedCheckboxes
-      .filter((checkbox) => checkbox.checked)
-      .map((checkbox) => checkbox.label);
-    setCategoryChecked(category);
-    setHost(true);
+  const handleCheckBoxCategory = (id) => {
+    const updated = checkBoxesCategory.map((c) =>
+      c.id === id ? { ...c, checked: !c.checked } : c
+    );
+    setCheckBoxesCategory(updated);
+    const selected = updated.filter((c) => c.checked).map((c) => c.label);
+    setCategoryChecked(selected);
   };
 
   const selectallCategory = (e) => {
     e.preventDefault();
-    const updatedCheckboxes = checkBoxesCategory.map((checkbox) => ({
-      ...checkbox,
-      checked: true,
-    }));
-    setCheckBoxesCategory(updatedCheckboxes);
-    const theSelectedCategories = updatedCheckboxes
-      .filter((checkbox) => checkbox.checked)
-      .map((checkbox) => checkbox.label);
-    setCategoryChecked(theSelectedCategories);
-    setHost(true);
+    const updated = checkBoxesCategory.map((c) => ({ ...c, checked: true }));
+    setCheckBoxesCategory(updated);
+    const selected = updated.filter((c) => c.checked).map((c) => c.label);
+    setCategoryChecked(selected);
   };
 
   const deselectallCategory = (e) => {
     e.preventDefault();
-    const deselect = checkBoxesCategory.map((checkbox) => ({
-      ...checkbox,
-      checked: false,
-    }));
-    setCheckBoxesCategory(deselect);
+    const updated = checkBoxesCategory.map((c) => ({ ...c, checked: false }));
+    setCheckBoxesCategory(updated);
     setCategoryChecked([]);
-    setHost(true);
   };
 
-
-  const cleanObject = (obj) => {
-    return Object.entries(obj).reduce((acc, [key, value]) => {
-      if (
-        value !== null &&
-        value !== undefined &&
-        value !== "" &&
-        !(Array.isArray(value) && value.length === 0)
-      ) {
-        acc[key] =
-          typeof value === "object" && !Array.isArray(value)
-            ? cleanObject(value)
-            : value;
-      }
-      return acc;
-    }, {});
+  const handleAdultSignatureCheck = () => {
+    const newValue = !adultSignatureChecked;
+    setAdultSignatureChecked(newValue);
+    if (!newValue) {
+      setValue("adult_sig_threshold", "");
+    }
   };
+
+  const cleanObject = (obj) =>
+    Object.fromEntries(
+      Object.entries(obj).filter(
+        ([_, v]) =>
+          v !== null &&
+          v !== undefined &&
+          v !== "" &&
+          !(Array.isArray(v) && v.length === 0)
+      )
+    );
 
   const onSubmit = async (data) => {
     const rawFormData = {
       ...store,
       ...data,
-      product_category: [],
-      stock_minimum: data.stock_minimum === "" ? null : data.stock_minimum,
-      stock_maximum: data.stock_maximum === "" ? null : data.stock_maximum,
-      shipping_cost: data.shipping_cost === "" ? null : data.shipping_cost,
+      product_category: categoryChecked,
+      stock_minimum: data.stock_minimum || null,
+      stock_maximum: data.stock_maximum || null,
+      shipping_cost: data.shipping_cost || null,
+      adult_signature: adultSignatureChecked,
+      adult_sig_threshold: adultSignatureChecked && data.adult_sig_threshold 
+        ? data.adult_sig_threshold 
+        : null,
     };
+
     const formData = cleanObject(rawFormData);
+
     setMyLoader(true);
     try {
-      const response = await enrolment(formData)
-        if ([200, 201, 202].includes(response.status)) {
-          toast.success("Enrolment successful");
-          setEnrolmentResponse(response.data);
-          // dispatch(handleNextStep(formData));
-          dispatch(clearVendorData());
-          setTimeout(() => {
+      const response = await enrolment(formData);
+      if ([200, 201, 202].includes(response.status)) {
+        toast.success("Enrolment successful");
+        setEnrolmentResponse(response.data);
+        dispatch(clearVendorData());
+        setTimeout(() => {
           navigate("/vendor/success-enrolment");
-          }, 1500);
-        }
+        }, 1500);
+      }
     } catch (err) {
       if (err.response) {
         const { status, data } = err.response;
         if (status === 400 && data.error) {
           toast.error(data.error);
-          return;
-        }
-        for (const field in errors) {
-          if (Array.isArray(errors[field])) {
-            errors[field].forEach((msg) => {
-              toast.error(`${msg}`);
-            });
-          }
+        } else if (status === 500) {
+          toast.error("An internal server issue has occurred. Please contact support.");
+        } else {
+          toast.error(`Error ${status}: ${data.message || "Something went wrong."}`);
         }
       } else if (err.request) {
         toast.error("Network error: Please check your internet connection.");
       } else {
-        toast.error("An unexpected error occurred. Please try again.");
+        toast.error("An unexpected error occurred.");
       }
     } finally {
       setMyLoader(false);
@@ -201,14 +180,6 @@ const Cwr = () => {
     setCurrentStep(2);
   };
 
-  const handleSelectChange = (event) => {
-    setSelectedOption(event.target.value);
-  };
-
-  const toggleDropdown = () => {
-    setIsOpen(!isOpen);
-  };
-
   return (
     <>
       <Toaster position="top-right" />
@@ -216,138 +187,109 @@ const Cwr = () => {
         <h1 className="text-2xl font-bold mb-8 text-gray-800">Product Type</h1>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="bg-white py-6 px-3 shadow-xl rounded-lg max-w-2xl mx-auto">
-            <div className="grid grid-cols-12 mt-5 h-10 px-3">
-              <h3 className="text-sm font-semibold col-span-6">
-                Truck Freight:
-              </h3>
-              <div className="flex gap-2 h-[20px] col-span-6">
+
+            <div className="grid grid-cols-12 h-10 px-3 items-center">
+              <h3 className="text-sm font-semibold col-span-6">Adult Signature Required:</h3>
+              <div className="flex gap-2 col-span-6">
                 <input
-                  {...register("truck_freight")}
                   type="checkbox"
-                  onChange={() => setTruck(!truck)}
-                  checked={truck}
-                  className="w-5 h-5 rounded-lg border border-gray-500 focus:outline-none appearance-none bg-white checked:bg-[#027840] checked:border-[#027840] relative checked:after:content-['✓'] checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1/2 checked:after:transform checked:after:-translate-x-1/2 checked:after:leading-5"
+                  checked={adultSignatureChecked}
+                  onChange={handleAdultSignatureCheck}
+                  className="md:w-5 w-6 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5"
                 />
-                <ResponsiveTooltip title="Include Truck Freight Only Products in Catalogue.">
-                  <MdInfo />
-                </ResponsiveTooltip>
-              </div>
-            </div>
-            <div className="grid grid-cols-12 mt-5 h-10 px-3">
-              <h3 className="text-sm font-semibold col-span-6">Oversized:</h3>
-              <div className="flex gap-2 h-[20px] col-span-6">
-                <input
-                  {...register("oversized")}
-                  type="checkbox"
-                  onChange={() => setOversized(!oversized)}
-                  checked={oversized}
-                  className="w-5 h-5 rounded-lg border border-gray-500 focus:outline-none appearance-none bg-white checked:bg-[#027840] checked:border-[#027840] relative checked:after:content-['✓'] checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1/2 checked:after:transform checked:after:-translate-x-1/2 checked:after:leading-5"
-                />
-                <ResponsiveTooltip title="Include Oversized Products in Catalogue.">
-                  <MdInfo />
-                </ResponsiveTooltip>
-              </div>
-            </div>
-            <div className="grid grid-cols-12 mt-5 h-10 px-3">
-              <h3 className="text-sm font-semibold col-span-6">
-                3rd Party Marketplace:
-              </h3>
-              <div className="flex gap-2 h-[20px] col-span-6">
-                <input
-                  {...register("third_party_marketplaces")}
-                  type="checkbox"
-                  onChange={() => setParty(!party)}
-                  checked={party}
-                  className="w-5 h-5 rounded-lg border border-gray-500 focus:outline-none appearance-none bg-white checked:bg-[#027840] checked:border-[#027840] relative checked:after:content-['✓'] checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1/2 checked:after:transform checked:after:-translate-x-1/2 checked:after:leading-5"
-                />
-                <ResponsiveTooltip title="Include products not allowed on 3rd party marketplaces.">
-                  <MdInfo />
-                </ResponsiveTooltip>
-              </div>
-            </div>
-            <div className="grid grid-cols-12 mt-5 h-10 px-3">
-              <h3 className="text-sm font-semibold col-span-6">
-                Non-Returnable:
-              </h3>
-              <div className="flex gap-2 h-[20px] col-span-6">
-                <input
-                  {...register("returnable")}
-                  type="checkbox"
-                  onChange={() => setReturnable(!returnable)}
-                  checked={returnable}
-                  className="w-5 h-5 rounded-lg border border-gray-500 focus:outline-none appearance-none bg-white checked:bg-[#027840] checked:border-[#027840] relative checked:after:content-['✓'] checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1/2 checked:after:transform checked:after:-translate-x-1/2 checked:after:leading-5"
-                />
-                <ResponsiveTooltip title="Include Non-Returnable Products.">
-                  <MdInfo />
+                <ResponsiveTooltip title="$5 cost is added to any product with adult signature required.">
+                  <MdInfo className="text-gray-600 mt-0.5" />
                 </ResponsiveTooltip>
               </div>
             </div>
 
-            <div className="hidden">
-              <h1 className="ms-5 lg:text-xl text-sm font-bold">
-                Product Type
-              </h1>
-              <div className="flex mt-5 px-3">
-                <label
-                  className="mt-2 text-sm font-semibold h-8 w-[55%] md:w-[52%] lg:w-[50%]"
-                  htmlFor=""
-                >
-                  Select Category:
-                </label>
-                <div className="relative border border-gray-500 rounded p-1 text-sm h-8 lg:w-[230px] w-[160px] md:w-[200px]">
-                  <div
-                    className="flex items-center px-2 cursor-pointer justify-between"
-                    onClick={toggleDropdown}
-                  >
-                    <span className="text-gray-500">Select Category</span>
-                    {isOpen ? (
-                      <IoIosArrowUp size={20} />
-                    ) : (
-                      <IoChevronDown size={20} />
-                    )}
-                  </div>
-                  {isOpen && (
-                    <div className="max-h-[60vh] overflow-y-auto absolute mt-2 bg-white shadow-lg z-100 lg:w-[250px] md:w-[250px] w-[200px] lg:ms-[-10px] md:ms-[-20%] ms-[-20%] p-3">
-                      <div className="flex gap-6 mb-2 p-2">
-                        <button
-                          className="border border-[#089451] font-semibold py-1 lg:px-4 px-2 rounded hover:bg-green-700 hover:text-white"
-                          onClick={selectallCategory}
-                        >
-                          Select All
-                        </button>
-                        <button
-                          className="border border-[#089451] font-semibold py-1 lg:px-4 px-2 rounded hover:bg-green-700 hover:text-white"
-                          onClick={deselectallCategory}
-                        >
-                          Deselect All
-                        </button>
-                      </div>
-                      <div className="p-2">
-                        {checkBoxesCategory.map((checkbox) => (
-                          <div
-                            className="flex justify-between"
-                            key={checkbox.id}
-                          >
-                            {checkbox.label}
-                            <input
-                              className="w-5 h-5 rounded-lg border border-gray-500 focus:outline-none appearance-none bg-white checked:bg-[#027840] checked:border-[#027840] relative checked:after:content-['✓'] checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1/2 checked:after:transform checked:after:-translate-x-1/2 checked:after:leading-5"
-                              type="checkbox"
-                              checked={checkbox.checked}
-                              onChange={() =>
-                                handleCheckBoxCategory(checkbox.id)
-                              }
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+            <div className={`grid grid-cols-12 px-3 items-center overflow-hidden transition-all duration-500 ease-in-out ${
+              adultSignatureChecked ? "max-h-[120px] opacity-100 mt-4" : "max-h-0 opacity-0 mt-0"
+            }`}>
+              <label className="text-sm font-semibold col-span-6">
+                Adult Sig Threshold:
+              </label>
+              <div className="flex flex-col col-span-6">
+                <input
+                  {...register("adult_sig_threshold")}
+                  type="text"
+                  placeholder="0.00"
+                  onInput={restrictToNumbersAndDecimals}
+                  className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
+                />
+                <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-1.5">
+                  <MdLightbulb className="text-amber-500" />
+                  $5 will be added to the threshold price.
                 </div>
               </div>
             </div>
 
-            <div className="px-2 mb-6">
-              <h1 className="text-lg font-bold mb-4 text-green-700 border-b-1 border-gray-300">
+            <div className="grid grid-cols-12 mt-8 h-10 px-3 items-center">
+              <h3 className="text-sm font-semibold col-span-6">Truck Freight:</h3>
+              <div className="flex gap-2 col-span-6">
+                <input
+                  {...register("truck_freight")}
+                  type="checkbox"
+                  checked={truck}
+                  onChange={() => setTruck(!truck)}
+                  className="md:w-5 w-6 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5"
+                />
+                <ResponsiveTooltip title="Include Truck Freight Only Products in Catalogue.">
+                  <MdInfo className="text-gray-600 mt-0.5" />
+                </ResponsiveTooltip>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-12 mt-5 h-10 px-3 items-center">
+              <h3 className="text-sm font-semibold col-span-6">Oversized:</h3>
+              <div className="flex gap-2 col-span-6">
+                <input
+                  {...register("oversized")}
+                  type="checkbox"
+                  checked={oversized}
+                  onChange={() => setOversized(!oversized)}
+                  className="md:w-5 w-6 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5"
+                />
+                <ResponsiveTooltip title="Include Oversized Products in Catalogue.">
+                  <MdInfo className="text-gray-600 mt-0.5" />
+                </ResponsiveTooltip>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-12 mt-5 h-10 px-3 items-center">
+              <h3 className="text-sm font-semibold col-span-6">3rd Party Marketplace:</h3>
+              <div className="flex gap-2 col-span-6">
+                <input
+                  {...register("third_party_marketplaces")}
+                  type="checkbox"
+                  checked={party}
+                  onChange={() => setParty(!party)}
+                  className="md:w-5 w-6 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5"
+                />
+                <ResponsiveTooltip title="Include products not allowed on 3rd party marketplaces.">
+                  <MdInfo className="text-gray-600 mt-0.5" />
+                </ResponsiveTooltip>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-12 mt-5 h-10 px-3 items-center">
+              <h3 className="text-sm font-semibold col-span-6">Non-Returnable:</h3>
+              <div className="flex gap-2 col-span-6">
+                <input
+                  {...register("returnable")}
+                  type="checkbox"
+                  checked={returnable}
+                  onChange={() => setReturnable(!returnable)}
+                  className="md:w-5 w-6 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5"
+                />
+                <ResponsiveTooltip title="Include Non-Returnable Products.">
+                  <MdInfo className="text-gray-600 mt-0.5" />
+                </ResponsiveTooltip>
+              </div>
+            </div>
+
+            <div className="px-2 mb-6 mt-10">
+              <h1 className="text-lg font-bold mb-4 text-green-700 border-b border-gray-300">
                 Pricing Option
               </h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -361,16 +303,15 @@ const Cwr = () => {
                       type="text"
                       placeholder="6"
                       className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                      onInput={restrictToNumbersAndDecimals}
+                      onInput={(e) => {
+                        restrictToNumbersAndDecimals(e);
+                        setValue("percentage_markup", e.target.value, { shouldValidate: true });
+                      }}
                     />
                   </div>
-                  <div>
-                    {errors.percentage_markup && (
-                      <p className="mt-1 text-sm text-red-600 ms-[50%]">
-                        This field is required
-                      </p>
-                    )}
-                  </div>
+                  {errors.percentage_markup && (
+                    <p className="mt-1 text-sm text-red-600 ms-[50%]">This field is required</p>
+                  )}
                 </div>
 
                 <div>
@@ -383,18 +324,18 @@ const Cwr = () => {
                       type="text"
                       placeholder="8"
                       className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                      onInput={restrictToNumbersAndDecimals}
+                      onInput={(e) => {
+                        restrictToNumbersAndDecimals(e);
+                        setValue("fixed_markup", e.target.value, { shouldValidate: true });
+                      }}
                     />
                   </div>
-                  <div>
-                    {errors.fixed_markup && (
-                      <p className="mt-1 text-sm text-red-600 ms-[50%]">
-                        This field is required
-                      </p>
-                    )}
-                  </div>
+                  {errors.fixed_markup && (
+                    <p className="mt-1 text-sm text-red-600 ms-[50%]">This field is required</p>
+                  )}
                 </div>
               </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-3">
                 <div className="flex items-center">
                   <label className="block text-sm font-medium text-gray-700 mb-1 md:w-[70%] w-[80%]">
@@ -405,19 +346,20 @@ const Cwr = () => {
                     type="text"
                     placeholder="6"
                     className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                    onInput={restrictToNumbersAndDecimals}
+                    onInput={(e) => {
+                      restrictToNumbersAndDecimals(e);
+                      setValue("shipping_cost", e.target.value, { shouldValidate: true });
+                    }}
                   />
                   {errors.shipping_cost && (
-                    <p className="mt-1 text-sm text-red-600">
-                      This field is required
-                    </p>
+                    <p className="mt-1 text-sm text-red-600">This field is required</p>
                   )}
                 </div>
               </div>
             </div>
 
             <div className="px-2 mb-6">
-              <h1 className="text-lg font-bold mb-4 text-green-700 border-b-1 border-gray-300">
+              <h1 className="text-lg font-bold mb-4 text-green-700 border-b border-gray-300">
                 Inventory
               </h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -430,12 +372,13 @@ const Cwr = () => {
                     type="text"
                     placeholder="2"
                     className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                    onInput={restrictToIntegers}
+                    onInput={(e) => {
+                      restrictToIntegers(e);
+                      setValue("stock_minimum", e.target.value, { shouldValidate: true });
+                    }}
                   />
                   {errors.stock_minimum && (
-                    <p className="mt-1 text-sm text-red-600">
-                      This field is required
-                    </p>
+                    <p className="mt-1 text-sm text-red-600">This field is required</p>
                   )}
                 </div>
 
@@ -448,69 +391,67 @@ const Cwr = () => {
                     type="text"
                     placeholder="10"
                     className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                    onInput={restrictToIntegers}
+                    onInput={(e) => {
+                      restrictToIntegers(e);
+                      setValue("stock_maximum", e.target.value, { shouldValidate: true });
+                    }}
                   />
                   {errors.stock_maximum && (
-                    <p className="mt-1 text-sm text-red-600">
-                      This field is required
-                    </p>
+                    <p className="mt-1 text-sm text-red-600">This field is required</p>
                   )}
                 </div>
               </div>
             </div>
 
             <div className="mb-8 border-t border-gray-200 pt-6">
-              <h1 className="lg:text-xl text-green-700 font-semibold mt-5 border-b-1 border-gray-300">
+              <h1 className="lg:text-xl text-green-700 font-semibold mt-5 border-b border-gray-300">
                 Integration Settings
               </h1>
-              <div className="grid grid-cols-12 mt-5 h-10 px-3">
-                <h3 className="text-sm font-semibold col-span-6">
-                  Update Inventory:
-                </h3>
-                <div className="flex gap-2 h-[20px] col-span-6">
+
+              <div className="grid grid-cols-12 mt-5 h-10 px-3 items-center">
+                <h3 className="text-sm font-semibold col-span-6">Update Inventory:</h3>
+                <div className="flex gap-2 col-span-6">
                   <input
                     type="checkbox"
                     {...register("update_inventory")}
-                    onChange={() => setInventory(!inventory)}
                     checked={inventory}
-                    className="w-5 h-5 rounded-lg border border-gray-500 focus:outline-none appearance-none bg-white checked:bg-[#027840] checked:border-[#027840] relative checked:after:content-['✓'] checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1/2 checked:after:transform checked:after:-translate-x-1/2 checked:after:leading-5"
+                    onChange={() => setInventory(!inventory)}
+                    className="md:w-5 w-6 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5"
                   />
                   <ResponsiveTooltip title="Swift Suite will start updating inventory on marketplace for synced products.">
-                    <MdInfo />
+                    <MdInfo className="text-gray-600 mt-0.5" />
                   </ResponsiveTooltip>
                 </div>
               </div>
-              <div className="grid grid-cols-12 mt-5 h-10 px-3">
-                <h3 className="text-sm font-semibold col-span-6">
-                  Send Orders:
-                </h3>
-                <div className="flex gap-2 h-[20px] col-span-6">
+
+              <div className="grid grid-cols-12 mt-5 h-10 px-3 items-center">
+                <h3 className="text-sm font-semibold col-span-6">Send Orders:</h3>
+                <div className="flex gap-2 col-span-6">
                   <input
                     type="checkbox"
                     {...register("send_orders")}
-                    onChange={() => setOrder(!order)}
                     checked={order}
-                    className="w-5 h-5 rounded-lg border border-gray-500 focus:outline-none appearance-none bg-white checked:bg-[#027840] checked:border-[#027840] relative checked:after:content-['✓'] checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1/2 checked:after:transform checked:after:-translate-x-1/2 checked:after:leading-5"
+                    onChange={() => setOrder(!order)}
+                    className="md:w-5 w-6 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5"
                   />
                   <ResponsiveTooltip title="Check to allow order to be sent to supplier for fulfilment.">
-                    <MdInfo />
+                    <MdInfo className="text-gray-600 mt-0.5" />
                   </ResponsiveTooltip>
                 </div>
               </div>
-              <div className="grid grid-cols-12 mt-5 h-10 px-3">
-                <h3 className="text-sm font-semibold col-span-6">
-                  Update Tracking:
-                </h3>
-                <div className="flex gap-2 h-[20px] col-span-6">
+
+              <div className="grid grid-cols-12 mt-5 h-10 px-3 items-center">
+                <h3 className="text-sm font-semibold col-span-6">Update Tracking:</h3>
+                <div className="flex gap-2 col-span-6">
                   <input
                     type="checkbox"
                     {...register("update_tracking")}
-                    onChange={() => setTracking(!tracking)}
                     checked={tracking}
-                    className="w-5 h-5 rounded-lg border border-gray-500 focus:outline-none appearance-none bg-white checked:bg-[#027840] checked:border-[#027840] relative checked:after:content-['✓'] checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1/2 checked:after:transform checked:after:-translate-x-1/2 checked:after:leading-5"
+                    onChange={() => setTracking(!tracking)}
+                    className="md:w-5 w-6 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5"
                   />
                   <ResponsiveTooltip title="Start Updating Order Tracking.">
-                    <MdInfo />
+                    <MdInfo className="text-gray-600 mt-0.5" />
                   </ResponsiveTooltip>
                 </div>
               </div>
@@ -528,13 +469,9 @@ const Cwr = () => {
               <button
                 type="submit"
                 disabled={myLoader}
-                className="bg-[#027840] text-white hover:bg-white hover:text-[#089451] border border-[#089451] font-semibold py-2 px-4 rounded-[8px] transition-all flex justify-center items-center w-[200px] gap-2"
+                className="bg-[#027840] text-white hover:bg-white hover:text-[#089451] border border-[#089451] font-semibold py-2 px-8 rounded-[8px] transition-all flex justify-center items-center w-[200px] gap-2"
               >
-                {myLoader ? (
-                  <ThreeDots height="20" width="20" ariaLabel="loading" />
-                ) : (
-                  "Next"
-                )}
+                {myLoader ? <ThreeDots height="20" width="60" color="#fff" /> : "Next"}
               </button>
             </div>
           </div>

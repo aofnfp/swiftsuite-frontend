@@ -2,7 +2,7 @@ import React from "react";
 import { Tooltip } from "@heroui/react";
 import GetCategory from "./GetCategory";
 import ItemSpecificFields from "./ItemSpecificFields";
-import { BiCategoryAlt } from "react-icons/bi";
+import { BiCategoryAlt, BiChevronDown, BiChevronUp } from "react-icons/bi";
 
 const ItemSpecificsSection = ({
   isEbay,
@@ -50,6 +50,9 @@ const ItemSpecificsSection = ({
           <p>
             <img src="https://i.postimg.cc/3xZSgy9Z/ebay.png" alt="eBay" className="w-20 h-10" />
           </p>
+          <div className="text-gray-500">
+            {isEbayOpen ? <BiChevronUp size={30} /> : <BiChevronDown size={30}/>}
+          </div>
         </div>
       </div>
       {isEbayOpen && (

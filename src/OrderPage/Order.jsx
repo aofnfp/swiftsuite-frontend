@@ -26,6 +26,8 @@ const Order = () => {
   const userId = localStorage.getItem("userId");
 
   const store = useSelector((state) => state.vendor.order);
+  const dispatch = useDispatch();
+
   const { subscribed } = useSelector((state) => state.permission);
 
   const setSearch = useOrderStore((state) => state.setSearchQuery);
@@ -39,7 +41,6 @@ const Order = () => {
   const sortConfig = useOrderStore((state) => state.sortConfig);
   const setSortConfig = useOrderStore((state) => state.setSortConfig);
   
-  const dispatch = useDispatch();
 
   // sortConfig now from store
   const [orders, setOrders] = useState([]);
@@ -53,6 +54,7 @@ const Order = () => {
   const [vendor_status, setVendor_status] = useState("all");
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [filterLoading, setFilterLoading] = useState(false);
+  const [activeFilters, setActiveFilters] = useState({});
   const [formFilters, setFormFilters] = useState({
     minquantity: "",
     quantity: "",
@@ -63,7 +65,6 @@ const Order = () => {
     vendor_name: "",
     market_name: "",
   });
-  const [activeFilters, setActiveFilters] = useState({});
 
   useEffect(() => {
     if (!subscribed) setShowModal(true);
@@ -83,6 +84,7 @@ const Order = () => {
   const handleRefresh = () => {
     fetchOrders();
     setActiveFilters({});
+    setVendor_status("all");
   };
 
   const fetchOrders = async () => {
@@ -243,7 +245,7 @@ const Order = () => {
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
               <div className="text-center flex flex-wrap gap-2 justify-center sm:justify-start">
-                {['all', 'pending', 'processing', 'shipped', 'delivered'].map(
+                {['all', 'pending', 'processing', 'shipped', 'delivered', 'failed'].map(
                   (status) => {
                     const normalized = status.charAt(0).toUpperCase() + status.slice(1);
                     const isActive = vendor_status === status;
@@ -256,7 +258,6 @@ const Order = () => {
                             : 'bg-white text-gray-600 border border-gray-200 hover:bg-green-50'
                         }`}
                         onPress={() => handleOrderStatus(status)}
-                        disabled={orders.length === 0}
                         variant="bordered"
                         size="lg"
                       >
@@ -293,6 +294,7 @@ const Order = () => {
             <div className="flex flex-wrap gap-2 items-center relative">
               <button
                 type="button"
+                disabled={orders.length === 0}
                 onClick={() => setShowFilterPanel((prev) => !prev)}
                 className="flex items-center justify-center rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-green-50 hover:border-green-200"
               >
@@ -316,6 +318,7 @@ const Order = () => {
                   <Button
                     className="capitalize text-black font-semibold -z-1"
                     variant="bordered"
+                    disabled={orders.length === 0}
                   >
                     {sortConfig?.key
                       ? `${
@@ -348,6 +351,7 @@ const Order = () => {
                   <Button
                     className="capitalize text-black font-semibold -z-1"
                     variant="bordered"
+                    disabled={orders.length === 0}
                   >
                     {selectedOrderPerPage} per page
                   </Button>

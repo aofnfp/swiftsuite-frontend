@@ -409,6 +409,8 @@ const Inventory = () => {
     setCheckedItems(areAllSelected ? [] : allIds);
   };
 
+  const filteredItems = listingDetail.filter((item) => item.active === true);
+
   return (
     <div className="bg-[#E7F2ED] px-4">
       <Toaster position="top-right" />
@@ -437,7 +439,7 @@ const Inventory = () => {
                   handlePreviousPage={handlePreviousPage}
                   handleFirstPage={handleFirstPage}
                   handleLastPage={handleLastPage}
-                  listingDetail={listingDetail}
+                  listingDetail={filteredItems}
                   currentPage={page}
                   pageCount={pageCount}
                   totalItems={count}
@@ -457,7 +459,7 @@ const Inventory = () => {
 
               {/* Sort */}
               <InventorySorting
-                listingDetail={listingDetail}
+                listingDetail={filteredItems}
                 setSortConfig={setSortConfig}
                 sortConfig={sortConfig}
               />
@@ -544,8 +546,8 @@ const Inventory = () => {
                 <div className="flex items-center gap-2 text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-md border border-gray-200">
                   <input
                     type="checkbox"
-                    disabled={!multiSelect || loader || listingDetail.length === 0}
-                    onClick={() => selectAllProducts(listingDetail)}
+                    disabled={!multiSelect || loader || filteredItems.length === 0}
+                    onClick={() => selectAllProducts(filteredItems)}
                     className={`${!multiSelect ? "cursor-not-allowed disabled border border-gray-200" : "border border-green-700"
                       } w-4 h-4 appearance-none rounded checked:bg-green-700 focus:outline-none focus:ring-green-300`}
                   />
@@ -622,7 +624,7 @@ const Inventory = () => {
       <div className="mt-12">
         {loader ? (
           <LoaderCard />
-        ) : listingDetail && listingDetail.length > 0 ? (
+        ) : filteredItems && filteredItems.length > 0 ? (
           <>
             {viewMode === "list" && (
               <InventoryListView

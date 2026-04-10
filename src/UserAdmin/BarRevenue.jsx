@@ -65,7 +65,6 @@ const RangeDropdown = ({ selectedRange, onSelect }) => {
 
   return (
     <div ref={wrapperRef} style={{ position: 'relative', display: 'inline-block' }}>
-      {/* Trigger button */}
       <button
         onClick={() => setOpen((v) => !v)}
         style={{
@@ -98,7 +97,6 @@ const RangeDropdown = ({ selectedRange, onSelect }) => {
         <ChevronIcon open={open} />
       </button>
 
-      {/* Dropdown menu */}
       <div
         style={{
           position: 'absolute',
@@ -153,6 +151,7 @@ const BarRevenue = () => {
   const svgRef = useRef();
   const containerRef = useRef();
   const [selectedRange, setSelectedRange] = useState(12);
+  const [tooltip, setTooltip] = useState(null);
 
   const getData = () => fullData.slice(-selectedRange);
 
@@ -183,7 +182,6 @@ const BarRevenue = () => {
       .domain([0, maxTotal * 1.2])
       .range([height, 0]);
 
-    // Gridlines
     g.append('g')
       .call(
         d3.axisLeft(yScale)
@@ -197,7 +195,6 @@ const BarRevenue = () => {
 
     g.select('.domain').remove();
 
-    // Bar groups
     const bars = g.selectAll('.bar-group')
       .data(data)
       .enter()
@@ -205,7 +202,6 @@ const BarRevenue = () => {
       .attr('class', 'bar-group')
       .attr('transform', (d) => `translate(${xScale(d.month)}, 0)`);
 
-    // Profit bars
     bars.append('rect')
       .attr('x', 0)
       .attr('width', xScale.bandwidth())
@@ -218,7 +214,6 @@ const BarRevenue = () => {
       .attr('y', (d) => yScale(d.profit))
       .attr('height', (d) => height - yScale(d.profit));
 
-    // Loss bars (stacked)
     bars.append('rect')
       .attr('x', 0)
       .attr('width', xScale.bandwidth())
@@ -231,7 +226,6 @@ const BarRevenue = () => {
       .attr('y', (d) => yScale(d.profit + d.loss))
       .attr('height', (d) => yScale(d.profit) - yScale(d.profit + d.loss));
 
-    // X axis
     const xAxis = g.append('g')
       .attr('transform', `translate(0, ${height})`)
       .call(d3.axisBottom(xScale).tickSize(0));
@@ -243,7 +237,6 @@ const BarRevenue = () => {
       .style('font-size', '10px')
       .attr('fill', '#027840');
 
-    // Y axis
     const yAxis = g.append('g').call(
       d3.axisLeft(yScale)
         .tickValues([0, 20000, 40000, 60000, 80000])
@@ -257,35 +250,19 @@ const BarRevenue = () => {
     yAxis.select('.domain').remove();
     yAxis.selectAll('text').style('font-size', '10px').attr('fill', '#027840');
 
-    // Tooltips
     bars.selectAll('rect')
       .on('mouseover', function (event, d) {
-        d3.selectAll('.bar-tooltip').remove();
-        d3.select('body')
-          .append('div')
-          .attr('class', 'bar-tooltip')
-          .style('position', 'absolute')
-          .style('background', 'rgba(0,0,0,0.82)')
-          .style('color', 'white')
-          .style('padding', '8px 12px')
-          .style('border-radius', '6px')
-          .style('font-size', '12px')
-          .style('pointer-events', 'none')
-          .style('z-index', '1000')
-          .style('line-height', '1.6')
-          .html(`
-            <strong>${d.month}</strong><br/>
-            Profit: $${d.profit.toLocaleString()}<br/>
-            Loss: $${d.loss.toLocaleString()}<br/>
-            Total: $${(d.profit + d.loss).toLocaleString()}
-          `)
-          .style('left', `${event.pageX + 12}px`)
-          .style('top', `${event.pageY - 12}px`);
-
+        setTooltip({
+          month: d.month,
+          profit: d.profit,
+          loss: d.loss,
+          x: event.pageX + 12,
+          y: event.pageY - 12,
+        });
         d3.select(this).style('opacity', 0.75);
       })
       .on('mouseout', function () {
-        d3.selectAll('.bar-tooltip').remove();
+        setTooltip(null);
         d3.select(this).style('opacity', 1);
       });
   };
@@ -294,14 +271,17 @@ const BarRevenue = () => {
     drawChart();
     const resizeObserver = new ResizeObserver(() => drawChart());
     resizeObserver.observe(containerRef.current);
-    return () => resizeObserver.disconnect();
+    
+    return () => {
+      resizeObserver.disconnect();
+      setTooltip(null);
+    };
   }, [selectedRange]);
 
   return (
     <div className="w-full mx-auto mb-5 bg-white rounded-[8px]">
       <div className="p-6 pb-0">
         <div className="flex justify-between items-start">
-          {/* Left: title + stats */}
           <div>
             <h3 className="font-bold text-gray-800">Total Revenue</h3>
             <p className="text-xl font-semibold text-gray-900 mt-0.5">$36,245.29</p>
@@ -310,7 +290,6 @@ const BarRevenue = () => {
             </p>
           </div>
 
-          {/* Right: legend + custom dropdown */}
           <div className="flex flex-col items-end gap-3">
             <RangeDropdown selectedRange={selectedRange} onSelect={setSelectedRange} />
             <div className="flex gap-4 text-xs font-medium">
@@ -330,6 +309,29 @@ const BarRevenue = () => {
       <div ref={containerRef} className="w-full h-[250px]">
         <svg ref={svgRef} className="w-full h-full" />
       </div>
+
+      {tooltip && (
+        <div
+          style={{
+            position: 'fixed',
+            background: 'rgba(0,0,0,0.82)',
+            color: 'white',
+            padding: '8px 12px',
+            borderRadius: '6px',
+            fontSize: '12px',
+            pointerEvents: 'none',
+            zIndex: '1000',
+            lineHeight: '1.6',
+            left: `${tooltip.x}px`,
+            top: `${tooltip.y}px`,
+          }}
+        >
+          <strong>{tooltip.month}</strong><br/>
+          Profit: ${tooltip.profit.toLocaleString()}<br/>
+          Loss: ${tooltip.loss.toLocaleString()}<br/>
+          Total: ${(tooltip.profit + tooltip.loss).toLocaleString()}
+        </div>
+      )}
     </div>
   );
 };

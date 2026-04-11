@@ -91,7 +91,7 @@ const PaymentHistory = () => {
     if (plan === "Growth") return "bg-[#005D68] text-white";
     if (plan === "Premium") return "bg-[#000000] text-white";
     if (plan === "Enterprise") return "bg-[#027840] text-white";
-    return "bg-gray-100 text-gray-900";
+    return "bg-gray-200 text-gray-900";
   };
 
   const renderStatus = (status) => {
@@ -157,7 +157,7 @@ const PaymentHistory = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-20 md:px-6 md:py-10 lg:px-8 lg:py-20">
+      <div className="max-w-7xl mx-auto px-4 py-20 md:px-6 md:py-18 lg:px-8 lg:py-20">
         <Toaster position="top-right" />
 
         {/* Header */}

@@ -1,19 +1,14 @@
-import React, { useState, useEffect } from 'react'
-import { handleNextStep, handlePreviousStep } from '../redux/EditVendor'
-import { useDispatch, useSelector } from 'react-redux'
+import React, { useEffect } from 'react'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
-
-
-
+import { useEditVendorStore } from '../stores/editVendorStore'
 
 const EditVendorOption = () => {
   const navigate = useNavigate()
-  let token = (localStorage.getItem('token'))
-  const store = useSelector(state => state.editVendor.enrolmentUpdate)
- 
+  const matchedVendor = useEditVendorStore((state) => state.matchedVendor)
+  const setCurrentStep = useEditVendorStore((state) => state.setCurrentStep)
 
   const Schema = yup.object().shape({
     file_urls: yup.string().required(),
@@ -24,22 +19,21 @@ const EditVendorOption = () => {
     resolver: yupResolver(Schema)
   })
 
-  const dispatch = useDispatch()
   const onSubmit = (data) => {
-    let form = { ...store, ...data }
-    dispatch(handleNextStep(form))
+    setCurrentStep(2) 
   }
 
   const handlePrevious = () => {
-    dispatch(handlePreviousStep())
+    setCurrentStep(0)
   }
 
-useEffect(() => {
-  if(store) {
-    setValue("file_urls", store.file_urls);
-    setValue("ftp_url", store.ftp_url);
-  }
-}, [])
+  useEffect(() => {
+    if (matchedVendor) {
+      const enrolment = matchedVendor.enrollment || {}
+      setValue("file_urls", enrolment.file_urls || "");
+      setValue("ftp_url", enrolment.ftp_url || "");
+    }
+  }, [matchedVendor, setValue])
 
 
   return (

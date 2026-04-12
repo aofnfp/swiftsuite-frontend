@@ -104,7 +104,7 @@ export const updateEnrolment = async (identifier, formData) => {
 // Marketplace Enrolment
 export const marketplaceEnrolment = async (userId, marketplacePlatform, payload = {}) => {
   const response = await axiosInstance.put(`/marketplaceApp/complete_enrolment_or_update/${userId}/${marketplacePlatform}/`, payload);
-  return response.data;
+  return response;
 };
 
 // Marketplace OAuth Callback

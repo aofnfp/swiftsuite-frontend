@@ -16,20 +16,31 @@ import { GrNext } from "react-icons/gr";
 import { accountEnrollments, deleteEnrollment, deleteVendorAccount, viewEnrollmentWithIdentifier } from "../api/authApi";
 import { formatDate, formatVendorName } from "../utils/utils";
 import { useVendorStore } from "../stores/VendorStore";
+import { useEditVendorStore } from "../stores/editVendorStore";
 
 const EditEnrollment = () => {
-  const [data, setData] = useState([]);
-  const [loader, setLoader] = useState(false);
-  const [actionLoading, setActionLoading] = useState({});
-  const [popoverStates, setPopoverStates] = useState({});
-  const [expandedVendors, setExpandedVendors] = useState({});
-  const [dataLoaded, setDataLoaded] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [entriesPerPage, setEntriesPerPage] = useState(
-    () => Number(localStorage.getItem("editVendorPerPage")) || 6
-  );
-  const [currentPage, setCurrentPage] = useState(1);
-  const [view, setView] = useState("custom");
+  const data = useEditVendorStore((state) => state.enrollmentData);
+  const setData = useEditVendorStore((state) => state.setEnrollmentData);
+  const loader = useEditVendorStore((state) => state.loader);
+  const setLoader = useEditVendorStore((state) => state.setLoader);
+  const actionLoading = useEditVendorStore((state) => state.actionLoading);
+  const setActionLoading = useEditVendorStore((state) => state.setActionLoading);
+  const popoverStates = useEditVendorStore((state) => state.popoverStates);
+  const setPopoverStates = useEditVendorStore((state) => state.setPopoverStates);
+  const expandedVendors = useEditVendorStore((state) => state.expandedVendors);
+  const setExpandedVendors = useEditVendorStore((state) => state.setExpandedVendors);
+  const dataLoaded = useEditVendorStore((state) => state.dataLoaded);
+  const setDataLoaded = useEditVendorStore((state) => state.setDataLoaded);
+  const searchTerm = useEditVendorStore((state) => state.searchTerm);
+  const setSearchTerm = useEditVendorStore((state) => state.setSearchTerm);
+  const entriesPerPage = useEditVendorStore((state) => state.entriesPerPage);
+  const setEntriesPerPage = useEditVendorStore((state) => state.setEntriesPerPage);
+  const currentPage = useEditVendorStore((state) => state.currentPage);
+  const setCurrentPage = useEditVendorStore((state) => state.setCurrentPage);
+  const view = useEditVendorStore((state) => state.view);
+  const setView = useEditVendorStore((state) => state.setView);
+  const setEditingVendor = useEditVendorStore((state) => state.setEditingVendor);
+
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const navigate = useNavigate();
@@ -154,24 +165,19 @@ const EditEnrollment = () => {
       throw new Error("No enrollment data found");
     }
    
-    
-    localStorage.setItem("matchedVendor", JSON.stringify(data));
+    setEditingVendor(data, vendorName, enrollmentIdentifier, enrollmentId);
     setVendorContext({
       vendorId: data.enrollment?.vendor,
       vendorName: vendorName || "Unknown Vendor",
     });
     
-    localStorage.setItem("editingVendorName", vendorName || "Unknown Vendor");
-    localStorage.setItem("editingIdentifier", enrollmentIdentifier || "N/A");
-    localStorage.setItem("editingEnrollmentId", enrollmentId);
-
     navigate("/layout/editvendor");
   } catch (error) {
     handleApiError(error, "Failed to fetch enrollment details");
   } finally {
     setActionLoading((prev) => ({ ...prev, [enrollmentId]: undefined }));
   }
-}, [handleApiError, navigate]);
+}, [handleApiError, navigate, setEditingVendor, setVendorContext, setActionLoading]);
 
   const handleDelete = useCallback(async (identifier) => {
     setActionLoading((prev) => ({ ...prev, [identifier]: "deleting" }));
@@ -266,7 +272,7 @@ const EditEnrollment = () => {
     const sanitizedValue = e.target.value.replace(/[<>]/g, "");
     setSearchTerm(sanitizedValue);
     setCurrentPage(1);
-  }, []);
+  }, [setSearchTerm, setCurrentPage]);
 
   const handleNextPage = useCallback(() => {
     setCurrentPage((prev) => prev + 1);

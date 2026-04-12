@@ -1,25 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { IoIosArrowUp } from 'react-icons/io';
 import { IoChevronDown } from 'react-icons/io5';
-import { useDispatch, useSelector } from 'react-redux';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useForm } from 'react-hook-form';
-import { handleNextStep, handlePreviousStep } from '../redux/EditVendor';
 import { Toaster, toast } from 'sonner';
 import { MdInfo } from 'react-icons/md';
 import { ThreeDots } from 'react-loader-spinner';
 import ResponsiveTooltip from '../Vendorenrolment/ResponsiveTooltip';
-import { useNavigate } from 'react-router-dom';
 import { updateEnrolment } from '../api/authApi';
-
+import { useEditVendorStore } from '../stores/editVendorStore';
+import { cleanObject, restrictToIntegers, restrictToNumbersAndDecimals } from '../utils/utils';
 
 const EditProductType = () => {
-  const store = useSelector((state) => state.editVendor.enrolmentUpdate);
-  let token = localStorage.getItem('token');
-  const vendor_name = localStorage.getItem('editingVendorName');
-  const connection = JSON.parse(localStorage.getItem('matchedVendor'));
-  const navigate = useNavigate()
+  const setCurrentStep = useEditVendorStore((state) => state.setCurrentStep);
+  const vendor_name = useEditVendorStore((state) => state.editingVendorName);
+  const connection = useEditVendorStore((state) => state.matchedVendor);
+  const editingIdentifier = useEditVendorStore((state) => state.editingIdentifier);
 
   const [checkBoxesProduct, setCheckBoxesProduct] = useState([]);
   const [checkBoxesManufacturer, setCheckBoxesManufacturer] = useState([]);
@@ -49,82 +46,48 @@ const EditProductType = () => {
 
   useEffect(() => {
     if (connection) {
+      const enrolment = connection.enrollment || {};
+
       if (connection.product_filter) {
-        setCheckBoxesProduct((prev) =>
-          JSON.stringify(prev) !== JSON.stringify(connection.product_filter)
-            ? connection.product_filter
-            : prev
-        );
+        setCheckBoxesProduct(connection.product_filter);
         setHeading2('Select Product');
-      }
-
-      if (connection.manufacturer) {
-        setCheckBoxesManufacturer((prev) =>
-          JSON.stringify(prev) !== JSON.stringify(connection.manufacturer)
-            ? connection.manufacturer
-            : prev
-        );
-        setHeading('Manufacturer');
-      }
-
-      if (connection.brand) {
-        setCheckBoxesManufacturer((prev) =>
-          JSON.stringify(prev) !== JSON.stringify(connection.brand)
-            ? connection.brand
-            : prev
-        );
-        setHeading('Brand');
-      }
-
-      if (connection.product_category) {
-        setCheckBoxesProduct((prev) =>
-          JSON.stringify(prev) !== JSON.stringify(connection.product_category)
-            ? connection.product_category
-            : prev
-        );
+      } else if (connection.product_category) {
+        setCheckBoxesProduct(connection.product_category);
         setHeading2('Category');
       }
 
-      if (connection.enrollment?.identifier) {
-        setIsMyIdentifier((prev) =>
-          prev !== connection.enrollment.identifier
-            ? connection.enrollment.identifier
-            : prev
-        );
+      if (connection.manufacturer) {
+        setCheckBoxesManufacturer(connection.manufacturer);
+        setHeading('Manufacturer');
+      } else if (connection.brand) {
+        setCheckBoxesManufacturer(connection.brand);
+        setHeading('Brand');
+      }
+      // Initialize selected options (Product Type / Category)
+      if (Array.isArray(enrolment.product_filter) && enrolment.product_filter.length > 0) {
+        setSelectedOptions(new Set(enrolment.product_filter));
+      } else if (Array.isArray(enrolment.product_category) && enrolment.product_category.length > 0) {
+        setSelectedOptions(new Set(enrolment.product_category));
+      } else if (Array.isArray(enrolment.product_type) && enrolment.product_type.length > 0) {
+        setSelectedOptions(new Set(enrolment.product_type));
       }
 
-      setMyEditDetails((prev) =>
-        JSON.stringify(prev) !== JSON.stringify(connection) ? connection : prev
-      );
+      // Initialize selected options (Manufacturer / Brand)
+      if (Array.isArray(enrolment.manufacturer) && enrolment.manufacturer.length > 0) {
+        setOption(new Set(enrolment.manufacturer));
+      } else if (Array.isArray(enrolment.brand) && enrolment.brand.length > 0) {
+        setOption(new Set(enrolment.brand));
+      }
+
+      if (enrolment.identifier) {
+        setIsMyIdentifier(enrolment.identifier);
+      }
+
+      setMyEditDetails(connection);
     }
   }, [connection]);
 
-  useEffect(() => {
-    if (Array.isArray(connection?.product_filter) && connection.product_filter.length) {
-      setCheckBoxesProduct(connection.product_filter);
-    }
-
-    if (Array.isArray(connection?.manufacturer) && connection.manufacturer.length) {
-      setCheckBoxesManufacturer(connection.manufacturer);
-    } else if (Array.isArray(connection?.brand) && connection.brand.length) {
-      setCheckBoxesManufacturer(connection.brand);
-    }
-
-    if (Array.isArray(connection?.enrollment?.product_filter)) {
-      setSelectedOptions(new Set(connection.enrollment.product_filter));
-    }
-    if (Array.isArray(connection?.product_category) && connection.product_category.length) {
-      setSelectedOptions(new Set(connection.enrollment.product_category));
-    }
-
-    if (Array.isArray(connection?.brand)) {
-      setOption(new Set(connection.enrollment.brand));
-    } else if (Array.isArray(connection?.manufacturer)) {
-      setOption(new Set(connection.enrollment.manufacturer));
-    }
-
-    setIsMyIdentifier(connection?.enrollment?.identifier || false);
-  }, []);
+  // Remove the old mount-only useEffect that was incorrectly initializing states
 
   const Schema = yup.object().shape({
     percentage_markup: yup
@@ -165,13 +128,11 @@ const EditProductType = () => {
   });
 
   useEffect(() => {
-    const matchedVendor = localStorage.getItem('matchedVendor');
-    if (matchedVendor) {
+    if (connection) {
       try {
-        const myFormData = JSON.parse(matchedVendor);
+        const myFormData = connection;
         const enrolment = myFormData?.enrollment || {};
         setMyForm(enrolment);
-        // Set state for checkboxes
         setTruck(enrolment?.truck_freight || false);
         setOversized(enrolment?.oversized || false);
         setReturnable(enrolment?.returnable || false);
@@ -186,7 +147,6 @@ const EditProductType = () => {
           shippableValue.includes("N");
         setShippable(allowsBoth);
 
-        // Set form fields
         setValue("vendor_identifier", enrolment?.identifier || "");
         setValue("fixed_markup", enrolment?.fixed_markup || "");
         setValue("percentage_markup", enrolment?.percentage_markup || "");
@@ -203,27 +163,10 @@ const EditProductType = () => {
         setValue("serialized", enrolment?.serialized || false);
         setValue("shippable", allowsBoth);
       } catch (error) {
-        console.error("Error parsing matchedVendor:", error);
+        console.error("Error setting form values from connection:", error);
       }
     }
-  }, [setValue]);
-
-  const cleanObject = (obj) => {
-    return Object.entries(obj).reduce((acc, [key, value]) => {
-      if (
-        value !== null &&
-        value !== undefined &&
-        value !== "" &&
-        !(Array.isArray(value) && value.length === 0)
-      ) {
-        acc[key] =
-          typeof value === "object" && !Array.isArray(value)
-            ? cleanObject(value)
-            : value;
-      }
-      return acc;
-    }, {});
-  };
+  }, [setValue, connection]);
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -233,67 +176,63 @@ const EditProductType = () => {
     setIsManufacturerOpen(!manufacturerOpen);
   };
 
-  let dispatch = useDispatch();
+  const handlePrevious = () => {
+    setCurrentStep(0);
+  };
 
   const onSubmit = async (data) => {
-    const rawFormData = {
-      ...store,
+    setMyLoader(true);
+    const userId = JSON.parse(localStorage.getItem('userId'));
+    const enrollmentData = connection?.enrollment || {};
+
+    const rawPayload = {
       ...data,
-      ...(connection.product_filter && { product_filter: [...selectedOptions] }),
-      ...(connection.manufacturer && { manufacturer: [...option] }),
-      ...(connection.brand && { brand: [...option] }),
-      ...(connection.product_category && { product_category: [...selectedOptions] }),
+      identifier: editingIdentifier,
+      id: enrollmentData.id,
+      vendor: enrollmentData.vendor,
+      user: userId,
+      third_party_marketplaces: third_party_marketplaces,
+      update_inventory: inventory,
+      send_orders: order,
+      update_tracking: tracking,
+      serialized: check,
+      truck_freight: truck,
+      oversized: oversized,
+      returnable: returnable,
       shippable: shippable ? ["Y", "N"] : ["Y"],
+      
+      // Map selections correctly based on what's available
+      ...(connection.product_filter && { product_filter: Array.from(selectedOptions) }),
+      ...(connection.product_category && { product_category: Array.from(selectedOptions) }),
+      ...(connection.manufacturer && { manufacturer: Array.from(option) }),
+      ...(connection.brand && { brand: Array.from(option) }),
+      
+      // Keep product_type and manufacturer for backward compatibility/generic models
+      product_type: Array.from(selectedOptions),
+      manufacturer: Array.from(option),
+
+      // Handle numeric fields that might be empty strings
       stock_minimum: data.stock_minimum === "" ? null : data.stock_minimum,
       stock_maximum: data.stock_maximum === "" ? null : data.stock_maximum,
       shipping_cost: data.shipping_cost === "" ? null : data.shipping_cost,
+      fixed_markup: data.fixed_markup === "" ? null : data.fixed_markup,
+      percentage_markup: data.percentage_markup === "" ? null : data.percentage_markup,
     };
-    const formData = cleanObject(rawFormData);
-    if (connection.enrollment.vendor !== 4) {
-      if (connection.product_filter && selectedOptions.size === 0) {
-        toast.error('Please select at least one product');
-        return;
-      }
-      if (option.size === 0 && connection.enrollment.vendor !== 3) {
-        toast.error('Please select at least one manufacturer.');
-        return;
-      }
-    }
+    const payload = cleanObject(rawPayload);
     try {
-      setMyLoader(true);  
-      const response = await updateEnrolment(connection.enrollment.identifier, formData);
-      console.log(response);
-      setMyLoader(false);
-      localStorage.setItem("lipsey", JSON.stringify(response.data));
-      console.log("response.data:", response.data);
-      toast.success('Enrolment successfully updated');
-      // dispatch(handleNextStep(formData));
-      localStorage.removeItem("editVendor");
-      navigate("/vendor/success-file");
-    } catch (err) {
-      setMyLoader(false);
-      console.log("err:", err);
-      if (err.response) {
-        const { status } = err.response;
-        if (status === 500 || status === 404) {
-          toast.error("An internal server issue has occurred. Please contact customer service.");
-        } else {
-          toast.error(`Error ${status}: Something went wrong.`);
-        }
-      } else if (err.request) {
-        toast.error("Network error: Please check your internet connection.");
+      const res = await updateEnrolment(editingIdentifier, payload);
+      if (res.status === 200) {
+        toast.success('Vendor Updated Successfully');
+        setCurrentStep(2);
       } else {
-        toast.error("An unexpected error occurred. Please try again.");
+        toast.error('Failed to update vendor. Please try again.');
       }
+    } catch (error) {
+      const errorMessage = error.response?.data?.detail || 'An error occurred. Please try again later.';
+      toast.error(errorMessage);
+    } finally {
+      setMyLoader(false);
     }
-  };
-
-  const handlePrevious = () => {
-    dispatch(handlePreviousStep());
-  };
-
-  const handleSelectChange = (event) => {
-    setSelectedOption(event.target.value);
   };
 
   const selectallProducts = () => {
@@ -315,10 +254,6 @@ const EditProductType = () => {
       }
       return newSelection;
     });
-  };
-
-  const handleManufacturerChange = (event) => {
-    setOption(event.target.value);
   };
 
   const selectAllManufacturers = () => {
@@ -346,20 +281,7 @@ const EditProductType = () => {
     const checked = e.target.checked;
     setState(checked);
     setValue(fieldName, checked);
-  };
-
-  // Function to restrict input to integers
-  const restrictToIntegers = (e) => {
-    e.target.value = e.target.value.replace(/[^0-9]/g, "");
-  };
-
-  // Function to restrict input to numbers and decimals
-  const restrictToNumbersAndDecimals = (e) => {
-    e.target.value = e.target.value.replace(/[^0-9.]/g, '');
-    if (e.target.value.split('.').length > 2) {
-      e.target.value = e.target.value.replace(/\.(?=.*\.)/g, '');
-    }
-  };
+  };  
 
   const hasProductSection = connection.product_filter || connection.product_category;
   const hasManufacturerSection = connection.manufacturer || connection.brand;
@@ -508,7 +430,7 @@ const EditProductType = () => {
                 <div className="flex gap-2 h-[20px] col-span-6">
                   <input
                     type="checkbox"
-                    className="md:w-5 w-8 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none appearance-none bg-white checked:bg-[#027840] checked:border-[#027840] relative  checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5"
+                    className="w-5 h-5 rounded-lg border border-gray-500 focus:outline-none appearance-none bg-white checked:bg-[#027840] checked:border-[#027840] relative checked:after:content-['✓'] checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1/2 checked:after:transform checked:after:-translate-x-1/2 checked:after:leading-5"
                   />
                   <ResponsiveTooltip title="$5 cost is added to any product with adult signature required.">
                     <MdInfo />

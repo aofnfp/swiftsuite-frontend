@@ -56,7 +56,6 @@ export const serverTimeFormat = (dateString) => {
   return `${month}, ${day}${suffix} ${year}`; // e.g. "Feb, 11th 2026"
 };
 
-
   export const safeJSONParse = (value) => {
     try {
       if (typeof value !== 'string') return null;
@@ -65,6 +64,35 @@ export const serverTimeFormat = (dateString) => {
       return JSON.parse(value);
     } catch {
       return null;
+    }
+  };
+
+  export const cleanObject = (obj) => {
+    return Object.entries(obj).reduce((acc, [key, value]) => {
+      if (
+        value !== null &&
+        value !== undefined &&
+        value !== "" &&
+        !(Array.isArray(value) && value.length === 0)
+      ) {
+        acc[key] =
+          typeof value === "object" && !Array.isArray(value)
+            ? cleanObject(value)
+            : value;
+      }
+      return acc;
+    }, {});
+  };
+
+export  const restrictToIntegers = (e) => {
+    e.target.value = e.target.value.replace(/[^0-9]/g, "");
+  };
+
+  // Function to restrict input to numbers and decimals
+export const restrictToNumbersAndDecimals = (e) => {
+    e.target.value = e.target.value.replace(/[^0-9.]/g, '');
+    if (e.target.value.split('.').length > 2) {
+      e.target.value = e.target.value.replace(/\.(?=.*\.)/g, '');
     }
   };
 

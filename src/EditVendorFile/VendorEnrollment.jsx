@@ -2,16 +2,13 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
-import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { Toaster, toast } from 'sonner';
-import { handleNextStep } from "../redux/EditVendor";
-import { useSearchParams } from "react-router-dom";
-
+import { useEditVendorStore } from "../stores/editVendorStore";
 
 const VendorEnrollment = () => {
-  const dispatch = useDispatch();
-  const store = useSelector((state) => state.editVendor.enrolmentUpdate);
+  const matchedVendor = useEditVendorStore((state) => state.matchedVendor);
+  const setCurrentStep = useEditVendorStore((state) => state.setCurrentStep);
 
   const [country, setCountry] = useState("");
   const [state, setState] = useState("");
@@ -22,7 +19,7 @@ const VendorEnrollment = () => {
   const [result, setResult] = useState(null);
   const [isZipValid, setIsZipValid] = useState(false);
   const [myForm, setMyForm] = useState(null);
-const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true); 
 
   const countries = [
     {
@@ -118,38 +115,27 @@ const [loading, setLoading] = useState(true);
   
 
   useEffect(() => {
-    const matchedVendor = localStorage.getItem('matchedVendor');
     if (matchedVendor) {
-      try {
-        const myFormData = JSON.parse(matchedVendor);
-        const enrolment = myFormData?.enrolment || {};
-        if (Object.keys(enrolment).length > 0) {
-          setMyForm(enrolment);
-          setValue("address_street1", enrolment?.address_street1 || "");
-          setValue("city", enrolment?.city || "");
-          setValue("country", enrolment?.country || "");
-          setValue("zip_code", enrolment?.zip_code || "");
-          setValue("state", enrolment?.state || "");
-          setValue("vendor_name", enrolment?.vendor_name || "");
-  
-          if (enrolment.state && enrolment?.country) {
-            setCountry(enrolment?.country);
-            setState(enrolment?.state);
-            setStateSelectDisabled(false);
-            setPostalCode(enrolment?.zip_code);
-          }
-        } else {
-          console.warn("Enrolment data is empty.");
+      const enrolment = matchedVendor.enrolment || matchedVendor.enrollment || {};
+      if (Object.keys(enrolment).length > 0) {
+        setMyForm(enrolment);
+        setValue("address_street1", enrolment?.address_street1 || "");
+        setValue("city", enrolment?.city || "");
+        setValue("country", enrolment?.country || "");
+        setValue("zip_code", enrolment?.zip_code || "");
+        setValue("state", enrolment?.state || "");
+        setValue("vendor_name", enrolment?.vendor_name || "");
+
+        if (enrolment.state && enrolment?.country) {
+          setCountry(enrolment?.country);
+          setState(enrolment?.state);
+          setStateSelectDisabled(false);
+          setPostalCode(enrolment?.zip_code);
         }
-      } catch (error) {
-        console.error("Error parsing matchedVendor from localStorage:", error);
       }
-    } else {
-      console.warn("No matchedVendor found in localStorage.");
     }
-  
     setLoading(false); 
-  }, []);
+  }, [matchedVendor, setValue]);
 
   const onSubmit = (data) => {
     if (!country) {
@@ -164,16 +150,9 @@ const [loading, setLoading] = useState(true);
       toast.error("Please enter a valid zip code.");
       return;
     }
-    const updatedForm = {
-      ...store, 
-      ...data, 
-      country, 
-      state,
-      zip_code: postalCode, 
-    };
-
-    // console.log("Final form data:", updatedForm);
-    dispatch(handleNextStep(updatedForm)); // Dispatch to Redux
+    
+    console.log("Form Data:", { ...data, country, state, zip_code: postalCode });
+    setCurrentStep(1); // Adjust as needed
   };
 
 

@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useEffect } from 'react';
 import { BsCheckCircleFill } from "react-icons/bs";
 import { useNavigate } from 'react-router-dom';
-import { handleNextStep } from '../redux/EditVendor';
+import { useEditVendorStore } from '../stores/editVendorStore';
 
 import EditProductType from './EditProductType';
 import EditIdentifier from './EditIdentifier';
@@ -10,27 +9,18 @@ import SuccessEdit from './SuccessEdit';
 
 const VendorEdit = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-
-  const currentIndex = useSelector(
-    (state) => state.editVendor.enrolmentUpdate.currentStep
-  );
-
-  const [vendorData, setVendorData] = useState(null);
+  const currentIndex = useEditVendorStore((state) => state.currentStep);
+  const setCurrentStep = useEditVendorStore((state) => state.setCurrentStep);
+  const vendorData = useEditVendorStore((state) => state.matchedVendor);
 
   useEffect(() => {
-    const storedVendor = localStorage.getItem('matchedVendor');
-    if (storedVendor) {
-      setVendorData(JSON.parse(storedVendor));
-    } else {
+    if (!vendorData) {
       navigate('/');
     }
-
-    // Reset step when leaving component
     return () => {
-      dispatch(handleNextStep({ currentStep: -1 }));
+      setCurrentStep(0);
     };
-  }, [dispatch, navigate]);
+  }, [navigate, vendorData, setCurrentStep]);
 
   if (!vendorData) {
     return (
@@ -48,7 +38,6 @@ const VendorEdit = () => {
 
   return (
     <section className="bg-[#E7F2ED]  my-16">
-      {/* ✅ Stepper - hidden on success screen */}
       {currentIndex !== 2 && (
         <div className="flex items-center justify-center gap-6 py-6">
           {steps.map((label, index) => {
@@ -91,8 +80,6 @@ const VendorEdit = () => {
           })}
         </div>
       )}
-
-      {/* ✅ Main Content Area */}
       <div className="flex flex-col items-center">
         <div className="rounded-xl w-full max-w-3xl min-h-[300px] mb-10 py-2">
           {currentIndex === 0 && <EditIdentifier vendorData={vendorData} />}

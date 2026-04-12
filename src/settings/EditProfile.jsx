@@ -5,7 +5,7 @@ import { Toaster, toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 const EditProfile = () => {
-  const [uploadedImage, setUploadedImage] = useState(null); // This will be server URL or temp preview
+  const [uploadedImage, setUploadedImage] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [uploadingImg, setUploadingImg] = useState(false);
@@ -23,11 +23,9 @@ const EditProfile = () => {
   const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
 
-  // Only cache server image, never the local preview on refresh
   const SERVER_IMG_KEY = "profileImage";
   const VERSION_KEY = "profileImageVersion";
 
-  // Load ONLY server-cached image URL (not local preview)
   useEffect(() => {
     const serverImage = localStorage.getItem(SERVER_IMG_KEY);
     if (serverImage) {
@@ -35,7 +33,6 @@ const EditProfile = () => {
     }
   }, []);
 
-  // Always fetch fresh profile from server on mount
   const fetchServerProfile = useCallback(async () => {
     if (!userId) return;
 
@@ -56,22 +53,18 @@ const EditProfile = () => {
         localStorage.setItem("profileData", JSON.stringify(info));
         localStorage.setItem("fullName", `${info.first_name} ${info.last_name}`.trim());
 
-        // Only update image if server returned one
         if (res.profile_image) {
           const version = Date.now().toString();
           localStorage.setItem(SERVER_IMG_KEY, res.profile_image);
           localStorage.setItem(VERSION_KEY, version);
+          setUploadedImage(res.profile_image);
 
-          setUploadedImage(res.profile_image); // Always use server URL
-
-          // Notify other components
           window.dispatchEvent(
             new CustomEvent("profile-updated", {
               detail: { image: res.profile_image, version },
             })
           );
         } else {
-          // No image on server → clear any old cached one
           setUploadedImage(null);
           localStorage.removeItem(SERVER_IMG_KEY);
           localStorage.removeItem(VERSION_KEY);
@@ -84,7 +77,6 @@ const EditProfile = () => {
     }
   }, [userId]);
 
-  // Fetch fresh data on mount
   useEffect(() => {
     fetchServerProfile();
   }, [fetchServerProfile]);
@@ -104,7 +96,6 @@ const EditProfile = () => {
       return;
     }
 
-    // Revoke previous object URL
     if (objectUrlRef.current) {
       URL.revokeObjectURL(objectUrlRef.current);
     }
@@ -112,7 +103,6 @@ const EditProfile = () => {
     const previewUrl = URL.createObjectURL(file);
     objectUrlRef.current = previewUrl;
 
-    // Show preview immediately
     setUploadedImage(previewUrl);
     setUploadingImg(true);
 
@@ -126,17 +116,13 @@ const EditProfile = () => {
         await uploadImage(fd, token);
       }
 
-      // Re-fetch fresh data from server
       await fetchServerProfile();
-
       toast.success("Profile picture uploaded!");
     } catch (err) {
       toast.error("Upload failed – please try again.");
-      // Revert to server state on failure
       await fetchServerProfile();
     } finally {
       setUploadingImg(false);
-      // Clean up object URL after short delay
       if (objectUrlRef.current) {
         setTimeout(() => URL.revokeObjectURL(objectUrlRef.current), 1000);
         objectUrlRef.current = null;
@@ -179,25 +165,25 @@ const EditProfile = () => {
   };
 
   return (
-    <div>
+    <div className="w-full">
       <Toaster richColors position="top-right" />
 
-      {/* Profile Image Section */}
-      <div className="bg-white mb-4">
-        <div className="flex justify-between items-center border-b p-2 font-semibold md:px-12">
+      <div className="mb-4 overflow-hidden rounded-xl bg-white">
+        <div className="flex flex-col gap-3 border-b px-4 py-3 text-sm font-semibold sm:flex-row sm:items-center sm:justify-between sm:px-6 md:px-8 lg:px-12">
           <p>Profile Image</p>
+
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-2 border p-1 rounded-[8px] cursor-pointer text-[#027840]"
+            className="flex w-full items-center justify-center gap-2 rounded-[8px] border px-3 py-2 text-sm text-[#027840] sm:w-auto sm:justify-start"
           >
             {uploadedImage ? (
               <>
-                <Pencil size={10} />
+                <Pencil size={14} />
                 <span>Edit</span>
               </>
             ) : (
               <>
-                <Upload size={10} />
+                <Upload size={14} />
                 <span>Upload</span>
               </>
             )}
@@ -212,14 +198,14 @@ const EditProfile = () => {
           />
         </div>
 
-        <div className="flex items-center py-3 md:px-12">
+        <div className="flex justify-center px-4 py-5 sm:justify-start sm:px-6 md:px-8 lg:px-12">
           {uploadingImg ? (
-            <div className="w-[5rem] h-[5rem] rounded-full bg-gradient-to-br from-[#027840] to-[#025c33] p-[3px]">
-              <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+            <div className="h-20 w-20 rounded-full bg-gradient-to-br from-[#027840] to-[#025c33] p-[3px] sm:h-[5rem] sm:w-[5rem]">
+              <div className="flex h-full w-full items-center justify-center rounded-full bg-white">
                 <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="w-9 h-9 border-4 border-t-[#027840] border-r-transparent border-b-[#027840] border-l-transparent rounded-full"
+                  className="h-9 w-9 rounded-full border-4 border-b-[#027840] border-l-transparent border-r-transparent border-t-[#027840]"
                 />
               </div>
             </div>
@@ -227,111 +213,117 @@ const EditProfile = () => {
             <img
               src={uploadedImage}
               alt="Profile"
-              className="rounded-full border-2 w-[5rem] h-[5rem] object-cover"
+              className="h-20 w-20 rounded-full border-2 object-cover sm:h-[5rem] sm:w-[5rem]"
             />
           ) : (
-            <div className="w-[5rem] h-[5rem] rounded-full bg-gray-200 border-2 border-dashed border-gray-400 flex items-center justify-center">
-              <span className="text-gray-500 text-3xl">+</span>
+            <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-dashed border-gray-400 bg-gray-200 sm:h-[5rem] sm:w-[5rem]">
+              <span className="text-3xl text-gray-500">+</span>
             </div>
           )}
         </div>
       </div>
 
-      {/* Personal Information */}
-      <div className="bg-white py-5">
-        <div className="flex justify-between items-center border-b py-2 font-semibold md:px-12">
+      <div className="overflow-hidden rounded-xl bg-white py-5">
+        <div className="flex flex-col gap-3 border-b px-4 py-3 text-sm font-semibold sm:flex-row sm:items-center sm:justify-between sm:px-6 md:px-8 lg:px-12">
           <p>Personal Information</p>
+
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 border p-1 rounded-[8px] cursor-pointer text-[#027840]"
+            className="flex w-full items-center justify-center gap-2 rounded-[8px] border px-3 py-2 text-sm text-[#027840] sm:w-auto sm:justify-start"
           >
-            <Pencil size={10} />
+            <Pencil size={14} />
             <span>Edit</span>
           </button>
         </div>
 
         {userInfo ? (
-          <div className="py-3 md:px-12">
-            <div className="grid grid-cols-3 gap-4 mt-7">
-              <div>
-                <p className="text-gray-500 text-sm">First Name</p>
-                <p className="font-semibold">{userInfo.first_name || "-"}</p>
+          <div className="px-4 py-5 sm:px-6 md:px-8 lg:px-12">
+            <div className="mt-2 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:mt-7 lg:grid-cols-3">
+              <div className="rounded-lg bg-gray-50 p-4 sm:bg-transparent sm:p-0">
+                <p className="text-sm text-gray-500">First Name</p>
+                <p className="break-words font-semibold">{userInfo.first_name || "-"}</p>
               </div>
-              <div>
-                <p className="text-gray-500 text-sm">Last Name</p>
-                <p className="font-semibold">{userInfo.last_name || "-"}</p>
+
+              <div className="rounded-lg bg-gray-50 p-4 sm:bg-transparent sm:p-0">
+                <p className="text-sm text-gray-500">Last Name</p>
+                <p className="break-words font-semibold">{userInfo.last_name || "-"}</p>
               </div>
-              <div>
-                <p className="text-gray-500 text-sm">Phone number</p>
-                <p className="font-semibold">{userInfo.phone || "-"}</p>
+
+              <div className="rounded-lg bg-gray-50 p-4 sm:col-span-2 sm:bg-transparent sm:p-0 lg:col-span-1">
+                <p className="text-sm text-gray-500">Phone number</p>
+                <p className="break-words font-semibold">{userInfo.phone || "-"}</p>
               </div>
             </div>
           </div>
         ) : (
-          <p className="text-gray-500 px-12">Loading profile information...</p>
+          <p className="px-4 py-5 text-gray-500 sm:px-6 md:px-8 lg:px-12">
+            Loading profile information...
+          </p>
         )}
       </div>
 
-      {/* Edit Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 px-3 py-3 sm:items-center sm:px-4">
             <motion.div
               initial={{ y: "100vh", opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "100vh", opacity: 0 }}
               transition={{ type: "spring", stiffness: 120, damping: 15 }}
-              className="bg-white w-full max-w-md rounded-2xl p-6 shadow-lg"
+              className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-4 shadow-lg sm:p-6"
             >
-              <h2 className="text-lg font-semibold mb-4">Edit Personal Information</h2>
+              <h2 className="mb-4 text-base font-semibold sm:text-lg">
+                Edit Personal Information
+              </h2>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm text-gray-500">First Name</label>
+                  <label className="mb-1 block text-sm text-gray-500">First Name</label>
                   <input
                     type="text"
                     name="first_name"
                     value={formData.first_name}
                     onChange={handleChange}
-                    className="w-full border p-2 rounded-md"
+                    className="w-full rounded-md border p-2 text-sm sm:text-base"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm text-gray-500">Last Name</label>
+                  <label className="mb-1 block text-sm text-gray-500">Last Name</label>
                   <input
                     type="text"
                     name="last_name"
                     value={formData.last_name}
                     onChange={handleChange}
-                    className="w-full border p-2 rounded-md"
+                    className="w-full rounded-md border p-2 text-sm sm:text-base"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm text-gray-500">Phone</label>
+                  <label className="mb-1 block text-sm text-gray-500">Phone</label>
                   <input
                     type="text"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
                     placeholder="+1234567890"
-                    className="w-full border p-2 rounded-md"
+                    className="w-full rounded-md border p-2 text-sm sm:text-base"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 mt-6">
+              <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 border rounded-lg"
+                  className="w-full rounded-lg border px-4 py-2 sm:w-auto"
                 >
                   Cancel
                 </button>
+
                 <button
                   onClick={handleSave}
                   disabled={loading}
-                  className="px-4 py-2 bg-[#027840] text-white rounded-lg disabled:opacity-70"
+                  className="w-full rounded-lg bg-[#027840] px-4 py-2 text-white disabled:opacity-70 sm:w-auto"
                 >
                   {loading ? "Saving..." : "Save"}
                 </button>

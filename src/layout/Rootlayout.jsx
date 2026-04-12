@@ -28,9 +28,6 @@ import PaymentHistory from '../UserAdmin/PaymentHistory';
 import Parent from '../settings/Parent';
 import MemberActivities from '../UserAdmin/MemberActivities';
 import TeamsManage from '../UserAdmin/TeamsManage';
-import TeamInventory from '../UserAdmin/TeamInventory';
-import TeamOrders from '../UserAdmin/TeamsReminder';
-import TeamAccount from '../UserAdmin/TeamAccount';
 import CustomerCare from '../UserAdmin/CustomerCare';
 import InviteMembers from '../UserAdmin/InviteMembers';
 import TeamsReminder from '../UserAdmin/TeamsReminder';
@@ -103,7 +100,6 @@ const bgClass = newBgPaths.includes(location.pathname) ? 'bg-[#f2f2f2]' : 'bg-[#
             <Route path="/home/team" element={<TeamsManage />} />
             <Route path="/home/invite" element={<InviteMembers />} />
             <Route path="/home/reminder" element={<TeamsReminder />} />
-            <Route path="teamsaccounts" element={<TeamAccount />} />
             <Route path="custom_vendor_integration" element={<CustomIntegration/>} />
             <Route path="custom_vendor" element={<CustomVendorIntegrations />} />
             <Route path="customercare" element={<CustomerCare />} />

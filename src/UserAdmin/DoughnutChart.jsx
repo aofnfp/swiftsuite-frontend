@@ -1,4 +1,3 @@
-// Doughnut.js
 import React from 'react';
 import { Doughnut } from 'react-chartjs-2';
 import {
@@ -10,12 +9,12 @@ import {
 ChartJS.register(ArcElement, Tooltip);
 
 const DoughnutChart = () => {
-  const marketplaces = ['Shopify',  'eBay', 'Walmart',   'Amazon', 'WooCommerce'];
+  const marketplaces = ['Shopify', 'eBay', 'Walmart', 'Amazon', 'WooCommerce'];
   const marketplaceColors = ['#BB8232', '#005D68', '#02784033', '#027840', '#00000099'];
   const marketplaceData = [30, 15, 25, 15, 0];
 
-  const vendors = [ 'Fragrancex', 'Lipsey', 'RSR', 'CWR', 'Zanders'];
-  const vendorColors = [ '#BB8232', '#005D68', '#02784033', '#027840', '#00000099'];
+  const vendors = ['Fragrancex', 'Lipsey', 'RSR', 'CWR', 'Zanders'];
+  const vendorColors = ['#BB8232', '#005D68', '#02784033', '#027840', '#00000099'];
   const vendorData = [50, 31, 19, 0, 0];
 
   const chartOptions = {
@@ -46,15 +45,22 @@ const DoughnutChart = () => {
   });
 
   const renderLegend = (labels, data, colors) => (
-    <div className="space-y-2">
+    <div className="space-y-2 w-full min-w-0">
       {labels.map((label, index) => (
-        <div key={label} className="flex items-center gap-2 text-sm">
-          <div
-            className="w-3 h-3 rounded-full"
-            style={{ backgroundColor: colors[index] }}
-          />
-          <span className="font-medium">{label}</span>
-          <span className="text-gray-500">{data[index]}%</span>
+        <div
+          key={label}
+          className="flex items-center gap-2 text-sm min-w-0 justify-between md:justify-start"
+        >
+          <div className="flex items-center gap-2 min-w-0 flex-1 md:flex-none">
+            <div
+              className="w-3 h-3 rounded-full flex-shrink-0"
+              style={{ backgroundColor: colors[index] }}
+            />
+            <span className="font-medium truncate md:whitespace-nowrap md:overflow-visible">
+              {label}
+            </span>
+          </div>
+          <span className="text-gray-500 flex-shrink-0">{data[index]}%</span>
         </div>
       ))}
     </div>
@@ -64,29 +70,24 @@ const DoughnutChart = () => {
 
   return (
     <div className="flex flex-col md:flex-row justify-center items-start gap-4 border">
-      {/* Marketplace Section (Products Listed) */}
-      <div className="flex  md:gap-10 gap-5 border w-full bg-white p-4 rounded-xl" >
-        {/* Left: Heading, Total, Chart */}
-        <div className="flex flex-col items-start ">
+      <div className="flex flex-col sm:flex-col md:flex-row md:gap-10 gap-5 border w-full bg-white p-4 rounded-xl">
+        <div className="flex flex-col items-start">
           <h2 className="text-lg font-semibold">Products Listed</h2>
           <p className="text-gray-600 text-sm mb-2">Total: {total(marketplaceData)}%</p>
           <div className="w-[160px] h-[160px]">
             <Doughnut
               data={createChartData(marketplaces, marketplaceData, marketplaceColors)}
               options={chartOptions}
-            /> 
+            />
           </div>
         </div>
 
-        {/* Right: Legend */}
-        <div className="flex flex-col justify-center">
+        <div className="flex flex-col justify-center w-full min-w-0">
           {renderLegend(marketplaces, marketplaceData, marketplaceColors)}
         </div>
       </div>
 
-      {/* Vendor Section (Products Sold) */}
-      <div className="flex md:gap-10 gap-5 mt-10 md:mt-0 border w-full bg-white p-4 rounded-xl">
-        {/* Left: Heading, Total, Chart */}
+      <div className="flex flex-col sm:flex-col md:flex-row md:gap-10 gap-5 mt-10 md:mt-0 border w-full bg-white p-4 rounded-xl">
         <div className="flex flex-col items-start">
           <h2 className="text-lg font-semibold">Products Sold</h2>
           <p className="text-gray-600 text-sm mb-2">Total: {total(vendorData)}%</p>
@@ -98,8 +99,7 @@ const DoughnutChart = () => {
           </div>
         </div>
 
-        {/* Right: Legend */}
-        <div className="flex flex-col justify-center">
+        <div className="flex flex-col justify-center w-full min-w-0">
           {renderLegend(vendors, vendorData, vendorColors)}
         </div>
       </div>

@@ -1,10 +1,11 @@
 import React from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { Link } from 'react-router-dom';
-
+import { useEditVendorStore } from '../stores/editVendorStore';
 
 const SuccessEdit = () => {
-  const vendor = localStorage.getItem('matchedVendor') || 'this vendor';
+  const vendorData = useEditVendorStore((state) => state.matchedVendor);
+  const vendorName = vendorData?.vendor?.name || 'this vendor';
 
   return (
     <div className="h-screen bg-[#E7F2ED] flex flex-col justify-center items-center w-full">

@@ -144,8 +144,8 @@ const Woocommerce = () => {
       setInitialLoading(true);
       const response = await marketplaceEnrolment(userId, 'woocommerce');
 
-      if (response) {
-        const data = response;
+      if (response && response.status === 200) {
+        const data = response.data;
 
         const formPayload = {
           marketplace_name: data.marketplace_name || 'woocommerce',

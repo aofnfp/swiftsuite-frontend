@@ -1,22 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import vendor, { handleNextStep, handlePreviousStep } from '../redux/vendor';
-import { useDispatch, useSelector } from 'react-redux';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useForm } from 'react-hook-form';
 import { IoEyeSharp } from "react-icons/io5";
 import { BsEyeSlashFill } from "react-icons/bs";
-import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify';
+import { Toaster, toast } from 'sonner';
 import gif from '../Images/gif.gif';
 import { useNavigate } from 'react-router-dom';
+import { useEditVendorStore } from '../stores/editVendorStore';
+import { fpiCredential } from '../api/authApi';
 
 const EditFpi = () => {
   const navigate = useNavigate();
-  let token = localStorage.getItem('token');
-  const vendor_name = localStorage.getItem('vendor_name');
-
-  const store = useSelector(state => state.vendor.vendorData);
+  const matchedVendor = useEditVendorStore((state) => state.matchedVendor);
+  const vendor_name = useEditVendorStore((state) => state.editingVendorName);
+  const setCurrentStep = useEditVendorStore((state) => state.setCurrentStep);
 
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmVisible, setConfirmVisible] = useState(false);
@@ -57,74 +55,58 @@ const EditFpi = () => {
     }
   };
 
-  const endpoint = 'https://service.swiftsuite.app/vendor/vendor-enrolment-test/';
+  const endpoint = 'https://service.swiftsuite.app/vendor/vendor-enrolment-test/';  
 
-  const dispatch = useDispatch();
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     setMyLoader(true);
-    let form = { ...store, ...data, vendor_name };
+    const enrolment = matchedVendor?.enrollment || {};
+    
+    const payload = {
+      vendor_name: vendor_name,
+      ftp_username: data.ftp_username,
+      ftp_password: data.ftp_password,
+      host: data.host,
 
-    axios.post(
-      endpoint,
-      {
-        vendor_name: vendor_name,
-        ftp_username: form.ftp_username,
-        ftp_password: form.ftp_password,
-        host: form.host,
+      ...(vendor_name === 'Fragrancex' && {
+        apiAccessId: data.apiAccessId,
+        apiAccessKey: data.apiAccessKey,
+      }),
 
-        ...(vendor_name === 'Fragrancex' && {
-          vendor_name: vendor_name,
-          apiAccessId: form.apiAccessId,
-          apiAccessKey: form.apiAccessKey,
-        }),
+      ...(vendor_name === 'Rsr' && {
+        vendor_name: "RSR",
+        Username: data.Username,
+        Password: data.Password,
+        POS: 'I'
+      }),
+    };
 
-        ...(vendor_name === 'Rsr' && {
-          vendor_name: "RSR",
-          Username: form.Username,
-          Password: form.Password,
-          POS: 'I'
-        }),
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        }
-      }
-    )
-      .then((response) => {
-        // console.log(response);
-        localStorage.setItem('connection', JSON.stringify(response.data));
-        setMyLoader(false);
-        toast.success("Connection Successful!");
-        setDispatchCheck(true);
-        dispatch(handleNextStep(form));
-      })
-      .catch((error) => {
-        // console.log(error);
-        setMyLoader(false);
-        if (error.response) {
-          toast.error("Connection not Successful!");
-        } else {
-          toast.error("An internal server issue has occurred. Please contact customer service.")
-        }
-      });
-
-    if (dispatchCheck) {
-      dispatch(handleNextStep(form));
+    try {
+      const response = await fpiCredential(payload);
+      localStorage.setItem('connection', JSON.stringify(response.data));
+      setMyLoader(false);
+      toast.success("Connection Successful!");
+      setDispatchCheck(true);
+    } catch (error) {
+      setMyLoader(false);
+      const errorMessage = error.response?.data?.detail || "Connection not Successful!";
+      toast.error(errorMessage);
     }
   };
 
   useEffect(() => {
-    if (store) {
-      setValue("host", store.host);
-      setValue("ftp_username", store.ftp_username);
+    if (matchedVendor) {
+      const enrolment = matchedVendor.enrollment || {}
+      setValue("host", enrolment.host);
+      setValue("ftp_username", enrolment.ftp_username);
     }
-  }, [store, setValue]);
+  }, [matchedVendor, setValue]);
 
   const handlePrevious = () => {
-    dispatch(handlePreviousStep());
+    setCurrentStep(0);
+  };
+
+  const handleNext = () => {
+    setCurrentStep(1); 
   };
 
   return (
@@ -171,11 +153,11 @@ const EditFpi = () => {
                   <button onClick={handlePrevious} className='border hover:bg-[#089451] hover:text-white border-[#089451] font-semibold py-1 rounded'>Previous</button>
                   <div>
                     {myLoader ? <img src={gif} alt="" className='w-[25px] lg:ms-20 mt-2 md:ms-10 ms-10' /> : dispatchCheck ? '' : <button className='border hover:text-[#089451] hover:bg-white hover:border-[#089451] bg-[#089451] lg:w-40 md:w-40 w-32 text-white font-semibold py-1 rounded'>Test Connect</button>}
-                    {dispatchCheck && <button onClick={handleNextStep} className='border border-[#089451] font-semibold py-1 px-10 rounded hover:text-white hover:bg-[#089451]'>Next</button>}
+                    {dispatchCheck && <button type="button" onClick={handleNext} className='border border-[#089451] font-semibold py-1 px-10 rounded hover:text-white hover:bg-[#089451]'>Next</button>}
                   </div>
                 </div>
               </div>
-              <ToastContainer />
+              <Toaster position="top-right" />
             </form>
           ) : vendor_name === 'Rsr' ? (
             <form action="" className='lg:mx-20 mx-5' onSubmit={handleSubmit(onSubmit)}>
@@ -231,11 +213,11 @@ const EditFpi = () => {
                   <button onClick={handlePrevious} className='border hover:bg-[#089451] hover:text-white border-[#089451] font-semibold py-1 rounded'>Previous</button>
                   <div>
                     {myLoader ? <img src={gif} alt="" className='w-[25px] lg:ms-20 mt-2 md:ms-10 ms-10' /> : dispatchCheck ? '' : <button className='border hover:text-[#089451] hover:bg-white hover:border-[#089451] bg-[#089451] lg:w-40 md:w-40 w-32 text-white font-semibold py-1 rounded'>Test Connect</button>}
-                    {dispatchCheck && <button onClick={handleNextStep} className='border border-[#089451] font-semibold py-1 px-10 rounded hover:text-white hover:bg-[#089451]'>Next</button>}
+                    {dispatchCheck && <button type="button" onClick={handleNext} className='border border-[#089451] font-semibold py-1 px-10 rounded hover:text-white hover:bg-[#089451]'>Next</button>}
                   </div>
                 </div>
               </div>
-              <ToastContainer />
+              <Toaster position="top-right" />
             </form>
           ) : (
             <form action="" className='lg:mx-20 mx-5' onSubmit={handleSubmit(onSubmit)}>
@@ -287,14 +269,14 @@ const EditFpi = () => {
               </div>
               <div className='flex flex-col my-10 gap-8 w-2/3 mx-auto'>
                 <div className='grid lg:grid-cols-2 md:grid-cols-2 grid-cols-2 gap-12 lg:gap-10'>
-                  <button onClick={handlePrevious} className='border hover:bg-[#089451] hover:text-white border-[#089451] font-semibold py-1 rounded'>Previous</button>
+                  <button type="button" onClick={handlePrevious} className='border hover:bg-[#089451] hover:text-white border-[#089451] font-semibold py-1 rounded'>Previous</button>
                   <div>
                     {myLoader ? <img src={gif} alt="" className='w-[25px] lg:ms-20 mt-2 md:ms-10 ms-10' /> : dispatchCheck ? '' : <button className='border hover:text-[#089451] hover:bg-white hover:border-[#089451] bg-[#089451] lg:w-40 md:w-40 w-32 text-white font-semibold py-1 rounded'>Test Connect</button>}
-                    {dispatchCheck && <button onClick={handleNextStep} className='border border-[#089451] font-semibold py-1 px-10 rounded hover:text-white hover:bg-[#089451]'>Next</button>}
+                    {dispatchCheck && <button type="button" onClick={handleNext} className='border border-[#089451] font-semibold py-1 px-10 rounded hover:text-white hover:bg-[#089451]'>Next</button>}
                   </div>
                 </div>
               </div>
-              <ToastContainer />
+              <Toaster position="top-right" />
             </form>
           )}
         </div>

@@ -1,10 +1,10 @@
 import React from "react";
 import img from "../Images/success.png";
 import { Link } from "react-router-dom";
+import { useEditVendorStore } from "../stores/editVendorStore";
 
 const Thank = () => {
-  
-  const vendorName  = localStorage.getItem("editingVendorName");
+  const vendorName = useEditVendorStore((state) => state.editingVendorName);
 
   
   return (

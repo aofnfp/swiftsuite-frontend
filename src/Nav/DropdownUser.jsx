@@ -13,316 +13,275 @@ import { GrUserAdmin } from "react-icons/gr";
 
 const DROPDOWN_WIDTH = 280;
 
-/* ── inject small-screen styles once ── */
-if (typeof document !== "undefined" && !document.getElementById("du-sm-styles")) {
-  const s = document.createElement("style");
-  s.id = "du-sm-styles";
-  s.textContent = `
-    @keyframes du-panel-in {
-      from { opacity: 0; transform: translateY(-12px) scale(0.96); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    @keyframes du-item-in {
-      from { opacity: 0; transform: translateX(10px); }
-      to   { opacity: 1; transform: translateX(0); }
-    }
-    .du-sm-panel {
-      animation: du-panel-in 0.22s cubic-bezier(0.16,1,0.3,1) both;
-    }
-    .du-sm-item { animation: du-item-in 0.18s cubic-bezier(0.16,1,0.3,1) both; }
-    .du-sm-item:nth-child(1) { animation-delay: 0.04s; }
-    .du-sm-item:nth-child(2) { animation-delay: 0.08s; }
-    .du-sm-item:nth-child(3) { animation-delay: 0.12s; }
-
-    .du-sm-link {
-      display: flex; align-items: center; gap: 12px;
-      padding: 11px 12px; border-radius: 10px;
-      font-size: 14px; font-weight: 600; color: #1a2e20;
-      text-decoration: none;
-      transition: background 0.14s, color 0.14s, transform 0.14s;
-    }
-    .du-sm-link:hover { background: #edf7f1; color: #027840; transform: translateX(3px); }
-    .du-sm-link .du-sm-icon {
-      width: 34px; height: 34px; border-radius: 9px;
-      background: #f0faf3;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; transition: background 0.14s;
-    }
-    .du-sm-link:hover .du-sm-icon { background: #c6e8d1; }
-
-    .du-sm-btn {
-      display: flex; align-items: center; gap: 12px;
-      width: 100%; padding: 11px 12px; border-radius: 10px;
-      background: none; border: none; cursor: pointer;
-      font-size: 14px; font-weight: 600; color: #BB8232;
-      text-align: left;
-      transition: background 0.14s, color 0.14s, transform 0.14s;
-    }
-    .du-sm-btn:hover { background: #fff4e0; color: #a06820; transform: translateX(3px); }
-    .du-sm-btn .du-sm-icon {
-      width: 34px; height: 34px; border-radius: 9px;
-      background: #fef4e6;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; transition: background 0.14s;
-    }
-    .du-sm-btn:hover .du-sm-icon { background: #fde3b2; }
-
-    .du-sm-admin {
-      display: flex; align-items: center; gap: 12px;
-      width: 100%; padding: 11px 12px; border-radius: 10px;
-      background: none; border: none; cursor: pointer;
-      font-size: 14px; font-weight: 600; color: #1a2e20;
-      text-align: left;
-      transition: background 0.14s, color 0.14s, transform 0.14s;
-    }
-    .du-sm-admin:hover { background: #edf7f1; color: #027840; transform: translateX(3px); }
-    .du-sm-admin .du-sm-icon {
-      width: 34px; height: 34px; border-radius: 9px;
-      background: #f0faf3;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; transition: background 0.14s;
-    }
-    .du-sm-admin:hover .du-sm-icon { background: #c6e8d1; }
-  `;
-  document.head.appendChild(s);
-}
-
 const DropdownUser = () => {
   const navigate = useNavigate();
   const isAdmin = useSelector((state) => state.permission?.isAdmin);
   const [fullName, setFullName] = useState(localStorage.getItem("fullName") || "");
-
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
-
-  // true when viewport < 1024px (Tailwind's lg breakpoint)
   const [isSmallScreen, setIsSmallScreen] = useState(
     typeof window !== "undefined" ? window.innerWidth < 1024 : false
   );
+  const [mounted, setMounted] = useState(false);
+  const [renderDropdown, setRenderDropdown] = useState(false);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
 
   const trigger = useRef(null);
   const dropdown = useRef(null);
-  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const closeTimeoutRef = useRef(null);
 
-  /* track breakpoint */
   useEffect(() => {
     const check = () => setIsSmallScreen(window.innerWidth < 1024);
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  /* profile updates */
   useEffect(() => {
     const handle = () => setFullName(localStorage.getItem("fullName") || "");
     window.addEventListener("profile-updated", handle);
     window.addEventListener("storage", handle);
+
     return () => {
       window.removeEventListener("profile-updated", handle);
       window.removeEventListener("storage", handle);
     };
   }, []);
 
-  /* large-screen only: position relative to trigger (original logic) */
   useEffect(() => {
-    if (!dropdownOpen || !trigger.current || isSmallScreen) return;
+    if (dropdownOpen) {
+      setRenderDropdown(true);
+      const raf = requestAnimationFrame(() => setMounted(true));
+      return () => cancelAnimationFrame(raf);
+    }
+
+    setMounted(false);
+    closeTimeoutRef.current = setTimeout(() => setRenderDropdown(false), 300);
+
+    return () => {
+      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
+    };
+  }, [dropdownOpen]);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!renderDropdown || !trigger.current || isSmallScreen) return;
 
     const updatePosition = () => {
       const rect = trigger.current.getBoundingClientRect();
       let left = rect.right - DROPDOWN_WIDTH;
+
       if (left < 8) left = rect.left;
-      if (left + DROPDOWN_WIDTH > window.innerWidth - 8)
+      if (left + DROPDOWN_WIDTH > window.innerWidth - 8) {
         left = Math.max(8, window.innerWidth - DROPDOWN_WIDTH - 8);
+      }
+
       setPos({ top: rect.bottom, left });
     };
 
     updatePosition();
     window.addEventListener("resize", updatePosition);
     window.addEventListener("scroll", updatePosition, true);
+
     return () => {
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
-  }, [dropdownOpen, isSmallScreen]);
+  }, [renderDropdown, isSmallScreen]);
 
-  /* close on outside click / escape */
   useEffect(() => {
-    if (!dropdownOpen) return;
+    if (!renderDropdown) return;
+
     const onClickOutside = (e) => {
       if (
-        dropdown.current && !dropdown.current.contains(e.target) &&
-        trigger.current && !trigger.current.contains(e.target)
-      ) setDropdownOpen(false);
+        dropdown.current &&
+        !dropdown.current.contains(e.target) &&
+        trigger.current &&
+        !trigger.current.contains(e.target)
+      ) {
+        setDropdownOpen(false);
+      }
     };
-    const onEscape = (e) => { if (e.key === "Escape") setDropdownOpen(false); };
+
+    const onEscape = (e) => {
+      if (e.key === "Escape") setDropdownOpen(false);
+    };
+
     document.addEventListener("mousedown", onClickOutside);
     document.addEventListener("keydown", onEscape);
+
     return () => {
       document.removeEventListener("mousedown", onClickOutside);
       document.removeEventListener("keydown", onEscape);
     };
-  }, [dropdownOpen]);
+  }, [renderDropdown]);
+
+  useEffect(() => {
+    if (!renderDropdown || !isSmallScreen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [renderDropdown, isSmallScreen]);
 
   const closeDropdown = useCallback(() => setDropdownOpen(false), []);
-  const openSignOutModal = () => { setDropdownOpen(false); setIsSignOutModalOpen(true); };
-  const closeSignOutModal = () => setIsSignOutModalOpen(false);
+  const toggleDropdown = useCallback(() => setDropdownOpen((prev) => !prev), []);
+  const closeSignOutModal = useCallback(() => setIsSignOutModalOpen(false), []);
+
+  const openSignOutModal = useCallback(() => {
+    setDropdownOpen(false);
+    setIsSignOutModalOpen(true);
+  }, []);
+
   const handleSignOut = useCallback(() => {
     localStorage.clear();
     closeSignOutModal();
     navigate("/signin");
-  }, [navigate]);
+  }, [closeSignOutModal, navigate]);
 
-  /* ─────────────────────────────────────────
-     SMALL-SCREEN PANEL
-     Uses: position fixed, top + right (not left).
-     This guarantees true top-right anchoring
-     regardless of scroll, sidebar, or layout.
-  ───────────────────────────────────────── */
+  const baseItemClass =
+    "flex items-center gap-3 rounded-[10px] px-3 py-[11px] text-sm font-semibold transition-all duration-150";
+  const iconClass =
+    "flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[9px] transition-all duration-150";
+
   const SmallScreenPanel = () => (
-    <div
-      ref={dropdown}
-      className="du-sm-panel"
-      style={{
-        position: "fixed",
-        top: 68,
-        right: 12,           // ← right, not left
-        width: Math.min(DROPDOWN_WIDTH, window.innerWidth - 24),
-        zIndex: 100000,
-        background: "#fff",
-        borderRadius: 18,
-        boxShadow:
-          "0 12px 48px rgba(2,120,64,0.16), 0 2px 14px rgba(0,0,0,0.1)",
-        border: "1px solid rgba(2,120,64,0.13)",
-        overflow: "hidden",
-      }}
-      onClick={(e) => e.stopPropagation()}
-    >
-      {/* ── Green header ── */}
+    <>
       <div
-        style={{
-          background: "linear-gradient(135deg, #027840 0%, #03a856 100%)",
-          padding: "16px 16px 20px",
-          position: "relative",
-          overflow: "hidden",
-        }}
+        onClick={closeDropdown}
+        className={`fixed inset-0 z-[99998] bg-black/20 transition-opacity duration-300 ${
+          mounted ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+      />
+
+      <div
+        ref={dropdown}
+        onClick={(e) => e.stopPropagation()}
+        className={`fixed left-0 right-0 top-0 z-[99999] w-screen overflow-hidden rounded-b-[18px] border border-[rgba(2,120,64,0.13)] bg-white shadow-[0_12px_48px_rgba(2,120,64,0.16),0_2px_14px_rgba(0,0,0,0.1)] transition-all duration-300 ease-out ${
+          mounted ? "translate-y-0 opacity-100" : "-translate-y-8 opacity-0"
+        }`}
       >
-        {/* decorative blobs */}
-        <div style={{
-          position: "absolute", top: -18, right: -18,
-          width: 72, height: 72, borderRadius: "50%",
-          background: "rgba(255,255,255,0.09)",
-          pointerEvents: "none",
-        }} />
-        <div style={{
-          position: "absolute", bottom: -12, left: 50,
-          width: 46, height: 46, borderRadius: "50%",
-          background: "rgba(255,255,255,0.07)",
-          pointerEvents: "none",
-        }} />
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#027840] to-[#03a856] px-4 pb-5 pt-4">
+          <div className="pointer-events-none absolute -right-[18px] -top-[18px] h-[72px] w-[72px] rounded-full bg-white/10" />
+          <div className="pointer-events-none absolute bottom-[-12px] left-[50px] h-[46px] w-[46px] rounded-full bg-white/10" />
 
-        <div style={{ display: "flex", alignItems: "center", gap: 11, position: "relative" }}>
-          {/* avatar */}
-          <div style={{
-            width: 44, height: 44, borderRadius: "50%",
-            border: "2px solid rgba(255,255,255,0.5)",
-            overflow: "hidden", flexShrink: 0,
-            background: "rgba(255,255,255,0.2)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <Profileimage />
+          <div className="relative flex items-center gap-[11px]">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white/50 bg-white/20">
+              <Profileimage />
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-extrabold text-white">
+                {fullName || "User"}
+              </p>
+
+              <span className="mt-[3px] inline-flex items-center gap-1 rounded-[20px] bg-white/20 px-2 py-[2px] text-[11px] font-bold text-white/90">
+                <span className="inline-block h-[5px] w-[5px] rounded-full bg-[#7effa0]" />
+                Vendor
+              </span>
+            </div>
+
+            <button
+              onClick={closeDropdown}
+              type="button"
+              aria-label="Close"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border-none bg-white/20 text-[18px] leading-none text-white"
+            >
+              ×
+            </button>
           </div>
+        </div>
 
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{
-              margin: 0, fontSize: 14, fontWeight: 800, color: "#fff",
-              whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-            }}>
-              {fullName || "User"}
-            </p>
-            <span style={{
-              display: "inline-flex", alignItems: "center", gap: 4,
-              marginTop: 3, fontSize: 11, fontWeight: 700,
-              color: "rgba(255,255,255,0.9)",
-              background: "rgba(255,255,255,0.18)",
-              padding: "2px 8px", borderRadius: 20,
-            }}>
-              <span style={{
-                width: 5, height: 5, borderRadius: "50%",
-                background: "#7effa0", display: "inline-block",
-              }} />
-              Vendor
-            </span>
-          </div>
+        <div className="px-[10px] pb-1 pt-[10px]">
+          <ul className="m-0 flex list-none flex-col gap-2 p-0">
+            <li
+              className={`transition-all duration-300 ${
+                mounted
+                  ? "translate-y-0 opacity-100 delay-[40ms]"
+                  : "-translate-y-2 opacity-0"
+              }`}
+            >
+              <Link
+                to="/layout/payment-history"
+                onClick={closeDropdown}
+                className={`${baseItemClass} text-[#1a2e20] hover:translate-x-[3px] hover:bg-[#edf7f1] hover:text-[#027840]`}
+              >
+                <span className={`${iconClass} bg-[#f0faf3]`}>
+                  <TfiWallet size={15} />
+                </span>
+                Payment History
+              </Link>
+            </li>
 
-          {/* close × */}
+            <li
+              className={`transition-all duration-300 ${
+                mounted
+                  ? "translate-y-0 opacity-100 delay-[80ms]"
+                  : "-translate-y-2 opacity-0"
+              }`}
+            >
+              <Link
+                to="/layout/settings"
+                onClick={closeDropdown}
+                className={`${baseItemClass} text-[#1a2e20] hover:translate-x-[3px] hover:bg-[#edf7f1] hover:text-[#027840]`}
+              >
+                <span className={`${iconClass} bg-[#f0faf3]`}>
+                  <MdOutlineSettings size={16} />
+                </span>
+                Settings
+              </Link>
+            </li>
+
+            {isAdmin && (
+              <li
+                className={`transition-all duration-300 ${
+                  mounted
+                    ? "translate-y-0 opacity-100 delay-[120ms]"
+                    : "-translate-y-2 opacity-0"
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeDropdown();
+                    window.location.href = "/admin_layout";
+                  }}
+                  className={`${baseItemClass} w-full text-left text-[#1a2e20] hover:translate-x-[3px] hover:bg-[#edf7f1] hover:text-[#027840]`}
+                >
+                  <span className={`${iconClass} bg-[#f0faf3]`}>
+                    <GrUserAdmin size={15} />
+                  </span>
+                  Admin
+                </button>
+              </li>
+            )}
+          </ul>
+        </div>
+
+        <div className="mx-0 my-1 h-px bg-[linear-gradient(90deg,transparent,#ddeee4,transparent)]" />
+
+        <div className="px-[10px] pb-3 pt-1">
           <button
-            onClick={closeDropdown}
             type="button"
-            aria-label="Close"
-            style={{
-              background: "rgba(255,255,255,0.2)", border: "none",
-              borderRadius: 8, width: 28, height: 28, flexShrink: 0,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer", color: "#fff", fontSize: 18, lineHeight: 1,
-            }}
+            onClick={openSignOutModal}
+            className={`${baseItemClass} w-full text-left text-[#BB8232] hover:translate-x-[3px] hover:bg-[#fff4e0] hover:text-[#a06820]`}
           >
-            ×
+            <span className={`${iconClass} bg-[#fef4e6]`}>
+              <LiaSignOutAltSolid size={16} />
+            </span>
+            Sign Out
           </button>
         </div>
       </div>
-
-      {/* ── Nav links ── */}
-      <div style={{ padding: "10px 10px 4px" }}>
-        <ul style={{
-          listStyle: "none", margin: 0, padding: 0,
-          display: "flex", flexDirection: "column", gap: 2,
-        }}>
-          <li className="du-sm-item">
-            <Link to="/layout/payment-history" onClick={closeDropdown} className="du-sm-link">
-              <span className="du-sm-icon"><TfiWallet size={15} /></span>
-              Payment History
-            </Link>
-          </li>
-          <li className="du-sm-item">
-            <Link to="/layout/settings" onClick={closeDropdown} className="du-sm-link">
-              <span className="du-sm-icon"><MdOutlineSettings size={16} /></span>
-              Settings
-            </Link>
-          </li>
-          {isAdmin && (
-            <li className="du-sm-item">
-              <button
-                type="button"
-                className="du-sm-admin"
-                onClick={() => { closeDropdown(); window.location.href = "/admin_layout"; }}
-              >
-                <span className="du-sm-icon"><GrUserAdmin size={15} /></span>
-                Admin
-              </button>
-            </li>
-          )}
-        </ul>
-      </div>
-
-      {/* divider */}
-      <div style={{
-        height: 1,
-        background: "linear-gradient(90deg,transparent,#ddeee4,transparent)",
-        margin: "4px 0",
-      }} />
-
-      {/* ── Sign out ── */}
-      <div style={{ padding: "4px 10px 12px" }}>
-        <button type="button" onClick={openSignOutModal} className="du-sm-btn">
-          <span className="du-sm-icon"><LiaSignOutAltSolid size={16} /></span>
-          Sign Out
-        </button>
-      </div>
-    </div>
+    </>
   );
 
-  /* ─────────────────────────────────────────
-     LARGE-SCREEN PANEL  ← 100% original code
-  ───────────────────────────────────────── */
   const LargeScreenPanel = () => (
     <div
       ref={dropdown}
@@ -333,8 +292,10 @@ const DropdownUser = () => {
         width: DROPDOWN_WIDTH,
         zIndex: 100000,
       }}
-      className="rounded-sm border py-5 -mt-16 bg-white shadow-default"
       onClick={(e) => e.stopPropagation()}
+      className={`-mt-16 rounded-sm border bg-white py-5 shadow-default transition-all duration-200 ${
+        mounted ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"
+      }`}
     >
       <div className="flex items-center justify-between px-2 py-3">
         <div className="flex items-center gap-3">
@@ -344,38 +305,44 @@ const DropdownUser = () => {
             <p className="font-bold text-[#027840]">Vendor</p>
           </div>
         </div>
+
         <button onClick={closeDropdown} type="button">
           <MdArrowDropUp size={20} className="rotate-180" />
         </button>
       </div>
 
-      <ul className="flex flex-col gap-5 mt-4 px-6 py-7.5">
+      <ul className="mt-4 flex flex-col gap-5 px-6 py-7.5">
         <li>
           <Link
             to="/layout/payment-history"
             onClick={closeDropdown}
-            className="flex items-center gap-3.5 text-[#005D68] font-semibold"
+            className="flex items-center gap-3.5 font-semibold text-[#005D68]"
           >
             <TfiWallet size={18} />
             Payment History
           </Link>
         </li>
+
         <li>
           <Link
             to="/layout/settings"
             onClick={closeDropdown}
-            className="flex items-center gap-3.5 text-[#005D68] font-semibold"
+            className="flex items-center gap-3.5 font-semibold text-[#005D68]"
           >
             <MdOutlineSettings size={18} />
             Settings
           </Link>
         </li>
+
         {isAdmin && (
           <li>
             <button
               type="button"
-              onClick={() => { closeDropdown(); window.location.href = "/admin_layout"; }}
-              className="flex items-center gap-3.5 text-[#005D68] font-semibold"
+              onClick={() => {
+                closeDropdown();
+                window.location.href = "/admin_layout";
+              }}
+              className="flex items-center gap-3.5 font-semibold text-[#005D68]"
             >
               <GrUserAdmin size={18} />
               Admin
@@ -387,7 +354,7 @@ const DropdownUser = () => {
       <button
         type="button"
         onClick={openSignOutModal}
-        className="flex items-center gap-3.5 mt-7 px-6 text-[#BB8232] font-semibold"
+        className="mt-7 flex items-center gap-3.5 px-6 font-semibold text-[#BB8232]"
       >
         <LiaSignOutAltSolid size={18} />
         Sign Out
@@ -395,14 +362,13 @@ const DropdownUser = () => {
     </div>
   );
 
-  /* ── render ── */
   return (
     <div className="relative flex gap-3" aria-haspopup="true">
       <Profileimage />
 
       <button
         ref={trigger}
-        onClick={() => setDropdownOpen((prev) => !prev)}
+        onClick={toggleDropdown}
         className="flex items-center gap-4 focus:outline-none"
         aria-expanded={dropdownOpen}
         type="button"
@@ -420,7 +386,7 @@ const DropdownUser = () => {
         />
       </button>
 
-      {dropdownOpen &&
+      {renderDropdown &&
         createPortal(
           isSmallScreen ? <SmallScreenPanel /> : <LargeScreenPanel />,
           document.body

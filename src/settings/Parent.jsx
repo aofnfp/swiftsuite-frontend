@@ -6,52 +6,52 @@ import { IoIosNotificationsOutline } from "react-icons/io";
 import { PiLockKeyLight } from "react-icons/pi";
 import { FaRegUser } from "react-icons/fa";
 
-
-
 const Parent = () => {
   const [activeTab, setActiveTab] = useState("profile");
 
   return (
-    <div className="flex flex-col h-screen pt-[60px]  bg-[#f2f2f2] px-5">
-      <h1 className="text-xl font-bold mt-5">Settings</h1>
-      <div className="flex  gap-4 my-5">
+    <div className="flex min-h-screen flex-col bg-[#f2f2f2] px-3 pt-[60px] sm:px-4 md:px-5">
+      <h1 className="mt-4 text-lg font-bold sm:mt-5 sm:text-xl">Settings</h1>
+
+      <div className="my-4 flex flex-col gap-3 sm:my-5 sm:flex-row sm:flex-wrap sm:gap-4">
         <button
           onClick={() => setActiveTab("profile")}
-          className={`px-4  rounded-lg font-medium transition flex justify-center items-center gap-2 ${
+          className={`flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium transition sm:w-auto sm:text-base ${
             activeTab === "profile"
-              ? "bg-[#027840] text-white"  
+              ? "bg-[#027840] text-white"
               : "border border-[#00000033] text-gray-500"
           }`}
         >
           <FaRegUser />
           Profile
         </button>
+
         <button
           onClick={() => setActiveTab("notifications")}
-          className={`px-4 py-2 rounded-lg font-medium transition flex justify-center items-center gap-2 ${
+          className={`flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium transition sm:w-auto sm:text-base ${
             activeTab === "notifications"
               ? "bg-[#027840] text-white"
               : "border border-[#00000033] text-gray-500"
           }`}
         >
-          <IoIosNotificationsOutline  size={20}/>
+          <IoIosNotificationsOutline size={20} />
           Notifications
         </button>
+
         <button
           onClick={() => setActiveTab("password")}
-          className={`px-4 py-2 rounded-lg font-medium transition flex justify-center items-center gap-2 ${
+          className={`flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium transition sm:w-auto sm:text-base ${
             activeTab === "password"
               ? "bg-[#027840] text-white"
               : "border border-[#00000033] text-gray-500"
           }`}
         >
-          <PiLockKeyLight  size={20}/>
+          <PiLockKeyLight size={20} />
           Change Password
         </button>
       </div>
 
-      {/* Main Content */}
-      <div className=" overflow-y-auto md:w-3/4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[#f2f2f2]">
+      <div className="w-full overflow-y-auto pb-4 md:w-3/4 lg:w-[70%] scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[#f2f2f2]">
         {activeTab === "profile" && <EditProfile />}
         {activeTab === "notifications" && <Notification />}
         {activeTab === "password" && <Password />}

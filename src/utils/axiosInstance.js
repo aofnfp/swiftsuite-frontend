@@ -53,7 +53,7 @@ axiosInstance.interceptors.response.use(
     const status = error?.response?.status;
 
     // 401 = unauthorized (expired/invalid token), 403 = forbidden (revoked session)
-    if (status === 401 || status === 403) {
+    if (status === 401) {
       handleAuthFailure();
     }
 

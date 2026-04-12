@@ -9,12 +9,13 @@ const CustomVendorInfo = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [logoPreview, setLogoPreview] = useState(null);
-  const [logoFile, setLogoFile] = useState(null); // Store the actual File object
+  const [logoFile, setLogoFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [countriesList, setCountriesList] = useState([]);
   const [allCountriesData, setAllCountriesData] = useState([]);
   const [availableStates, setAvailableStates] = useState([]);
   const [availableCities, setAvailableCities] = useState([]);
+  const [logoError, setLogoError] = useState("");
 
   const {
     register,
@@ -42,7 +43,6 @@ const CustomVendorInfo = () => {
   const selectedState = watch("state");
   const zipCode = watch("zip_code");
 
-  // Fetch countries and states on mount
   useEffect(() => {
     fetch("https://countriesnow.space/api/v0.1/countries/states", {
       method: "GET",
@@ -62,7 +62,6 @@ const CustomVendorInfo = () => {
       });
   }, []);
 
-  // Update states when country changes
   useEffect(() => {
     if (!selectedCountry) {
       setAvailableStates([]);
@@ -85,7 +84,6 @@ const CustomVendorInfo = () => {
     setAvailableCities([]);
   }, [selectedCountry, allCountriesData, setValue]);
 
-  // Fetch cities when state changes
   useEffect(() => {
     if (!selectedCountry || !selectedState) {
       setAvailableCities([]);
@@ -115,7 +113,6 @@ const CustomVendorInfo = () => {
     setValue("city", "");
   }, [selectedState, selectedCountry, setValue]);
 
-  // ZIP Code Validation
   const validateZipCode = (code, countryName) => {
     if (!code || !countryName) return true;
 
@@ -137,22 +134,64 @@ const CustomVendorInfo = () => {
     }
   };
 
-  // Handle logo upload - keep both preview and original file
   const handleLogoUpload = (event) => {
     const file = event.target.files?.[0];
     if (file) {
-      setLogoFile(file); // Store the actual File object
+      const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+      if (!validTypes.includes(file.type)) {
+        setLogoError("Please upload a valid image file (JPEG, PNG, GIF, or WebP)");
+        setLogoFile(null);
+        setLogoPreview(null);
+        return;
+      }
+
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        setLogoError("Image size must be less than 5MB");
+        setLogoFile(null);
+        setLogoPreview(null);
+        return;
+      }
+
+      setLogoFile(file);
+      setLogoError("");
 
       const reader = new FileReader();
       reader.onloadend = () => {
-        setLogoPreview(reader.result); // For preview only
+        setLogoPreview(reader.result);
       };
       reader.readAsDataURL(file);
     }
   };
 
+  const getCleanErrorMessage = (errorData) => {
+    if (typeof errorData === "string") {
+      return errorData;
+    }
+
+    if (typeof errorData === "object") {
+      const keys = Object.keys(errorData);
+      for (const key of keys) {
+        const value = errorData[key];
+        if (Array.isArray(value)) {
+          return value[0] || `Error in ${key}`;
+        }
+        if (typeof value === "string") {
+          return value;
+        }
+      }
+    }
+
+    return "An error occurred. Please try again.";
+  };
+
   const onSubmit = async (formValues) => {
-    // Final ZIP validation
+    if (!logoFile) {
+      setLogoError("Logo is required");
+      toast.error("Please upload a logo");
+      return;
+    }
+
     const zipValidation = validateZipCode(formValues.zip_code, formValues.country);
     if (typeof zipValidation === "string") {
       setError("zip_code", { type: "manual", message: zipValidation });
@@ -172,12 +211,7 @@ const CustomVendorInfo = () => {
     formData.append("city", formValues.city);
     formData.append("zip_code", formValues.zip_code);
     formData.append("request_type", "regular");
-
-    // Append the actual file if selected
-    if (logoFile) {
-      formData.append("logo", logoFile, logoFile.name);
-    }
-    // If logo is optional and none selected, we simply don't append it
+    formData.append("logo", logoFile, logoFile.name);
 
     try {
       const token = localStorage.getItem("token");
@@ -189,7 +223,6 @@ const CustomVendorInfo = () => {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
-            // DO NOT set Content-Type - browser sets multipart/form-data with boundary
           },
           body: formData,
         }
@@ -198,7 +231,8 @@ const CustomVendorInfo = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || result.detail || "Failed to submit vendor request");
+        const errorMessage = getCleanErrorMessage(result);
+        throw new Error(errorMessage);
       }
 
       toast.success("Vendor request submitted successfully!");
@@ -207,6 +241,7 @@ const CustomVendorInfo = () => {
       reset();
       setLogoPreview(null);
       setLogoFile(null);
+      setLogoError("");
       navigate("/vendors/payment-success");
     } catch (err) {
       console.error(err);
@@ -225,7 +260,6 @@ const CustomVendorInfo = () => {
         onSubmit={handleSubmit(onSubmit)}
         className="space-y-6 bg-white p-10 rounded-2xl"
       >
-        {/* Vendor Name & Logo */}
         <div className="grid md:grid-cols-2 gap-16">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -242,7 +276,10 @@ const CustomVendorInfo = () => {
             )}
           </div>
 
-          <div className="flex flex-col justify-end mt-4">
+          <div className="flex flex-col justify-end">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Logo <span className="text-red-500">*</span>
+            </label>
             <input
               type="file"
               accept="image/*"
@@ -275,10 +312,12 @@ const CustomVendorInfo = () => {
             {logoFile && (
               <p className="text-sm text-gray-600 mt-2">Selected: {logoFile.name}</p>
             )}
+            {logoError && (
+              <p className="text-red-500 text-sm mt-1">{logoError}</p>
+            )}
           </div>
         </div>
 
-        {/* Vendor Description */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Vendor Description <span className="text-red-500">*</span>
@@ -296,7 +335,6 @@ const CustomVendorInfo = () => {
           )}
         </div>
 
-        {/* Address Fields */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Address Line 1 <span className="text-red-500">*</span>
@@ -331,7 +369,6 @@ const CustomVendorInfo = () => {
           )}
         </div>
 
-        {/* Country */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Country <span className="text-red-500">*</span>
@@ -352,7 +389,6 @@ const CustomVendorInfo = () => {
           )}
         </div>
 
-        {/* State */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             State / Province <span className="text-red-500">*</span>
@@ -376,7 +412,6 @@ const CustomVendorInfo = () => {
           )}
         </div>
 
-        {/* City */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             City <span className="text-red-500">*</span>
@@ -400,7 +435,6 @@ const CustomVendorInfo = () => {
           )}
         </div>
 
-        {/* ZIP Code */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             ZIP / Postal Code <span className="text-red-500">*</span>
@@ -421,7 +455,6 @@ const CustomVendorInfo = () => {
           )}
         </div>
 
-        {/* Submit Button */}
         <div className="flex justify-center pt-6">
           <button
             type="submit"
@@ -458,27 +491,27 @@ const CustomVendorInfo = () => {
   );
 };
 
-export const CircleLoader = ({ className = "h-5 w-5 text-white" }) => (
-  <svg
-    className={`animate-spin ${className}`}
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-  >
-    <circle
-      className="opacity-25"
-      cx="12"
-      cy="12"
-      r="10"
-      stroke="currentColor"
-      strokeWidth="4"
-    ></circle>
-    <path
-      className="opacity-75"
-      fill="currentColor"
-      d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4l-3 3 3 3H4z"
-    ></path>
-  </svg>
-);
+    export const CircleLoader = ({ className = "h-5 w-5 text-white" }) => (
+      <svg
+        className={`animate-spin ${className}`}
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="4"
+        ></circle>
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4l-3 3 3 3H4z"
+        ></path>
+      </svg>
+    );
 
 export default CustomVendorInfo;

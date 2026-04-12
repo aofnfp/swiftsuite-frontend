@@ -38,27 +38,29 @@ const AccountFile = () => {
         const data = response.data;
         setAnalytics(data);
 
-        if (data.subscription_status) {
-          const isSubscribed = data.subscription_status === "active";
-          const existingPermissions =
-            JSON.parse(localStorage.getItem("permissions")) || {};
-          dispatch(
-            setPermissions({
-              subscribed: isSubscribed,
-              isAdmin: existingPermissions.isAdmin || false,
-            })
-          );
-        }
+        const isSubscribed = data.subscription_status === "active";
+        const existingPermissions =
+          JSON.parse(localStorage.getItem("permissions")) || {};
+
+        dispatch(
+          setPermissions({
+            subscribed: isSubscribed,
+            isAdmin: existingPermissions.isAdmin || false,
+          })
+        );
       } catch (err) {
         console.error("Error fetching analytics:", err);
         setError("Failed to load analytics data");
       } finally {
         setLoading(false);
       }
-    };  
+    };
 
     fetchAnalytics();
   }, [dispatch, navigate]);
+
+  const isSubscribedFromAnalytics =
+    analytics?.subscription_status === "active";
 
   const renderContent = () => {
     switch (view) {
@@ -94,10 +96,11 @@ const AccountFile = () => {
               analytics={analytics}
               loading={loading}
               error={error}
+              isSubscribedFromAnalytics={isSubscribedFromAnalytics}
             />
             <Plan analytics={analytics} loading={loading} error={error} />
             <BarRevenue analytics={analytics} loading={loading} error={error} />
-            <ManualInventoryOrder/>
+            <ManualInventoryOrder />
             <DoughnutChart
               analytics={analytics}
               loading={loading}

@@ -20,7 +20,9 @@ const ChatDrawer = ({ onClose }) => {
       setHeaderTop(top);
     };
 
-    const updateVw = () => setVw(window.innerWidth);
+    const updateVw = () => {
+      setVw(window.innerWidth);
+    };
 
     updateHeaderTop();
     updateVw();
@@ -37,7 +39,6 @@ const ChatDrawer = ({ onClose }) => {
   }, []);
 
   const isMobile = vw < 640;
-
   const drawerW = useMemo(() => (isMobile ? vw : 400), [isMobile, vw]);
   const detailW = useMemo(() => (isMobile ? vw : 560), [isMobile, vw]);
 
@@ -51,7 +52,12 @@ const ChatDrawer = ({ onClose }) => {
         messages: [
           { id: 1, from: "them", text: "Hey! You around?", time: "10:01 AM" },
           { id: 2, from: "me", text: "Yeah, what’s up?", time: "10:02 AM" },
-          { id: 3, from: "them", text: "Bro, did you see the update?", time: "10:42 AM" },
+          {
+            id: 3,
+            from: "them",
+            text: "Bro, did you see the update?",
+            time: "10:42 AM",
+          },
         ],
       },
       {
@@ -60,9 +66,24 @@ const ChatDrawer = ({ onClose }) => {
         lastMessage: "Okay noted. I’ll send it soon.",
         time: "Yesterday",
         messages: [
-          { id: 1, from: "me", text: "Did you get the file?", time: "6:10 PM" },
-          { id: 2, from: "them", text: "Not yet, checking now.", time: "6:12 PM" },
-          { id: 3, from: "them", text: "Okay noted. I’ll send it soon.", time: "6:40 PM" },
+          {
+            id: 1,
+            from: "me",
+            text: "Did you get the file?",
+            time: "6:10 PM",
+          },
+          {
+            id: 2,
+            from: "them",
+            text: "Not yet, checking now.",
+            time: "6:12 PM",
+          },
+          {
+            id: 3,
+            from: "them",
+            text: "Okay noted. I’ll send it soon.",
+            time: "6:40 PM",
+          },
         ],
       },
     ],
@@ -77,10 +98,30 @@ const ChatDrawer = ({ onClose }) => {
         lastMessage: "Thanks, we’re looking into it.",
         time: "2:15 PM",
         messages: [
-          { id: 1, from: "me", text: "Hi, I’m having an issue with my account.", time: "2:10 PM" },
-          { id: 2, from: "them", text: "Hello! Can you describe what’s happening?", time: "2:12 PM" },
-          { id: 3, from: "me", text: "My notifications aren’t updating.", time: "2:13 PM" },
-          { id: 4, from: "them", text: "Thanks, we’re looking into it.", time: "2:15 PM" },
+          {
+            id: 1,
+            from: "me",
+            text: "Hi, I’m having an issue with my account.",
+            time: "2:10 PM",
+          },
+          {
+            id: 2,
+            from: "them",
+            text: "Hello! Can you describe what’s happening?",
+            time: "2:12 PM",
+          },
+          {
+            id: 3,
+            from: "me",
+            text: "My notifications aren’t updating.",
+            time: "2:13 PM",
+          },
+          {
+            id: 4,
+            from: "them",
+            text: "Thanks, we’re looking into it.",
+            time: "2:15 PM",
+          },
         ],
       },
     ],
@@ -102,9 +143,10 @@ const ChatDrawer = ({ onClose }) => {
       setTimeout(() => {
         onClose();
       }, 280);
-    } else {
-      onClose();
+      return;
     }
+
+    onClose();
   };
 
   return (
@@ -138,7 +180,9 @@ const ChatDrawer = ({ onClose }) => {
           height: `calc(100vh - ${headerTop}px)`,
           width: drawerW,
         }}
-        className="bg-white shadow-lg z-[60] flex flex-col"
+        className={`bg-white shadow-lg z-[60] flex flex-col transition-opacity duration-200 ${
+          isMobile && selectedChat ? "opacity-0 pointer-events-none" : "opacity-100"
+        }`}
         initial={{ x: "100%" }}
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
@@ -147,7 +191,10 @@ const ChatDrawer = ({ onClose }) => {
       >
         <div className="px-4 py-5 flex items-center justify-between">
           <div className="font-semibold text-gray-900">Messages</div>
-          <button onClick={handleClose} className="text-sm px-3 py-1 rounded-md hover:bg-gray-50">
+          <button
+            onClick={handleClose}
+            className="text-sm px-3 py-1 rounded-md hover:bg-gray-50"
+          >
             <FaXmark />
           </button>
         </div>
@@ -217,4 +264,3 @@ const ChatDrawer = ({ onClose }) => {
 };
 
 export default ChatDrawer;
-

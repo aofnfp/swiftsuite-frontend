@@ -28,6 +28,8 @@ const Ebay = () => {
   const navigate = useNavigate();
   const vendorName = localStorage.getItem('vendorName');
 
+  
+
   const connectClickedState = useMarketplaceStore((state) => state.connectClicked);
   const setConnectClickedState = useMarketplaceStore((state) => state.setConnectClicked);
   const ebayConnected = useMarketplaceStore((state) => state.ebayConnected);
@@ -413,13 +415,16 @@ const Ebay = () => {
   }, [authorization_code, userId, refreshEbaySilent, setConnectClickedState, setConnectTime, setShowAccessCodeButton, setModal2Open, setAuthorization_code]);
 
   useEffect(() => {
+    console.log(userId, token);
+    console.log(marketList)
     const loadInitialData = async () => {
       try {
         const refreshData = await refreshEbaySilent();
         
-        if (marketList !== true) {
+        if (!marketList) {
           const response = await marketplaceEnrolment(userId, 'Ebay');
-
+           console.log(response);
+           
           if (response && response.status === 200) {
             const data = response.data;
             const parsePolicy = (policyString) => {
@@ -478,6 +483,8 @@ const Ebay = () => {
       loadInitialData();
     }
   }, [userId, token, refreshEbaySilent, reset, setValue]);
+
+  
 
   useEffect(() => {
     if (connectClickedState) {

@@ -24,9 +24,7 @@ const VendorlistDropdown = ({
 
   return (
     <div className="relative inline-block text-left" ref={dropdownRef}>
-      <button
-        onClick={() => setOpen(!open)}
-        disabled={isLoading}
+      <button onClick={() => setOpen(!open)} disabled={isLoading}
         className="capitalize bg-white border-2 border-[#089451] text-[#089451] font-semibold hover:bg-[#089451] 
         hover:text-white transition-colors duration-200 min-w-[120px] px-4 py-2 flex items-center justify-between gap-2 w-full rounded-lg"
       >

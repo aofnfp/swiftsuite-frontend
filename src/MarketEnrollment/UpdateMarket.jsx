@@ -16,7 +16,7 @@ import { marketplaceEnrolment } from "../api/authApi";
 import { useMarketplaceStore } from "../stores/marketplaceStore";
 
 const UpdateMarket = () => {
-  const [markets, setMarkets] = useState([]); 
+  const [markets, setMarkets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState({});
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
@@ -24,7 +24,8 @@ const UpdateMarket = () => {
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
-  const userId = JSON.parse(localStorage.getItem("userId"));
+  const userIdString = localStorage.getItem("userId");
+  const userId = userIdString ? JSON.parse(userIdString) : null;
   const subscribed = useSelector((state) => state.permission?.subscribed ?? false);
 
   const setMarketList = useMarketplaceStore((state) => state.setMarketList);
@@ -33,45 +34,65 @@ const UpdateMarket = () => {
 
   const marketplacesToFetch = ["Ebay", "woocommerce"];
 
-  useEffect(() => {
-    const fetchAll = async () => {
-      setLoading(true);
-      try {
-        const results = await Promise.allSettled(
-          marketplacesToFetch.map((mp) => marketplaceEnrolment(userId, mp))
-        );
-        const validData = results
-          .filter((res) => res.status === "fulfilled" && res.value?.marketplace_name)
-          .map((res) => res.value)
-          .map((responseData) => {
-            const matchedVendor = marketPlaces.find(
-              (v) => v.name.toLowerCase() === responseData.marketplace_name?.toLowerCase()
-            );
-            return {
-              ...responseData,
-              logo: matchedVendor?.image || null,
-            };
-          });
-        if (validData.length === 0) {
-          setNoEnrolment(true);
-        }
-        setMarkets(validData);
-      } catch (err) {
-        setNoEnrolment(true);
-      } finally {
-        setLoading(false);
-      }
-    };
+useEffect(() => {
+  const fetchAll = async () => {
+    if (!token || !userId) {
+      setMarkets([]);
+      setNoEnrolment(true);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setNoEnrolment(false);
 
-    fetchAll();
-  }, [token, userId]);
+    try {
+      const results = await Promise.allSettled(
+        marketplacesToFetch.map((mp) => marketplaceEnrolment(userId, mp))
+      );
+      const validData = results
+        .filter((res) => {
+          const responseData = res.value?.data ?? res.value;
+          return res.status === "fulfilled" && responseData?.marketplace_name;
+        })
+        .map((res) => {
+          const responseData = res.value?.data ?? res.value;
+          const matchedVendor = marketPlaces.find(
+            (v) => v.name.toLowerCase() === responseData.marketplace_name?.toLowerCase()
+          );
+          return {
+            ...responseData,
+            logo: matchedVendor?.image || null,
+          };
+        });
+      if (validData.length === 0) {
+        setNoEnrolment(true);
+        setMarkets([]);
+      } else {
+        setNoEnrolment(false);
+        setMarkets(validData);
+      }
+    } catch (err) {
+      setNoEnrolment(true);
+      setMarkets([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchAll();
+}, [token, userId]);
+
 
   const handleToggle = (name) => {
     if (!subscribed) {
       setShowSubscriptionModal(true);
       return;
     }
-    setExpanded((prev) => ({ ...prev, [name]: !prev[name] }));
+
+    setExpanded((prev) => ({
+      ...prev,
+      [name]: !prev[name],
+    }));
   };
 
   const handleEditClick = (marketplace) => {
@@ -95,10 +116,7 @@ const UpdateMarket = () => {
         <div className="text-center py-10 text-gray-600">No enrolment found</div>
       ) : (
         markets.map((market, idx) => (
-          <div
-            key={idx}
-            className="border rounded-lg mb-5"
-          >
+          <div key={idx} className="border rounded-lg mb-5">
             <button
               onClick={() => handleToggle(market.marketplace_name)}
               className="w-full flex items-center justify-between px-4 py-3 bg-gray-100 hover:bg-gray-200 transition-all"
@@ -129,7 +147,7 @@ const UpdateMarket = () => {
                 <div className="flex flex-col md:flex-row justify-between text-sm py-3 gap-3 items-center">
                   <div className="md:w-1/3 w-full flex justify-start">
                     <span className="flex items-center bg-[#005D6833] px-2 py-1 rounded w-full md:w-auto">
-                      <MdAccountBox className="text-lg mr-1" />{" "}
+                      <MdAccountBox className="text-lg mr-1" />
                       {market.store_id || "N/A"}
                     </span>
                   </div>
@@ -150,9 +168,7 @@ const UpdateMarket = () => {
                     <Button
                       size="small"
                       icon={<FaTrashAlt />}
-                      onClick={() =>
-                        toast.warning("Delete functionality not implemented.")
-                      }
+                      onClick={() => toast.warning("Delete functionality not implemented.")}
                       className="!bg-[#A71A1D] !text-white !border-none hover:!bg-red-600 focus:!bg-red-600 active:!bg-red-700 !py-[16px] !rounded-[8px] w-full md:w-auto"
                     >
                       Delete

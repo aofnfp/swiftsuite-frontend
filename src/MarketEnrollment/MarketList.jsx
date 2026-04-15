@@ -21,7 +21,7 @@ const MarketList = () => {
       return;
     }
     setMarketPlace(marketplaceName);
-    setMarketList(true);
+    setMarketList("true");
     navigate("/layout/market", {
       state: { marketPlace: marketplaceName },
     });

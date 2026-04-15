@@ -14,7 +14,6 @@ const SignUp = () => {
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [myloader, setMyloader] = useState(false);
 
-  const notify = () => toast("Sign up Successful!");
 
   let navigate = useNavigate();
   const togglePasswordVisibility = (field) => {
@@ -43,7 +42,6 @@ const SignUp = () => {
         await signup(values);
         toast.success("User sign up successfully")
         setMyloader(false);
-        notify();
         localStorage.setItem('emailForAuth', values.email)
         navigate("/auth");
       } catch (error) {

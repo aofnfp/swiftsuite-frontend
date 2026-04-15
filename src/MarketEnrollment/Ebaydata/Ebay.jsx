@@ -271,9 +271,9 @@ const Ebay = () => {
         store_id: extractStoreId(data.store_id),
       };
       const response = await marketplaceEnrolment(userId, 'Ebay', payload);
-      if (response) {
+      if (response.status === 200 || response.status === 201) {
         toast.success("eBay enrollment successful!");
-        setSubmittedMarketPlace(response.marketplace_name);
+        setSubmittedMarketPlace(response.data.marketplace_name);
         setConnectClickedState(false);
         setConnectTime(null);
         navigate('/marketplace/success');
@@ -420,8 +420,8 @@ const Ebay = () => {
         if (marketList !== true) {
           const response = await marketplaceEnrolment(userId, 'Ebay');
 
-          if (response) {
-            const data = response;
+          if (response && response.status === 200) {
+            const data = response.data;
             const parsePolicy = (policyString) => {
               try {
                 if (!policyString) return { id: '', name: '' };

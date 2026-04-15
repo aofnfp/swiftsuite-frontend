@@ -1,20 +1,14 @@
-import React, { useState, useEffect } from 'react'
-import { handleNextStep, handlePreviousStep } from '../redux/vendor'
-import { useDispatch, useSelector } from 'react-redux'
+import React, { useEffect } from 'react'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
-
-
-
+import { useEditVendorStore } from '../stores/editVendorStore'
 
 const EditFpiOption = () => {
   const navigate = useNavigate()
-  let token = (localStorage.getItem('token'))
-  const store = useSelector(state => state.vendor.vendorData)
-  const [myForm, setMyForm] = useState('')
-  
+  const matchedVendor = useEditVendorStore((state) => state.matchedVendor)
+  const setCurrentStep = useEditVendorStore((state) => state.setCurrentStep)
 
   const Schema = yup.object().shape({
     file_urls: yup.string().required(),
@@ -25,38 +19,21 @@ const EditFpiOption = () => {
     resolver: yupResolver(Schema)
   })
 
-  const dispatch = useDispatch()
   const onSubmit = (data) => {
-    let form = { ...store, ...data }
-    // console.log(form);
-    dispatch(handleNextStep(form))
+    setCurrentStep(2) 
   }
 
   const handlePrevious = () => {
-    dispatch(handlePreviousStep())
+    setCurrentStep(0)
   }
 
-useEffect(() => {
-  const matchedVendor = localStorage.getItem('matchedVendor');
+  useEffect(() => {
     if (matchedVendor) {
-      try {
-        const myFormData = JSON.parse(matchedVendor);
-        const enrolment = myFormData?.enrolment || {};
-  
-        setMyForm(enrolment);
-  
-        if (enrolment) {
-          setValue("ftp_url", enrolment.ftp_url || "");
-          setValue("file_urls", enrolment.file_urls || "");
-
-        }
-      } catch (error) {
-        // console.error("Error parsing matchedVendor from localStorage:", error);
-      }
-    } else {
-      // console.warn("No matchedVendor found in localStorage.");
+      const enrolment = matchedVendor.enrolment || matchedVendor.enrollment || {};
+      setValue("ftp_url", enrolment.ftp_url || "");
+      setValue("file_urls", enrolment.file_urls || "");
     }
-}, [])
+  }, [matchedVendor, setValue])
 
 
   return (

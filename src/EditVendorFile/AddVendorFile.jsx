@@ -1,4 +1,3 @@
-// AddVendorFile.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -145,6 +144,33 @@ const AddVendorFile = ({ vendorNames = [], searchTerm = "" }) => {
     );
   };
 
+  const RequestCard = () => (
+    <div className="bg-white shadow border text-sm rounded-[16px] p-[20px] flex flex-col justify-between h-full">
+      <div className="mt-6">
+        <h3 className="font-semibold text-[16px] mb-2">
+          Custom Supplier Integration
+        </h3>
+        <p className="text-[13px] text-gray-600 mb-6">
+          Can’t find your supplier? Just send us a request! We’ll integrate them
+          as soon as possible so you can keep all your orders and data in one
+          place.
+        </p>
+      </div>
+      <button
+        onClick={() => {
+          if (!subscribed) {
+            setShowModal(true);
+            return;
+          }
+          navigate("/layout/custom_vendor_integration");
+        }}
+        className="py-2 w-[150px] rounded-[8px] bg-[#027840] text-white font-semibold h-[40px] border border-[rgba(2,120,64,0.4)] hover:bg-[rgba(2,120,64,0.05)] hover:text-black"
+      >
+        Send Request
+      </button>
+    </div>
+  );
+
   return (
     <div className="mb-5 mx-auto">
       <Toaster richColors position="top-right" />
@@ -171,9 +197,21 @@ const AddVendorFile = ({ vendorNames = [], searchTerm = "" }) => {
         </div>
       ) : (
         <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-4">
-          {filteredItems.map((item) => (
-            <VendorCard key={item.id} item={item} />
-          ))}
+          {filteredItems.length ? (
+            <>
+              {filteredItems.map((item) => (
+                <VendorCard key={item.id} item={item} />
+              ))}
+              <RequestCard />
+            </>
+          ) : (
+            <>
+              <div className="col-span-full text-center text-gray-500">
+                No vendors found.
+              </div>
+              <RequestCard />
+            </>
+          )}
         </div>
       )}
     </div>
@@ -181,4 +219,3 @@ const AddVendorFile = ({ vendorNames = [], searchTerm = "" }) => {
 };
 
 export default AddVendorFile;
-

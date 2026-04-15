@@ -1,38 +1,56 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { IoMdPerson } from "react-icons/io";
 import { FaEnvelope, FaListAlt } from "react-icons/fa";
 import SubscriptionModal from "../pages/SubscriptionModal";
 
-const MyCards = ({ analytics, loading }) => {
+const MyCards = ({
+  analytics,
+  loading,
+  onCardClick,
+  isSubscribedFromAnalytics,
+}) => {
   const { subscribed } = useSelector((state) => state.permission);
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
+  const hasSubscription =
+    typeof isSubscribedFromAnalytics === "boolean"
+      ? isSubscribedFromAnalytics
+      : subscribed;
+
   useEffect(() => {
-    if (!subscribed) {
+    if (loading) return;
+
+    if (!hasSubscription) {
       setShowModal(true);
+    } else {
+      setShowModal(false);
     }
-  }, [subscribed]);
+  }, [loading, hasSubscription]);
 
   const handleProtectedAction = (path) => {
-    if (!subscribed) {
-      setShowModal(true);
+    if (!hasSubscription) {
       return;
     }
-    navigate(`/layout/home/${path}`);
+
+    if (onCardClick) {
+      onCardClick(path);
+    } else {
+      navigate(`/layout/home/${path}`);
+    }
   };
 
   return (
     <>
-      <SubscriptionModal 
-        isOpen={showModal} 
+      <SubscriptionModal
+        isOpen={showModal}
         onClose={() => {}}
       />
 
       <div className="grid md:grid-cols-12 grid-cols-1 md:gap-10 gap-5">
-        <div className="text-[#027840] font-semibold text-[17px] rounded-[16px] md:col-span-4 border bg-white flex flex-col gap-3 justify-center items-center p-5 shadow-[0_2px_5px_rgba(0,0,0,0.25)] ">
+        <div className="text-[#027840] font-semibold text-[17px] rounded-[16px] md:col-span-4 border bg-white flex flex-col gap-3 justify-center items-center p-5 shadow-[0_2px_5px_rgba(0,0,0,0.25)]">
           <p className="flex flex-col items-center gap-1">
             <FaListAlt />
             <h2>Number Of Members</h2>

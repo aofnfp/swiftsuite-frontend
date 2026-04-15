@@ -1,6 +1,6 @@
 import React from "react";
 import { Image } from "@heroui/react";
-import { Checkbox } from "@nextui-org/react";
+import { Checkbox } from "@heroui/react";
 
 const MarketplaceSelector = ({
   hasMarketplace,

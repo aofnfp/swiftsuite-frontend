@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@nextui-org/react";
+import { Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react";
 
 const MapModal = ({ setFailedMapModalOpen, failedMapItems, setFailedMapItems, failedMapModalOpen }) => {
     return (

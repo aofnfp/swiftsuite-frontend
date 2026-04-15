@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Tooltip } from "@nextui-org/react";
+import { Button, Tooltip } from "@heroui/react";
 import { FaMinus, FaPlus } from "react-icons/fa";
 import { MdArrowDropDown } from "react-icons/md";
 import { toast, Toaster } from "sonner";

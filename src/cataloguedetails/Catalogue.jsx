@@ -49,8 +49,8 @@ const Catalogue = () => {
   const setSearchQuery = useCatalogueStore((state) => state.setSearchQuery);
   const debouncedQuery = useCatalogueStore((state) => state.debouncedQuery);
   const setDebouncedQuery = useCatalogueStore((state) => state.setDebouncedQuery);
-  const page = useCatalogueStore((state) => state.page);
-  const setPage = useCatalogueStore((state) => state.setPage);
+  // const page = useCatalogueStore((state) => state.page);
+  // const setPage = useCatalogueStore((state) => state.setPage);
   const paginationContext = useCatalogueStore((state) => state.paginationContext);
   const setPaginationContext = useCatalogueStore((state) => state.setPaginationContext);
   const productChange = useCatalogueStore((state) => state.productChange);
@@ -93,6 +93,7 @@ const Catalogue = () => {
   const [open, setOpen] = useState(false);
   const [openVendor, setOpenVendor] = useState(false);
   const [openIdentifier, setOpenIdentifier] = useState(false);
+  const [page, setPage] = useState(1);
   const [loader, setLoader] = useState(false);
   const [selectProduct, setSelectProduct] = useState({
     category: "",
@@ -246,7 +247,7 @@ const Catalogue = () => {
       const identifierExists = catalogueIdentifiers.some(
         (id) => id.vendor_identifier === selectedProductCatalogue
       );
-      if (!identifierExists && productChange !== "all") {
+      if (!identifierExists && productChange !== "all" && data?.products?.length > 0) {
         setSelectedProductCatalogue(firstIdentifier.vendor_identifier);
         dispatch(setProduct(firstIdentifier.vendor_identifier));
         setSelectedVendorIdentifier(firstIdentifier);

@@ -7,7 +7,7 @@ import {
   ModalFooter,
   Button,
   Image,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useNavigate } from "react-router-dom";
 
 const InventoryModal = ({ isOpen, onOpenChange, onClose, viewItem }) => {

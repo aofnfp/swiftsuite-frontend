@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Modal, ModalContent, ModalBody } from "@nextui-org/react";
+import { Modal, ModalContent, ModalBody } from "@heroui/react";
 import { toast, Toaster } from "sonner";
 import gif from "../Images/gif.gif";
 import { productModal } from "../api/authApi";

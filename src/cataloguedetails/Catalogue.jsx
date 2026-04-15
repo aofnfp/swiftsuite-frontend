@@ -20,7 +20,7 @@ import gif from "../Images/gif.gif";
 import FixedCustomPagination from "./FixedCustomPagination";
 import { useGetVendorProducts } from "./CatalogueFetch";
 import { useFetchPageData } from "../hooks/useFetchPageData";
-import { Switch } from "@nextui-org/react";
+import { Switch } from "@heroui/react";
 import { motion } from "framer-motion";
 import CustomDropdown from "./Dropdown/CustomDropdown";
 import VendorDropdown from "./Dropdown/VendorDropdown";

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Loader from "../../hooks/Loader";
 import InventoryModal from "./InventoryModal";
-import { useDisclosure } from "@nextui-org/react";
+import { useDisclosure } from "@heroui/react";
 import { useNavigate } from "react-router-dom";
 import { deleteProductFromInventory, getSavedInventoryProducts } from "../../api/authApi";
 import { toast, Toaster } from "sonner";

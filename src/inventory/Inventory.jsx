@@ -81,10 +81,9 @@ const Inventory = () => {
   const [error, setError] = useState(false);
   const [vendorList, setVendorList] = useState([]);
   const [failedMapModalOpen, setFailedMapModalOpen] = useState(false);
-  const sortConfig = useInventoryPrefsStore((state) => state.inventorySortConfig);
-  const setSortConfig = useInventoryPrefsStore((state) => state.setInventorySortConfig);
   const [failedMapItems, setFailedMapItems] = useState([]);
   const [showModals, setShowModals] = useState(false);
+  const [sortConfig, setSortConfig] = useState(false);
 
   const baseURL = axiosInstance.defaults.baseURL;
 
@@ -423,64 +422,23 @@ const Inventory = () => {
           Inventory
         </motion.h1>
         <div className="flex flex-col gap-4 w-full">
-
-          {/* 🔹 ROW 1 */}
           <div className="flex flex-col lg:flex-row lg:items-center gap-3 w-full">
-
-            {/* LEFT SIDE */}
             <div className="flex flex-wrap items-center gap-3 lg:flex-nowrap">
-
-              {/* Pagination */}
               {loader ? (
                 <Skeleton className="h-10 w-64 rounded-lg" />
               ) : (
-                <InventoryPagination
-                  handleNextPage={handleNextPage}
-                  handlePreviousPage={handlePreviousPage}
-                  handleFirstPage={handleFirstPage}
-                  handleLastPage={handleLastPage}
-                  listingDetail={filteredItems}
-                  currentPage={page}
-                  pageCount={pageCount}
-                  totalItems={count}
-                  itemsPerPage={selectedProductPerPage}
-                />
+                <InventoryPagination handleNextPage={handleNextPage} handlePreviousPage={handlePreviousPage} handleFirstPage={handleFirstPage} handleLastPage={handleLastPage} listingDetail={filteredItems} currentPage={page} pageCount={pageCount} totalItems={count} itemsPerPage={selectedProductPerPage} />
               )}
-
-              {/* Dropdown */}
               <div className="w-auto min-w-[140px]">
-                <CustomDropdown
-                  selected={selectedProductPerPage}
-                  onChange={handleProductPerPageChange}
-                  open={open}
-                  setOpen={setOpen}
-                />
+                <CustomDropdown selected={selectedProductPerPage} onChange={handleProductPerPageChange} open={open} setOpen={setOpen} />
               </div>
-
-              {/* Sort */}
-              <InventorySorting
-                listingDetail={filteredItems}
-                setSortConfig={setSortConfig}
-                sortConfig={sortConfig}
-              />
+              <InventorySorting listingDetail={filteredItems} setSortConfig={setSortConfig} sortConfig={sortConfig} />
             </div>
-
-            {/* SEARCH (center, expands) */}
             <div className="flex-1 min-w-[300px]">
               <div className="flex rounded-md border border-gray-300 bg-gray-100 overflow-hidden">
-                <input
-                  className="flex-grow px-3 py-2 bg-transparent outline-none text-sm"
-                  type="text"
-                  placeholder="Search for products by keyword, SKU, UPC, MPN..."
-                  value={search_query}
-                  onChange={handleSearch}
-                />
+                <input className="flex-grow px-3 py-2 bg-transparent outline-none text-sm" type="text" placeholder="Search for products by keyword, SKU, UPC, MPN..." value={search_query} onChange={handleSearch} />
                 {search_query.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setSearch_query("")}
-                    className="text-[#089451] hover:text-red-600 px-2"
-                  >
+                  <button type="button" onClick={() => setSearch_query("")} className="text-[#089451] hover:text-red-600 px-2">
                     <MdOutlineCancel size={20} />
                   </button>
                 )}
@@ -489,35 +447,20 @@ const Inventory = () => {
                 </button>
               </div>
             </div>
-
-            {/* RIGHT SIDE */}
             <div className="flex-shrink-0">
               <div className="flex items-center bg-gray-100 rounded-lg p-1 gap-3 whitespace-nowrap">
                 <div className="flex items-center gap-1">
                   <p className="text-sm">List</p>
                   <Tooltip title="List View">
-                    <button
-                      className={`p-2 rounded ${viewMode === "list"
-                          ? "bg-white text-green-600 shadow-sm"
-                          : "text-gray-600"
-                        }`}
-                      onClick={() => setViewMode("list")}
-                    >
+                    <button className={`p-2 rounded ${viewMode === "list" ? "bg-white text-green-600 shadow-sm" : "text-gray-600"}`} onClick={() => setViewMode("list")}>
                       <FaThList size={16} />
                     </button>
                   </Tooltip>
                 </div>
-
                 <div className="flex items-center gap-1">
                   <p className="text-sm">Grid</p>
                   <Tooltip title="Grid View">
-                    <button
-                      className={`p-2 rounded ${viewMode === "grid"
-                          ? "bg-white text-green-600 shadow-sm"
-                          : "text-gray-600"
-                        }`}
-                      onClick={() => setViewMode("grid")}
-                    >
+                    <button className={`p-2 rounded ${viewMode === "grid" ? "bg-white text-green-600 shadow-sm" : "text-gray-600"}`} onClick={() => setViewMode("grid")}>
                       <RiLayoutGridFill size={16} />
                     </button>
                   </Tooltip>
@@ -530,22 +473,13 @@ const Inventory = () => {
         <div className="w-full mt-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
           <div className="flex flex-col gap-4 w-full lg:w-auto">
             <div className="flex items-center">
-              <Switch
-                className="md:mb-0 mb-2"
-                color="success"
-                size="sm"
-                isSelected={multiSelect}
-                onValueChange={(value) => setMultiSelect(value)}
-              >
-                Unmapped
-              </Switch>
+              <Switch className="md:mb-0 mb-2" color="success" size="sm" isSelected={multiSelect} onValueChange={(value) => setMultiSelect(value)}> Unmapped </Switch>
             </div>
 
             {multiSelect && (
               <div className="flex flex-col md:flex-row items-center gap-4 p-2 bg-white rounded-lg border border-gray-100 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="flex items-center gap-2 text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-md border border-gray-200">
-                  <input
-                    type="checkbox"
+                  <input type="checkbox"
                     disabled={!multiSelect || loader || filteredItems.length === 0}
                     onClick={() => selectAllProducts(filteredItems)}
                     className={`${!multiSelect ? "cursor-not-allowed disabled border border-gray-200" : "border border-green-700"
@@ -555,31 +489,10 @@ const Inventory = () => {
                     Select All
                   </label>
                 </div>
-                <VendorlistDropdown
-                  selected={selectedVendor || "Select Vendor"}
-                  onChange={(v) => setSelectedVendor(v)}
-                  open={openVendor}
-                  setOpen={setOpenVendor}
-                  catalogue={vendorList}
-                />
-
-                <MarketplaceDropdown
-                  selected={selectedMarketplacePlatform?.endpointName || "Select Marketplace"}
-                  onChange={(v) => {
-                    setSelectedMarketplacePlatform(v)
-                    setSearch_query(v.endpointName);
-                    setPage(1);
-                  }}
-                  open={openMarketplacePlatform}
-                  setOpen={setOpenMarketplacePlatform}
-                  catalogue={marketplacesEnrolled}
-                />
+                <VendorlistDropdown onChange={(v) => setSelectedVendor(v)} open={openVendor} setOpen={setOpenVendor} catalogue={vendorList} selected={selectedVendor || "Select Vendor"} />
+                <MarketplaceDropdown selected={selectedMarketplacePlatform?.endpointName || "Select Marketplace"} onChange={(v) => { setSelectedMarketplacePlatform(v); setSearch_query(v.endpointName); setPage(1); }} open={openMarketplacePlatform} setOpen={setOpenMarketplacePlatform} catalogue={marketplacesEnrolled} />
                 <div className="flex items-center gap-2">
-                  <button
-                    disabled={loader}
-                    onClick={handleMapProducts}
-                    className={`flex items-center gap-2 px-4 py-2 rounded bg-green-700 text-white font-medium shadow-sm hover:bg-green-800 hover:shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${checkedItems.length === 0 ? "cursor-not-allowed opacity-50" : ""}`}
-                  >
+                  <button onClick={handleMapProducts} className={`flex items-center gap-2 px-4 py-2 rounded bg-green-700 text-white font-medium shadow-sm hover:bg-green-800 hover:shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${checkedItems.length === 0 ? "cursor-not-allowed opacity-50" : ""}`}>  
                     {loader ? (
                       <img src={gif} className="w-5 h-5" alt="loading" />
                     ) : (
@@ -605,17 +518,7 @@ const Inventory = () => {
             )}
           </div>
           <div className="flex items-center">
-            <Button
-              onClick={() =>
-                inventoryRef.current?.scrollIntoView({
-                  behavior: "smooth",
-                  block: "start",
-                })
-              }
-              className="capitalize text-green-700 font-semibold"
-              variant="bordered"
-              color="success"
-            >
+            <Button onPress={() => inventoryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })} className="capitalize text-green-700 font-semibold" variant="bordered" color="success">  
               View Saved Listings
             </Button>
           </div>
@@ -627,65 +530,24 @@ const Inventory = () => {
         ) : filteredItems && filteredItems.length > 0 ? (
           <>
             {viewMode === "list" && (
-              <InventoryListView
-                data={getSortedListing()}
-                handleEditInventory={handleEditInventory}
-                deleteLoader={deleteLoader}
-                setSelectedItemId={setSelectedItemId}
-                setShowModal={setShowModal}
-                handleInventoryDetail={handleInventoryDetail}
-                showCheckboxes={multiSelect}
-                checkedItems={checkedItems}
-                onToggleItem={(id) => {
-                  setCheckedItems((prev) =>
-                    prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-                  );
-                }}
-              />
+              <InventoryListView data={getSortedListing()} handleEditInventory={handleEditInventory} deleteLoader={deleteLoader} setSelectedItemId={setSelectedItemId} setShowModal={setShowModal} handleInventoryDetail={handleInventoryDetail} showCheckboxes={multiSelect}
+               checkedItems={checkedItems} onToggleItem={(id) => { setCheckedItems((prev) => prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]); }} />
             )}
             {viewMode === "grid" && (
-              <InventoryGridView
-                data={getSortedListing()}
-                handleEditInventory={handleEditInventory}
-                deleteLoader={deleteLoader}
-                setSelectedItemId={setSelectedItemId}
-                setShowModal={setShowModal}
-                handleInventoryDetail={handleInventoryDetail}
-                showCheckboxes={multiSelect}
-                checkedItems={checkedItems}
-                onToggleItem={(id) => {
-                  setCheckedItems((prev) =>
-                    prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-                  );
-                }}
-              />
+              <InventoryGridView data={getSortedListing()} handleEditInventory={handleEditInventory} deleteLoader={deleteLoader} setSelectedItemId={setSelectedItemId} setShowModal={setShowModal} handleInventoryDetail={handleInventoryDetail} showCheckboxes={multiSelect}
+               checkedItems={checkedItems} onToggleItem={(id) => { setCheckedItems((prev) => prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]); }} />
             )}
             {showModal && (
-              <DeleteModal
-                onConfirm={handleDelete}
-                selectedItemId={selectedItemId}
-                onClose={() => setShowModal(false)}
-              />
+              <DeleteModal onConfirm={handleDelete} selectedItemId={selectedItemId} onClose={() => setShowModal(false)} />
             )}
           </>
         ) : (
           <NoItems />
         )}
       </div>
-      <EditInventoryModal
-        isOpen={isOpen}
-        onOpen={onOpen}
-        onOpenChange={onOpenChange}
-        useDisclosure={useDisclosure}
-        onClose={onClose}
-        inventoryEdit={inventoryEdit}
-        setInventoryEdit={setInventoryEdit}
-        token={token}
-        userId={userId}
-      />
-      <InventoryDetailModal isInventoryDetailOpen={isInventoryDetailOpen} setIsInventoryDetailOpen={setIsInventoryDetailOpen} viewItem={viewItem}
-        handleEditInventory={handleEditInventory} deleteLoader={deleteLoader} setSelectedItemId={setSelectedItemId} setShowModal={setShowModal} catalogue={filterProduct} />
-      <MapModal setFailedMapModalOpen={setFailedMapModalOpen} failedMapItems={failedMapItems} setFailedMapItems={setFailedMapItems} failedMapModalOpen={failedMapModalOpen} />
+      <EditInventoryModal isOpen={isOpen} onOpen={onOpen} onOpenChange={onOpenChange} useDisclosure={useDisclosure} onClose={onClose} inventoryEdit={inventoryEdit} setInventoryEdit={setInventoryEdit} token={token} userId={userId} />
+      <InventoryDetailModal isInventoryDetailOpen={isInventoryDetailOpen} setIsInventoryDetailOpen={setIsInventoryDetailOpen} viewItem={viewItem} handleEditInventory={handleEditInventory} deleteLoader={deleteLoader} setSelectedItemId={setSelectedItemId} setShowModal={setShowModal} catalogue={filterProduct} />
+      <MapModal setFailedMapModalOpen={setFailedMapModalOpen} failedMapItems={failedMapItems} setFailedMapItems={setFailedMapItems} failedMapModalOpen={failedMapModalOpen} setSortConfig={setSortConfig} sortConfig={sortConfig} />
       <div ref={inventoryRef} style={{ scrollMarginTop: "120px" }}>
         <InventoryData />
       </div>

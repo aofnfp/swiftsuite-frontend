@@ -47,6 +47,7 @@ const SignIn = () => {
           }
         }, 1000);
       } catch (error) {
+        console.log("Login error:", error);
         setMyLoader(false);
         if (error.code === "ECONNABORTED") {
           toast.error("⚠️ Request timed out. Please try again.");
@@ -56,13 +57,23 @@ const SignIn = () => {
           const msg = error.response.data?.detail;
           if (msg === "Account not verified, check your email for verification code") {
             try {
-              await axios.post(sendOtpEndpoint, { email: values.email });
+            const res = await axios.post(sendOtpEndpoint, { email: values.email });
+            console.log("OTP response:", res);
+            toast.success("✅ OTP sent to your email!");
+            localStorage.setItem("emailForAuth", values.email);
+            navigate("/auth");
+          } catch (error) {
+            console.log("OTP error:", error?.response || error);
+
+            if (error?.response?.status === 404) {
               toast.success("✅ OTP sent to your email!");
               localStorage.setItem("emailForAuth", values.email);
               navigate("/auth");
-            } catch {
-              toast.error("⚠️ Failed to send OTP. Please try again.");
+              return;
             }
+
+            toast.error("⚠️ Failed to send OTP. Please try again.");
+          }
           } else {
             toast.error("❌ Invalid credentials.");
           }

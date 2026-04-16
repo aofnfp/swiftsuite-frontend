@@ -5,7 +5,7 @@ import { Tooltip } from "antd";
 import InventoryData from "./ListingTable/InventoryData";
 import { RiLayoutGridFill } from "react-icons/ri";
 import { MdOutlineCancel, MdOutlineDelete } from "react-icons/md";
-import { useDisclosure, Switch } from "@nextui-org/react";
+import { useDisclosure, Switch, Button, Skeleton } from "@heroui/react";
 import EditInventoryModal from "./EditInventoryModal";
 import gif from "../Images/gif.gif";
 import { Toaster, toast } from "sonner";
@@ -28,10 +28,6 @@ import { safeParseItemSpecific } from "../utils/utils";
 import MapModal from "./MapModal";
 import SubscriptionModal from "../pages/SubscriptionModal";
 import { useSelector } from "react-redux";
-import {
-  Button,
-  Skeleton,
-} from "@heroui/react";
 import InventorySorting from "./InventorySorting";
 import { useInventoryPrefsStore } from "../stores/inventoryPrefs";
 

@@ -42,7 +42,6 @@ useEffect(() => {
       setLoading(false);
       return;
     }
-
     setLoading(true);
     setNoEnrolment(false);
 
@@ -50,33 +49,21 @@ useEffect(() => {
       const results = await Promise.allSettled(
         marketplacesToFetch.map((mp) => marketplaceEnrolment(userId, mp))
       );
-
-      console.log("RAW RESULTS:", results);
-
       const validData = results
         .filter((res) => {
           const responseData = res.value?.data ?? res.value;
-          console.log("FILTER RESULT:", res);
-          console.log("FILTER RESPONSE DATA:", responseData);
-
           return res.status === "fulfilled" && responseData?.marketplace_name;
         })
         .map((res) => {
           const responseData = res.value?.data ?? res.value;
-          console.log("MAPPED RESPONSE DATA:", responseData);
-
           const matchedVendor = marketPlaces.find(
             (v) => v.name.toLowerCase() === responseData.marketplace_name?.toLowerCase()
           );
-
           return {
             ...responseData,
             logo: matchedVendor?.image || null,
           };
         });
-
-      console.log("FINAL VALID DATA:", validData);
-
       if (validData.length === 0) {
         setNoEnrolment(true);
         setMarkets([]);
@@ -85,8 +72,6 @@ useEffect(() => {
         setMarkets(validData);
       }
     } catch (err) {
-      console.log("FETCH ALL ERROR:", err);
-      console.log("FETCH ALL ERROR RESPONSE:", err?.response?.data);
       setNoEnrolment(true);
       setMarkets([]);
     } finally {
@@ -114,7 +99,6 @@ useEffect(() => {
     setMarketList(false);
     setSubmittedMarketPlace(marketplace);
     setMarketPlaceStore(marketplace);
-
     navigate("/layout/market", {
       state: { marketPlace: marketplace },
     });

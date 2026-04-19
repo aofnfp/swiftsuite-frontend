@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState, useRef, useMemo } from "react"
 import { Toaster, toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { CiEdit } from "react-icons/ci";
-import { Button, Popover } from "antd";
 import { ThreeDots } from "react-loader-spinner";
 import { FaTrashAlt, FaTimes } from "react-icons/fa";
 import AddVendorFile from "./AddVendorFile";
@@ -11,9 +10,14 @@ import { CgCalendarDates } from "react-icons/cg";
 import { FaCartShopping } from "react-icons/fa6";
 import { IoAdd } from "react-icons/io5";
 import { LiaTimesSolid } from "react-icons/lia";
-import { GrPrevious } from "react-icons/gr";
-import { GrNext } from "react-icons/gr";
-import { accountEnrollments, deleteEnrollment, deleteVendorAccount, viewEnrollmentWithIdentifier } from "../api/authApi";
+import { GrPrevious, GrNext } from "react-icons/gr";
+
+import {
+  accountEnrollments,
+  deleteEnrollment,
+  deleteVendorAccount,
+  viewEnrollmentWithIdentifier,
+} from "../api/authApi";
 import { formatDate, formatVendorName } from "../utils/utils";
 import { useVendorStore } from "../stores/VendorStore";
 import { useEditVendorStore } from "../stores/editVendorStore";
@@ -29,12 +33,10 @@ const EditEnrollment = () => {
   const setPopoverStates = useEditVendorStore((state) => state.setPopoverStates);
   const expandedVendors = useEditVendorStore((state) => state.expandedVendors);
   const setExpandedVendors = useEditVendorStore((state) => state.setExpandedVendors);
-  const dataLoaded = useEditVendorStore((state) => state.dataLoaded);
   const setDataLoaded = useEditVendorStore((state) => state.setDataLoaded);
   const searchTerm = useEditVendorStore((state) => state.searchTerm);
   const setSearchTerm = useEditVendorStore((state) => state.setSearchTerm);
   const entriesPerPage = useEditVendorStore((state) => state.entriesPerPage);
-  const setEntriesPerPage = useEditVendorStore((state) => state.setEntriesPerPage);
   const currentPage = useEditVendorStore((state) => state.currentPage);
   const setCurrentPage = useEditVendorStore((state) => state.setCurrentPage);
   const view = useEditVendorStore((state) => state.view);
@@ -42,6 +44,13 @@ const EditEnrollment = () => {
   const setEditingVendor = useEditVendorStore((state) => state.setEditingVendor);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [deleteModal, setDeleteModal] = useState({
+    open: false,
+    title: "",
+    message: "",
+    actionKey: "",
+    onConfirm: null,
+  });
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -55,6 +64,36 @@ const EditEnrollment = () => {
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    setExpandedVendors({});
+    setPopoverStates({});
+
+    return () => {
+      setExpandedVendors({});
+      setPopoverStates({});
+    };
+  }, [setExpandedVendors, setPopoverStates]);
+
+  const closeDeleteModal = useCallback(() => {
+    setDeleteModal({
+      open: false,
+      title: "",
+      message: "",
+      actionKey: "",
+      onConfirm: null,
+    });
+  }, []);
+
+  const openDeleteModal = useCallback(({ title, message, actionKey, onConfirm }) => {
+    setDeleteModal({
+      open: true,
+      title,
+      message,
+      actionKey,
+      onConfirm,
+    });
   }, []);
 
   const handleApiError = useCallback(
@@ -77,7 +116,6 @@ const EditEnrollment = () => {
           navigate("/signin");
           break;
         case 403:
-          // toast.error("Unauthorized access", { toastId: "forbidden" });
           break;
         case 404:
           toast.error("Resource not found", { toastId: "not-found" });
@@ -89,222 +127,289 @@ const EditEnrollment = () => {
     [navigate]
   );
 
+  const fetchEnrollments = useCallback(
+    async (showLoader = true) => {
+      if (showLoader) setLoader(true);
+
+      try {
+        const response = await accountEnrollments();
+
+        if (!isMounted.current) return;
+
+        if (!Array.isArray(response) || response.length === 0) {
+          toast.error("No enrollments found", { toastId: "no-enrollments" });
+          setData([]);
+          return;
+        }
+
+        const groupedData = Object.values(
+          response.reduce((acc, item) => {
+            const vendorId = item.vendor?.id;
+            if (!vendorId) return acc;
+
+            const validEnrollments = Array.isArray(item.enrollments)
+              ? item.enrollments.filter(
+                  (enrollment) =>
+                    enrollment &&
+                    typeof enrollment.identifier === "string" &&
+                    enrollment.identifier.trim() !== ""
+                )
+              : [];
+
+            if (!validEnrollments.length) return acc;
+
+            acc[vendorId] = acc[vendorId] || {
+              vendor: item.vendor,
+              accounts: [],
+            };
+
+            acc[vendorId].accounts.push({
+              id: item.id,
+              name: item.name || "N/A",
+              enrollments: validEnrollments,
+            });
+
+            return acc;
+          }, {})
+        )
+          .map((vendorGroup) => ({
+            ...vendorGroup,
+            accounts: vendorGroup.accounts.filter(
+              (account) =>
+                Array.isArray(account.enrollments) && account.enrollments.length > 0
+            ),
+          }))
+          .filter(
+            (vendorGroup) =>
+              Array.isArray(vendorGroup.accounts) && vendorGroup.accounts.length > 0
+          );
+
+        setData(groupedData);
+      } catch (error) {
+        if (!isMounted.current) return;
+        handleApiError(error, "Failed to fetch enrollments");
+      } finally {
+        if (isMounted.current && showLoader) {
+          setLoader(false);
+          setDataLoaded(true);
+        }
+      }
+    },
+    [handleApiError, setData, setLoader, setDataLoaded]
+  );
+
   useEffect(() => {
     isMounted.current = true;
+
     if (!token) {
       toast.error("Please log in to continue", { toastId: "no-token" });
       navigate("/signin");
       return;
     }
 
-    const fetchData = async () => {
-      setLoader(true);
-      try {
-        const response = await accountEnrollments();
-        if (!isMounted.current) return;
-        if (!Array.isArray(response) || response.length === 0) {
-          toast.error("No enrollments found", { toastId: "no-enrollments" });
-          setData([]);
-          return;
-        }
-        const groupedData = Object.values(
-          response.reduce((acc, item) => {
-            const vendorId = item.vendor?.id;
-            if (!vendorId) {
-              console.warn("Skipping item with missing vendorId:", item);
-              return acc;
-            }
-            acc[vendorId] = acc[vendorId] || {
-              vendor: item.vendor,
-              accounts: [],
-            };
-            acc[vendorId].accounts.push({
-              id: item.id,
-              name: item.name || "N/A",
-              enrollments: item.enrollments || [],
-            });
-            return acc;
-          }, {})
-        );
-        setData(groupedData);
-      } catch (error) {
-        if (!isMounted.current) return;
-        handleApiError(error, "Failed to fetch enrollments");
-      } finally {
-        if (isMounted.current) {
-          setLoader(false);
-          setDataLoaded(true);
-        }
-      }
-    };
-    fetchData();
+    fetchEnrollments(true);
+
     return () => {
       isMounted.current = false;
     };
-  }, [token, navigate, handleApiError]);
+  }, [token, navigate, fetchEnrollments]);
 
-  useEffect(() => {
-    if (data.length > 0) {
-      data.forEach((vendor, index) => {
-        const hasEnrollments = vendor.accounts?.some(
-          (account) =>
-            account.enrollments &&
-            Array.isArray(account.enrollments) &&
-            account.enrollments.length > 0
-        );
-      });
-    }
-  }, [data]);
+  const handleEdit = useCallback(
+    async (enrollmentId, enrollmentIdentifier, vendorName) => {
+      setActionLoading((prev) => ({ ...prev, [enrollmentId]: "editing" }));
 
- 
-  const handleEdit = useCallback(async (enrollmentId, enrollmentIdentifier, vendorName) => {
-  setActionLoading((prev) => ({ ...prev, [enrollmentId]: "editing" }));
-  try {
-    const data = await viewEnrollmentWithIdentifier(enrollmentId);
-    if (!data) {
-      throw new Error("No enrollment data found");
-    }
-   
-    setEditingVendor(data, vendorName, enrollmentIdentifier, enrollmentId);
-    setVendorContext({
-      vendorId: data.enrollment?.vendor,
-      vendorName: vendorName || "Unknown Vendor",
-    });
-    
-    navigate("/layout/editvendor");
-  } catch (error) {
-    handleApiError(error, "Failed to fetch enrollment details");
-  } finally {
-    setActionLoading((prev) => ({ ...prev, [enrollmentId]: undefined }));
-  }
-}, [handleApiError, navigate, setEditingVendor, setVendorContext, setActionLoading]);
+      try {
+        const data = await viewEnrollmentWithIdentifier(enrollmentId);
 
-  const handleDelete = useCallback(async (identifier) => {
-    setActionLoading((prev) => ({ ...prev, [identifier]: "deleting" }));
-    try {
-      await deleteEnrollment(identifier);
-      toast.success("Enrollment deleted successfully", { toastId: "delete-success" });
-      setData((prev) =>
-        prev
-          .map((vendor) => ({
-            ...vendor,
-            accounts: vendor.accounts
-              .map((account) => ({
-                ...account,
-                enrollments: account.enrollments.filter((e) => e.identifier !== identifier),
-              }))
-              .filter((account) => account.enrollments.length > 0)
-          }))
-          .filter((vendor) => vendor.accounts.length > 0)
-      );
-    } catch (error) {
-      handleApiError(error, "Failed to delete enrollment");
-    } finally {
-      setActionLoading((prev) => ({ ...prev, [identifier]: undefined }));
-    }
-  }, [handleApiError]);
+        if (!data) {
+          throw new Error("No enrollment data found");
+        }
 
-  const handleAccountDelete = useCallback(async (vendorId, accountId) => {
-    setActionLoading((prev) => ({ ...prev, [`account-${accountId}`]: "deleting" }));
-    try {
-      await deleteVendorAccount(accountId);
-      toast.success("Account deleted successfully", { toastId: "account-delete-success" });
-      setData((prev) =>
-        prev
-          .map((vendor) =>
-            vendor.vendor.id === vendorId
-              ? { ...vendor, accounts: vendor.accounts.filter((account) => account.id !== accountId) }
-              : vendor
-          )
-          .filter((vendor) => vendor.accounts.length > 0)
-      );
-    } catch (error) {
-      handleApiError(error, "Failed to delete account");
-    } finally {
-      setActionLoading((prev) => ({ ...prev, [`account-${accountId}`]: undefined }));
-    }
-  }, [handleApiError]);
+        setEditingVendor(data, vendorName, enrollmentIdentifier, enrollmentId);
+        setVendorContext({
+          vendorId: data.enrollment?.vendor,
+          vendorName: vendorName || "Unknown Vendor",
+        });
 
-  const togglePopover = useCallback((key) => {
-    setPopoverStates((prev) => ({ ...prev, [key]: !prev[key] }));
-  }, []);
-
-  const toggleVendor = useCallback((vendorId) => {
-    setExpandedVendors((prev) => ({
-      ...Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}),
-      [vendorId]: !prev[vendorId],
-    }));
-  }, []);
-
-  const deletePopoverContent = useCallback(
-    (deleteFunction, key, identifier) => (
-      <div className="flex flex-col gap-2">
-        <p>Are you sure you want to delete?</p>
-        <div className="flex justify-between gap-2">
-          <Button onClick={() => togglePopover(key)}>Cancel</Button>
-          <Button
-            danger
-            onClick={() => {
-              deleteFunction();
-              togglePopover(key);
-            }}
-            disabled={actionLoading[identifier] === "deleting"}
-          >
-            {actionLoading[identifier] === "deleting" ? (
-              <ThreeDots
-                height="20"
-                width="20"
-                color="#ffffff"
-                radius="4"
-                ariaLabel="delete-loading"
-              />
-            ) : (
-              "Delete"
-            )}
-          </Button>
-        </div>
-      </div>
-    ),
-    [actionLoading, togglePopover]
+        setExpandedVendors({});
+        setPopoverStates({});
+        navigate("/layout/editvendor");
+      } catch (error) {
+        handleApiError(error, "Failed to fetch enrollment details");
+      } finally {
+        setActionLoading((prev) => ({ ...prev, [enrollmentId]: undefined }));
+      }
+    },
+    [
+      handleApiError,
+      navigate,
+      setEditingVendor,
+      setVendorContext,
+      setActionLoading,
+      setExpandedVendors,
+      setPopoverStates,
+    ]
   );
 
-  const handleSearchChange = useCallback((e) => {
-    const sanitizedValue = e.target.value.replace(/[<>]/g, "");
-    setSearchTerm(sanitizedValue);
-    setCurrentPage(1);
-  }, [setSearchTerm, setCurrentPage]);
+  const handleDelete = useCallback(
+    async (identifier) => {
+      setActionLoading((prev) => ({ ...prev, [identifier]: "deleting" }));
+
+      try {
+        await deleteEnrollment(identifier);
+        toast.success("Enrollment deleted successfully", {
+          toastId: "delete-success",
+        });
+
+        await fetchEnrollments(false);
+
+        setCurrentPage(1);
+        setExpandedVendors({});
+        setPopoverStates({});
+        closeDeleteModal();
+      } catch (error) {
+        handleApiError(error, "Failed to delete enrollment");
+      } finally {
+        setActionLoading((prev) => ({ ...prev, [identifier]: undefined }));
+      }
+    },
+    [
+      handleApiError,
+      setActionLoading,
+      fetchEnrollments,
+      setCurrentPage,
+      setExpandedVendors,
+      setPopoverStates,
+      closeDeleteModal,
+    ]
+  );
+
+  const handleAccountDelete = useCallback(
+    async (vendorId, accountId) => {
+      setActionLoading((prev) => ({
+        ...prev,
+        [`account-${accountId}`]: "deleting",
+      }));
+
+      try {
+        await deleteVendorAccount(accountId);
+        toast.success("Account deleted successfully", {
+          toastId: "account-delete-success",
+        });
+
+        await fetchEnrollments(false);
+
+        setCurrentPage(1);
+        setExpandedVendors({});
+        setPopoverStates({});
+        closeDeleteModal();
+      } catch (error) {
+        handleApiError(error, "Failed to delete account");
+      } finally {
+        setActionLoading((prev) => ({
+          ...prev,
+          [`account-${accountId}`]: undefined,
+        }));
+      }
+    },
+    [
+      handleApiError,
+      setActionLoading,
+      fetchEnrollments,
+      setCurrentPage,
+      setExpandedVendors,
+      setPopoverStates,
+      closeDeleteModal,
+    ]
+  );
+
+  const togglePopover = useCallback(
+    (key) => {
+      setPopoverStates((prev) => ({
+        ...prev,
+        [key]: !prev[key],
+      }));
+    },
+    [setPopoverStates]
+  );
+
+  const toggleVendor = useCallback(
+    (vendorId) => {
+      setExpandedVendors((prev) => {
+        const isCurrentlyOpen = !!prev[vendorId];
+        const resetState = Object.keys(prev).reduce((acc, key) => {
+          acc[key] = false;
+          return acc;
+        }, {});
+        return {
+          ...resetState,
+          [vendorId]: !isCurrentlyOpen,
+        };
+      });
+    },
+    [setExpandedVendors]
+  );
+
+  const handleSearchChange = useCallback(
+    (e) => {
+      const sanitizedValue = e.target.value.replace(/[<>]/g, "");
+      setSearchTerm(sanitizedValue);
+      setCurrentPage(1);
+      setExpandedVendors({});
+    },
+    [setSearchTerm, setCurrentPage, setExpandedVendors]
+  );
 
   const handleNextPage = useCallback(() => {
     setCurrentPage((prev) => prev + 1);
-  }, []);
+    setExpandedVendors({});
+  }, [setCurrentPage, setExpandedVendors]);
 
   const handlePreviousPage = useCallback(() => {
-    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
-  }, [currentPage]);
+    if (currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
+      setExpandedVendors({});
+    }
+  }, [currentPage, setCurrentPage, setExpandedVendors]);
 
-  const handleViewChange = useCallback((newView) => {
-    setView(newView);
-    setCurrentPage(1);
-    setSearchTerm(""); 
-  }, []);
+  const handleViewChange = useCallback(
+    (newView) => {
+      setView(newView);
+      setCurrentPage(1);
+      setSearchTerm("");
+      setExpandedVendors({});
+      setPopoverStates({});
+      closeDeleteModal();
+    },
+    [setView, setCurrentPage, setSearchTerm, setExpandedVendors, setPopoverStates, closeDeleteModal]
+  );
 
   const filteredData = useMemo(() => {
     let filtered = data;
+
     if (searchTerm) {
       filtered = filtered.filter((vendor) =>
         vendor?.vendor?.name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    return filtered;
+    return filtered.filter(
+      (vendor) =>
+        vendor?.accounts?.some(
+          (account) =>
+            account?.enrollments?.some(
+              (enrollment) =>
+                enrollment &&
+                typeof enrollment.identifier === "string" &&
+                enrollment.identifier.trim() !== ""
+            )
+        )
+    );
   }, [data, searchTerm]);
 
   const indexOfLastVendor = currentPage * entriesPerPage;
   const indexOfFirstVendor = indexOfLastVendor - entriesPerPage;
-  const currentVendors = filteredData.slice(
-    indexOfFirstVendor,
-    indexOfLastVendor
-  );
+  const currentVendors = filteredData.slice(indexOfFirstVendor, indexOfLastVendor);
   const totalPages = Math.ceil(filteredData.length / entriesPerPage);
 
   const renderPagination = () => {
@@ -328,9 +433,7 @@ const EditEnrollment = () => {
           onClick={handlePreviousPage}
           disabled={currentPage === 1}
           className={`flex items-center gap-1 text-sm md:text-base px-2 py-1 ${
-            currentPage === 1
-              ? "opacity-50 cursor-not-allowed"
-              : "text-green-700"
+            currentPage === 1 ? "opacity-50 cursor-not-allowed" : "text-green-700"
           }`}
           aria-label="Go to previous page"
         >
@@ -341,7 +444,10 @@ const EditEnrollment = () => {
         {pageNumbers.map((page) => (
           <button
             key={page}
-            onClick={() => setCurrentPage(page)}
+            onClick={() => {
+              setCurrentPage(page);
+              setExpandedVendors({});
+            }}
             className={`px-2 py-1 md:px-3 md:py-1 text-sm md:text-base ${
               currentPage === page
                 ? "border border-green-700 bg-green-50 text-green-700"
@@ -355,9 +461,9 @@ const EditEnrollment = () => {
 
         <button
           onClick={handleNextPage}
-          disabled={currentPage === totalPages}
+          disabled={currentPage === totalPages || totalPages === 0}
           className={`flex items-center gap-1 text-sm md:text-base px-2 py-1 ${
-            currentPage === totalPages
+            currentPage === totalPages || totalPages === 0
               ? "opacity-50 cursor-not-allowed"
               : "text-green-700"
           }`}
@@ -401,6 +507,7 @@ const EditEnrollment = () => {
             <span className="whitespace-nowrap">Edit Vendors</span>
           </button>
         </div>
+
         <div className="relative w-full md:w-auto">
           <label htmlFor="search" className="mr-2 text-sm md:text-base">
             Search:
@@ -416,7 +523,11 @@ const EditEnrollment = () => {
           />
           {searchTerm && (
             <button
-              onClick={() => setSearchTerm("")}
+              onClick={() => {
+                setSearchTerm("");
+                setCurrentPage(1);
+                setExpandedVendors({});
+              }}
               className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
               aria-label="Clear search"
             >
@@ -464,10 +575,10 @@ const EditEnrollment = () => {
                       account.enrollments.map((e) => e.created_at)
                     )
                     .filter((date) => date && typeof date === "string");
+
                   const earliestDate =
-                    enrollmentDates.length > 0
-                      ? enrollmentDates.sort()[0]
-                      : null;
+                    enrollmentDates.length > 0 ? enrollmentDates.sort()[0] : null;
+
                   const formattedDate = earliestDate
                     ? formatDate(earliestDate)
                     : "N/A";
@@ -499,6 +610,7 @@ const EditEnrollment = () => {
                               {formatVendorName(vendor.vendor.name)}
                             </span>
                           </div>
+
                           <div className="flex justify-start md:justify-center w-full md:w-1/4">
                             <div className="flex gap-1 bg-[#BB823233] py-1 px-2 rounded-[8px] text-[#005D6899] text-xs md:text-sm">
                               <span className="text-black">Enrolled on:</span>
@@ -506,11 +618,13 @@ const EditEnrollment = () => {
                               <span>{formattedDate}</span>
                             </div>
                           </div>
+
                           <div className="flex justify-start md:justify-center w-full md:w-1/4">
                             <span className="text-xs md:text-sm bg-[#005D6833] py-1 px-2 rounded-[8px] font-semibold">
                               Accounts: ({vendor.accounts.length})
                             </span>
                           </div>
+
                           <div className="flex justify-end w-full md:w-1/4">
                             {expandedVendors[vendor.vendor.id] ? (
                               <LiaTimesSolid />
@@ -520,6 +634,7 @@ const EditEnrollment = () => {
                           </div>
                         </div>
                       </button>
+
                       {expandedVendors[vendor.vendor.id] && (
                         <div className="p-2 md:p-4">
                           <div className="rounded-xl">
@@ -535,6 +650,7 @@ const EditEnrollment = () => {
                                       {account.name || "N/A"}
                                     </div>
                                   </div>
+
                                   <div className="py-1 px-2 rounded-[10px] bg-[#BB823233] flex items-center gap-1 text-[#005D6899] text-xs md:text-sm">
                                     <span className="text-black font-semibold">
                                       Enrolled on:
@@ -542,67 +658,55 @@ const EditEnrollment = () => {
                                     <CgCalendarDates className="text-lg md:text-xl text-[#005D6899]" />
                                     <span>
                                       {account.enrollments[0]
-                                        ? formatDate(
-                                            account.enrollments[0].created_at
-                                          )
+                                        ? formatDate(account.enrollments[0].created_at)
                                         : "N/A"}
                                     </span>
                                   </div>
+
                                   <div className="w-full md:w-[200px] text-left md:text-center">
-                                    <Popover
-                                      content={deletePopoverContent(
-                                        () =>
-                                          handleAccountDelete(
-                                            vendor.vendor.id,
-                                            account.id
-                                          ),
-                                        `account-${account.id}`,
-                                        `account-${account.id}`
-                                      )}
-                                      title="Confirm Delete Account"
-                                      trigger="click"
-                                      open={
-                                        popoverStates[`account-${account.id}`]
+                                    <button
+                                      onClick={() =>
+                                        openDeleteModal({
+                                          title: "Delete Account",
+                                          message: `Are you sure you want to delete ${account.name || "this account"}? This action cannot be undone.`,
+                                          actionKey: `account-${account.id}`,
+                                          onConfirm: () =>
+                                            handleAccountDelete(vendor.vendor.id, account.id),
+                                        })
                                       }
-                                      onOpenChange={() =>
-                                        togglePopover(`account-${account.id}`)
+                                      className="px-3 py-2 bg-[#A71A1D] text-xs md:text-sm text-white rounded-[8px] flex items-center gap-1 md:mx-auto"
+                                      disabled={
+                                        actionLoading[`account-${account.id}`] ===
+                                        "deleting"
                                       }
+                                      aria-label={`Delete account ${
+                                        account.name || "N/A"
+                                      }`}
                                     >
-                                      <button
-                                        className="px-3 py-2 bg-[#A71A1D] text-xs md:text-sm text-white rounded-[8px] flex items-center gap-1 md:mx-auto"
-                                        disabled={
-                                          actionLoading[
-                                            `account-${account.id}`
-                                          ] === "deleting"
-                                        }
-                                        aria-label={`Delete account ${
-                                          account.name || "N/A"
-                                        }`}
-                                      >
-                                        {actionLoading[
-                                          `account-${account.id}`
-                                        ] === "deleting" ? (
-                                          <ThreeDots
-                                            height="20"
-                                            width="20"
-                                            color="#ffffff"
-                                            radius="4"
-                                            ariaLabel="delete-loading"
-                                          />
-                                        ) : (
-                                          <>
+                                      {actionLoading[`account-${account.id}`] ===
+                                      "deleting" ? (
+                                        <ThreeDots
+                                          height="20"
+                                          width="20"
+                                          color="#ffffff"
+                                          radius="4"
+                                          ariaLabel="delete-loading"
+                                        />
+                                      ) : (
+                                        <>
                                           <FaTrashAlt className="mb-[1px]" />
                                           <span>Delete</span>
-                                          </>
-                                        )}
-                                      </button>
-                                    </Popover>
+                                        </>
+                                      )}
+                                    </button>
                                   </div>
                                 </div>
+
                                 <div className="flex flex-col border p-2 md:p-3 rounded-[16px] md:rounded-[24px] shadow">
                                   <div className="font-semibold text-sm md:text-base mb-2">
                                     Identifiers
                                   </div>
+
                                   {account.enrollments.map((enrollment) => (
                                     <div
                                       key={enrollment.id}
@@ -611,35 +715,33 @@ const EditEnrollment = () => {
                                       <span className="w-full md:w-[200px] mx-0 md:mx-5 text-xs md:text-sm break-all">
                                         {enrollment.identifier || "N/A"}
                                       </span>
+
                                       <span className="w-full md:w-[200px] flex items-center gap-2 bg-[#BB823233] text-[#005D6899] p-1 px-2 rounded-[8px] text-xs md:text-sm">
                                         <span className="text-black font-semibold">
                                           Enrolled on:
                                         </span>
                                         <CgCalendarDates className="text-lg md:text-xl" />
-                                        <span>
-                                          {formatDate(enrollment.created_at)}
-                                        </span>
+                                        <span>{formatDate(enrollment.created_at)}</span>
                                       </span>
+
                                       <div className="w-full md:w-[200px] flex justify-start md:justify-center space-x-2">
                                         <button
                                           onClick={() =>
                                             handleEdit(
-                                              enrollment.identifier,         
-                                              enrollment.identifier,       
-                                             formatVendorName(vendor.vendor.name)
+                                              enrollment.identifier,
+                                              enrollment.identifier,
+                                              formatVendorName(vendor.vendor.name)
                                             )
                                           }
                                           className="px-2 py-1 md:px-2 md:py-2 text-xs md:text-sm rounded-[8px] bg-[#027840] w-[60px] text-white flex items-center gap-1"
                                           disabled={
-                                            actionLoading[
-                                              enrollment.identifier
-                                            ] === "editing"
+                                            actionLoading[enrollment.identifier] ===
+                                            "editing"
                                           }
                                           aria-label={`Edit enrollment ${enrollment.identifier}`}
                                         >
-                                          {actionLoading[
-                                            enrollment.identifier
-                                          ] === "editing" ? (
+                                          {actionLoading[enrollment.identifier] ===
+                                          "editing" ? (
                                             <ThreeDots
                                               height="12"
                                               width="20"
@@ -654,55 +756,40 @@ const EditEnrollment = () => {
                                             </>
                                           )}
                                         </button>
-                                        <Popover
-                                          content={deletePopoverContent(
-                                            () =>
-                                              handleDelete(
-                                                enrollment.identifier
-                                              ),
-                                            `enrollment-${enrollment.id}`,
-                                            enrollment.identifier
-                                          )}
-                                          title="Confirm Delete"
-                                          trigger="click"
-                                          open={
-                                            popoverStates[
-                                              `enrollment-${enrollment.id}`
-                                            ]
+
+                                        <button
+                                          onClick={() =>
+                                            openDeleteModal({
+                                              title: "Delete Identifier",
+                                              message: `Are you sure you want to delete ${enrollment.identifier}? This action cannot be undone.`,
+                                              actionKey: enrollment.identifier,
+                                              onConfirm: () =>
+                                                handleDelete(enrollment.identifier),
+                                            })
                                           }
-                                          onOpenChange={() =>
-                                            togglePopover(
-                                              `enrollment-${enrollment.id}`
-                                            )
+                                          className="px-2 py-1 md:px-2 md:py-2 bg-[#A71A1D] text-white text-xs md:text-sm rounded-[8px] flex items-center gap-1"
+                                          disabled={
+                                            actionLoading[enrollment.identifier] ===
+                                            "deleting"
                                           }
+                                          aria-label={`Delete enrollment ${enrollment.identifier}`}
                                         >
-                                          <button
-                                            className="px-2 py-1 md:px-2 md:py-2 bg-[#A71A1D] text-white text-xs md:text-sm rounded-[8px] flex items-center gap-1"
-                                            disabled={
-                                              actionLoading[
-                                                enrollment.identifier
-                                              ] === "deleting"
-                                            }
-                                            aria-label={`Delete enrollment ${enrollment.identifier}`}
-                                          >
-                                            {actionLoading[
-                                              enrollment.identifier
-                                            ] === "deleting" ? (
-                                              <ThreeDots
-                                                height="20"
-                                                width="20"
-                                                color="#ffffff"
-                                                radius="4"
-                                                ariaLabel="delete-loading"
-                                              />
-                                            ) : (
-                                              <>
+                                          {actionLoading[enrollment.identifier] ===
+                                          "deleting" ? (
+                                            <ThreeDots
+                                              height="20"
+                                              width="20"
+                                              color="#ffffff"
+                                              radius="4"
+                                              ariaLabel="delete-loading"
+                                            />
+                                          ) : (
+                                            <>
                                               <FaTrashAlt />
                                               <span>Delete</span>
-                                              </>
-                                            )}
-                                          </button>
-                                        </Popover>
+                                            </>
+                                          )}
+                                        </button>
                                       </div>
                                     </div>
                                   ))}
@@ -716,9 +803,7 @@ const EditEnrollment = () => {
                   );
                 })
               ) : (
-                <p className="text-center text-gray-700 py-10">
-                  No vendors found.
-                </p>
+                <p className="text-center text-gray-700 py-10">No vendors found.</p>
               )}
             </div>
           )}
@@ -732,13 +817,61 @@ const EditEnrollment = () => {
               >
                 Showing {currentPage} of {totalPages} Vendors
               </div>
-              <div className="flex gap-1 md:gap-3 items-center">
-                {renderPagination()}
-              </div>
+              <div className="flex gap-1 md:gap-3 items-center">{renderPagination()}</div>
             </div>
           )}
         </div>
       )}
+
+      {deleteModal.open && (
+        <div className="fixed inset-0 z-[1000] bg-black/40 flex items-center justify-center px-4">
+          <div className="w-full max-w-[340px] bg-white rounded-[18px] shadow-[0_10px_30px_rgba(0,0,0,0.16)] p-5 relative">
+            <button
+              onClick={closeDeleteModal}
+              className="absolute right-3 top-3 text-[#666666] hover:text-black"
+              aria-label="Close delete modal"
+            >
+              <FaTimes />
+            </button>
+
+            <h3 className="text-[16px] font-semibold text-black pr-6">
+              {deleteModal.title}
+            </h3>
+            <p className="text-[13px] text-[#666666] mt-2 leading-6">
+              {deleteModal.message}
+            </p>
+
+            <div className="flex items-center justify-end gap-2 mt-5">
+              <button
+                onClick={closeDeleteModal}
+                className="px-4 py-2 rounded-[10px] border border-[#D9D9D9] text-sm text-black"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={deleteModal.onConfirm}
+                disabled={
+                  actionLoading[deleteModal.actionKey] === "deleting"
+                }
+                className="px-4 py-2 rounded-[10px] bg-[#A71A1D] text-sm text-white min-w-[90px] flex items-center justify-center"
+              >
+                {actionLoading[deleteModal.actionKey] === "deleting" ? (
+                  <ThreeDots
+                    height="16"
+                    width="24"
+                    color="#ffffff"
+                    radius="4"
+                    ariaLabel="delete-loading"
+                  />
+                ) : (
+                  "Delete"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Toaster position="top-right" />
     </div>
   );

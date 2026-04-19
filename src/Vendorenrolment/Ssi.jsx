@@ -158,7 +158,9 @@ const Ssi = () => {
           const { status, data } = err.response;
           if (status === 400 && data.error) {
             toast.error(data.error || "Duplicate Enrolment.");
-          } else if (status === 500) {
+          }else if (status === 403) {
+          toast.error(err.response.data?.detail || "You are not authorized to perform this action.");
+        } else if (status === 500) {
             toast.error("An internal server issue has occurred. Please contact customer service.");
           } else {
             toast.error(`Error ${status}: Something went wrong.`);

@@ -233,8 +233,10 @@ const Productmodal = ({
       localStorage.setItem("selectProduct", JSON.stringify(updatedProduct));
       closePopup();
       onClose();
-    } catch {
-      toast.error("Request failed, please try again");
+    } catch (error) {
+      const errorMessage =
+          error.response?.data?.detail || 'An error occurred. Please try again later.';
+          toast.error(errorMessage);
     } finally {
       setMyLoader(false);
     }

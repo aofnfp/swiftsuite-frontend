@@ -17,7 +17,7 @@ const Identifier = () => {
       .string()
       .required("This field is required")
       .matches(/^\S*$/, "Spaces are not allowed"),
-    description: yup.string().required("This field is required"),
+    description: yup.string(),
   });
 
   const {

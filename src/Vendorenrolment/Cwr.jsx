@@ -160,6 +160,8 @@ const Cwr = () => {
         const { status, data } = err.response;
         if (status === 400 && data.error) {
           toast.error(data.error);
+        }else if (status === 403) {
+          toast.error(err.response.data?.detail || "You are not authorized to perform this action.");
         } else if (status === 500) {
           toast.error("An internal server issue has occurred. Please contact support.");
         } else {

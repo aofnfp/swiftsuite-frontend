@@ -25,7 +25,7 @@ const PricingSku = ({
         <div className="font-bold">Pricing and SKU</div>
         {!open ? (
           <Tooltip title="Add New Pricing">
-            <Button onClick={handleToggle} color="success">
+            <Button onClick={handleToggle} className="h-10 font-semibold bg-[#089451] text-white border-none hover:!bg-[#06703d] hover:!text-white">
               <FaPlus
                 size={15}
                 className="text-white float-end hover:text-green-600 cursor-pointer"
@@ -34,7 +34,7 @@ const PricingSku = ({
           </Tooltip>
         ) : (
           <Tooltip title="Close" placement="top">
-            <Button onClick={handleToggle} color="success">
+            <Button onClick={handleToggle} className="h-10 font-semibold bg-[#089451] text-white border-none hover:!bg-[#06703d] hover:!text-white">
               <FaMinus
                 size={15}
                 className="text-white float-end hover:text-green-600 cursor-pointer"

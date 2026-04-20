@@ -57,10 +57,9 @@ const Catalogue = () => {
   const setProductChange = useCatalogueStore((state) => state.setProductChange);
   const filterApplied = useCatalogueStore((state) => state.filterApplied);
   const setFilterApplied = useCatalogueStore((state) => state.setFilterApplied);
-  const selectedVendorIdentifier = useCatalogueStore((state) => state.selectedVendorIdentifier);
-  const setSelectedVendorIdentifier = useCatalogueStore((state) => state.setSelectedVendorIdentifier);
-  const selectedVendor = useCatalogueStore((state) => state.selectedVendor);
-  const setSelectedVendor = useCatalogueStore((state) => state.setSelectedVendor);
+  // Only the key string is persisted — full objects are derived at runtime
+  const vendorIdentifierKey = useCatalogueStore((state) => state.vendorIdentifierKey);
+  const setVendorIdentifierKey = useCatalogueStore((state) => state.setVendorIdentifierKey);
 
   const multiSelect = useCatalogueStore((state) => state.multiSelect);
   const setMultiSelect = useCatalogueStore((state) => state.setMultiSelect);
@@ -74,8 +73,10 @@ const Catalogue = () => {
   const advanceSearchButtonRef = useRef(null);
 
   const [endpoint, setEndpoint] = useState("");
-  // selectedVendor and selectedVendorIdentifier are managed by the persisted
-  // Zustand store — do not redeclare them as local state here.
+  // selectedVendor and selectedVendorIdentifier are derived at runtime —
+  // never persisted as full objects.
+  const [selectedVendor, setSelectedVendor] = useState(null);
+  const [selectedVendorIdentifier, setSelectedVendorIdentifier] = useState(null);
   const [filter, setFilter] = useState(false);
   const [error, setError] = useState(null);
   const [currentItems, setCurrentItems] = useState([]);
@@ -84,7 +85,7 @@ const Catalogue = () => {
   const [editableValue, setEditableValue] = useState("");
   const [allIdentifiers, setAllIdentifiers] = useState([]);
   const [selectedProductCatalogue, setSelectedProductCatalogue] = useState(
-    () => selectedVendorIdentifier?.vendor_identifier ?? null
+    () => vendorIdentifierKey ?? null
   );
   const [closeDetail, setCloseDetail] = useState(false);
   const [selectProductcontd, setSelectProductcontd] = useState("");
@@ -134,7 +135,6 @@ const Catalogue = () => {
     mapprice: "",
     manufacturer: "",
   });
-  // const [selectedVendor, setSelectedVendor] = useState(null);
   const [toggling, setToggling] = useState(false);
   // const [multiSelect, setMultiSelect] = useState(false);
   // const [showActionsLg, setShowActionsLg] = useState(false);
@@ -251,18 +251,22 @@ const Catalogue = () => {
       (id) => id.vendor_identifier === selectedProductCatalogue
     );
     if (!identifierExists) {
+      // Current selection is stale or empty — fall back to the first identifier
       const firstIdentifier = catalogueIdentifiers[0];
       setSelectedProductCatalogue(firstIdentifier.vendor_identifier);
+      setVendorIdentifierKey(firstIdentifier.vendor_identifier);
       dispatch(setProduct(firstIdentifier.vendor_identifier));
       setSelectedVendorIdentifier(firstIdentifier);
       setPaginationContext("identifier");
       setPage(1);
     } else {
+      // Keep the full object in sync with live API data
       const matched = catalogueIdentifiers.find(
         (id) => id.vendor_identifier === selectedProductCatalogue
       );
       if (matched) {
         setSelectedVendorIdentifier(matched);
+        setVendorIdentifierKey(matched.vendor_identifier);
       }
     }
   }, [
@@ -278,8 +282,11 @@ const Catalogue = () => {
   // Guard against running before enrolledVendors has populated catalogue.
   useEffect(() => {
     if (!productChange || productChange === "all") {
-      // "all" vendor — clear the vendor selection
       if (selectedVendor !== null) setSelectedVendor(null);
+      // Clear identifier when switching to "all"
+      setSelectedVendorIdentifier(null);
+      setSelectedProductCatalogue(null);
+      setVendorIdentifierKey(null);
       return;
     }
     if (catalogue.length <= 1) return;
@@ -736,9 +743,8 @@ const Catalogue = () => {
                         }
                         onChange={(identifier) => {
                           setSelectedVendorIdentifier(identifier);
-                          setSelectedProductCatalogue(
-                            identifier?.vendor_identifier
-                          );
+                          setSelectedProductCatalogue(identifier?.vendor_identifier);
+                          setVendorIdentifierKey(identifier?.vendor_identifier ?? null);
                         }}
                         open={openIdentifier}
                         setOpen={setOpenIdentifier}

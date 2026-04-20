@@ -17,6 +17,8 @@ import { Image, Space } from "antd";
 const Displaycatalogue = ({
   selectedProductCatalogue,
   isLoading,
+  isFetching,
+  isSuccess,
   productsToRender,
   error,
   currentItems,
@@ -57,7 +59,7 @@ const Displaycatalogue = ({
     }
   };
 
-  const stripTags = (html) => html.replace(/<[^>]*>/g, "");
+  const stripTags = (html) => (html ? html.replace(/<[^>]*>/g, "") : "");
 
   const getProductImage = (product) => {
     let images = [];
@@ -151,25 +153,30 @@ const Displaycatalogue = ({
     e.stopPropagation();
   };
 
+  // True during the pre-fetch window (vendor selected, query not yet resolved)
+  // as well as while the query is actively loading or refetching.
+  const showSkeleton =
+    isLoading ||
+    isFetching ||
+    (productChange && productChange !== "all" && !isSuccess && !error);
+
   return (
     <div className="bg-[#E7F2ED] mt-20 w-full min-w-full">
       <Toaster position="top-right" />
-      {isLoading &&
-        viewMode === "list" &&
+      {showSkeleton && viewMode === "list" &&
         Array.from({ length: 5 }).map((_, idx) => (
           <CatalogueSkeleton key={idx} />
         ))}
-      {isLoading && viewMode === "grid" && <CatalogueGridSkeleton />}
+      {showSkeleton && viewMode === "grid" && <CatalogueGridSkeleton />}
 
       {error ? (
         <div className="text-red-500 text-xl mb-4 text-center w-full">
           {error}
         </div>
       ) : (
-        // List view
         <div className="flex gap-6 mb-34 w-full min-w-full">
           <div className="rounded-lg overflow-hidden w-full min-w-full">
-            {!isLoading &&
+            {isSuccess &&
               (productsToRender?.length === 0 && currentItems?.length === 0 ? (
                 <div className="text-red-500 bg-[#E7F2ED] h-screen text-xl text-center mt-20 w-full">
                   Sorry, we couldn't find any results

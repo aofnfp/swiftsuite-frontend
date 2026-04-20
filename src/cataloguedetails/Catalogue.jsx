@@ -57,10 +57,6 @@ const Catalogue = () => {
   const setProductChange = useCatalogueStore((state) => state.setProductChange);
   const filterApplied = useCatalogueStore((state) => state.filterApplied);
   const setFilterApplied = useCatalogueStore((state) => state.setFilterApplied);
-  const selectedVendorIdentifier = useCatalogueStore((state) => state.selectedVendorIdentifier);
-  const setSelectedVendorIdentifier = useCatalogueStore((state) => state.setSelectedVendorIdentifier);
-  const selectedVendor = useCatalogueStore((state) => state.selectedVendor);
-  const setSelectedVendor = useCatalogueStore((state) => state.setSelectedVendor);
 
   const multiSelect = useCatalogueStore((state) => state.multiSelect);
   const setMultiSelect = useCatalogueStore((state) => state.setMultiSelect);
@@ -74,6 +70,10 @@ const Catalogue = () => {
   const advanceSearchButtonRef = useRef(null);
 
   const [endpoint, setEndpoint] = useState("");
+  // selectedVendor and selectedVendorIdentifier are derived at runtime —
+  // never persisted as full objects.
+  const [selectedVendor, setSelectedVendor] = useState(null);
+  const [selectedVendorIdentifier, setSelectedVendorIdentifier] = useState(null);
   const [filter, setFilter] = useState(false);
   const [error, setError] = useState(null);
   const [currentItems, setCurrentItems] = useState([]);
@@ -130,7 +130,6 @@ const Catalogue = () => {
     mapprice: "",
     manufacturer: "",
   });
-  // const [selectedVendor, setSelectedVendor] = useState(null);
   const [toggling, setToggling] = useState(false);
   // const [multiSelect, setMultiSelect] = useState(false);
   // const [showActionsLg, setShowActionsLg] = useState(false);
@@ -221,7 +220,7 @@ const Catalogue = () => {
     }
   };
 
-  const { data, isLoading, isSuccess, isError } = useGetVendorProducts({
+  const { data, isLoading, isFetching, isSuccess, isError } = useGetVendorProducts({
     userId,
     productChange,
     catalogue,
@@ -242,24 +241,25 @@ const Catalogue = () => {
   const hasPreviousPage = page > 1;
 
   useEffect(() => {
-    if (isSuccess && catalogueIdentifiers.length > 0) {
+    if (!isSuccess || productChange === "all" || catalogueIdentifiers.length === 0) return;
+    const identifierExists = catalogueIdentifiers.some(
+      (id) => id.vendor_identifier === selectedProductCatalogue
+    );
+    if (!identifierExists) {
+      // Current selection is stale or empty — fall back to the first identifier
       const firstIdentifier = catalogueIdentifiers[0];
-      const identifierExists = catalogueIdentifiers.some(
+      setSelectedProductCatalogue(firstIdentifier.vendor_identifier);
+      dispatch(setProduct(firstIdentifier.vendor_identifier));
+      setSelectedVendorIdentifier(firstIdentifier);
+      setPaginationContext("identifier");
+      setPage(1);
+    } else {
+      // Keep the full object in sync with live API data
+      const matched = catalogueIdentifiers.find(
         (id) => id.vendor_identifier === selectedProductCatalogue
       );
-      if (!identifierExists && productChange !== "all" && data?.products?.length > 0) {
-        setSelectedProductCatalogue(firstIdentifier.vendor_identifier);
-        dispatch(setProduct(firstIdentifier.vendor_identifier));
-        setSelectedVendorIdentifier(firstIdentifier);
-        setPaginationContext("identifier");
-        setPage(1);
-      } else if (productChange !== "all") {
-        const matched = catalogueIdentifiers.find(
-          (id) => id.vendor_identifier === selectedProductCatalogue
-        );
-        if (matched) {
-          setSelectedVendorIdentifier(matched);
-        }
+      if (matched) {
+        setSelectedVendorIdentifier(matched);
       }
     }
   }, [
@@ -269,6 +269,23 @@ const Catalogue = () => {
     selectedProductCatalogue,
     dispatch,
   ]);
+
+  // Sync selectedVendor when catalogue becomes available (e.g. after enrolled
+  // vendors load on page refresh) or when productChange changes.
+  // Guard against running before enrolledVendors has populated catalogue.
+  useEffect(() => {
+    if (!productChange || productChange === "all") {
+      if (selectedVendor !== null) setSelectedVendor(null);
+      setSelectedVendorIdentifier(null);
+      setSelectedProductCatalogue(null);
+      return;
+    }
+    if (catalogue.length <= 1) return;
+    const matchedVendor = catalogue.find((item) => item.name === productChange);
+    if (matchedVendor && matchedVendor.id !== selectedVendor?.id) {
+      setSelectedVendor(matchedVendor);
+    }
+  }, [productChange, catalogue]);
 
   useEffect(() => {
     if (isSuccess && data) {
@@ -717,9 +734,7 @@ const Catalogue = () => {
                         }
                         onChange={(identifier) => {
                           setSelectedVendorIdentifier(identifier);
-                          setSelectedProductCatalogue(
-                            identifier?.vendor_identifier
-                          );
+                          setSelectedProductCatalogue(identifier?.vendor_identifier);
                         }}
                         open={openIdentifier}
                         setOpen={setOpenIdentifier}
@@ -957,7 +972,7 @@ const Catalogue = () => {
                           onChange={(checked) => setMultiSelect(checked)}
                           className="bg-gray-300"
                           style={{
-                            backgroundColor: multiSelect ? "#22c55e" : "#d1d5db", 
+                            backgroundColor: multiSelect ? "#22c55e" : "#d1d5db",
                           }}
                           thumbStyle={{
                             backgroundColor: multiSelect ? "#ffffff" : "#ffffff",
@@ -1046,6 +1061,8 @@ const Catalogue = () => {
         />
         <Displaycatalogue
           isLoading={isLoading}
+          isFetching={isFetching}
+          isSuccess={isSuccess}
           error={error}
           multiSelect={multiSelect}
           token={token}

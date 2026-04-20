@@ -8,13 +8,10 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  // theme: {
-  //   extend: {},
-  // },
-  theme: {
+ theme: {
   extend: {
     fontFamily: {
-      geist: ['Geist', 'sans-serif'],
+      sans: ['Montserrat', 'sans-serif'],
     },
   },
 },

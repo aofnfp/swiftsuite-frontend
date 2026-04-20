@@ -14,7 +14,7 @@ export const useGetVendorProducts = ({
   paginationContext,
   searchQuery = "",
   filterApplied,
-  // selectedIdentifier,
+  selectedIdentifier,
 }) => {
   const isFiltering = paginationContext === "filter";
   const isSearching = paginationContext === "search";
@@ -30,7 +30,13 @@ export const useGetVendorProducts = ({
     ...(isSearching && searchQuery ? { search: searchQuery } : {}),
   }).toString();
 
-  const endpoint = selectedProduct ? selectedProduct.endpoint.replace("${userId}", userId).replace("${page}", page) +`&limit=${selectedProductPerPage}` +(queryParams ? `&${queryParams}` : "") : "";
+  const endpoint = selectedProduct
+    ? selectedProduct.endpoint
+        .replace("${userId}", userId)
+        .replace("${page}", page) +
+      `&limit=${selectedProductPerPage}` +
+      (queryParams ? `&${queryParams}` : "")
+    : "";
   return useQuery({
     queryKey: [
       "vendorProducts",
@@ -41,7 +47,7 @@ export const useGetVendorProducts = ({
       isFiltering ? cleanFilters : {},
       isSearching ? searchQuery : "",
     ],
-    enabled: !!selectedProduct && !!userId && !!token,
+    enabled: !!userId && !!token && !!productChange && !!paginationContext && !!selectedProduct,
     queryFn: async () => {
       const response = await axios.get(endpoint, {
         headers: {
@@ -65,12 +71,9 @@ export const useGetVendorProducts = ({
         count: response.data.count || 0,
       };
     },
-    enabled:
-      (!!userId && !!productChange && !!paginationContext) || filterApplied,
     staleTime: 10 * 60 * 1000,
     cacheTime: 10 * 60 * 1000,
     keepPreviousData: true,
-
     onError: (error) => {
       toast.error(error.response?.data?.message || "Failed to fetch products");
     },

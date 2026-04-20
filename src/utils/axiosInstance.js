@@ -7,7 +7,6 @@ const axiosInstance = axios.create({
   },
 });
 
-// ✅ Request interceptor (attach token)
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -16,7 +15,6 @@ axiosInstance.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // ✅ Handle FormData automatically
     if (config.data instanceof FormData) {
       config.headers["Content-Type"] = "multipart/form-data";
     } else {
@@ -28,33 +26,32 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// flag to prevent multiple simultaneous 401/403 responses from firing multiple redirects
 let isRedirecting = false;
 
-function handleAuthFailure() {
-  if (isRedirecting) return;
-  isRedirecting = true;
-
-  // clear only auth-related keys, preserving any unrelated local data
+function handleAuthFailure(skipRedirect = false) {
   localStorage.removeItem("token");
-  localStorage.removeItem("permission");
+  localStorage.removeItem("permissions");
   localStorage.removeItem("fullName");
   localStorage.removeItem("userId");
+
+  if (skipRedirect) return;
+
+  if (isRedirecting) return;
+  isRedirecting = true;
 
   if (window.location.pathname !== "/signin") {
     window.location.replace("/signin");
   }
 }
 
-// ✅ Response interceptor (HANDLE TOKEN EXPIRY HERE)
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error?.response?.status;
+    const skipAuthRedirect = error?.config?.skipAuthRedirect === true;
 
-    // 401 = unauthorized (expired/invalid token), 403 = forbidden (revoked session)
     if (status === 401) {
-      handleAuthFailure();
+      handleAuthFailure(skipAuthRedirect);
     }
 
     return Promise.reject(error);

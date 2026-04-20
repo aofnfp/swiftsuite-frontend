@@ -69,7 +69,7 @@ const TeamsManage = () => {
       <div className="bg-white px-4 py-2 mb-4">
         <h1 className="font-semibold text-2xl mb-2">Your Team</h1>
         <p className="md:w-2/3 text-[#00000099] text-[18px]">
-          These are your team members who have accepted your invite to join your
+          These are the members invited to join your
           team on Swift Suite.
         </p>
       </div>

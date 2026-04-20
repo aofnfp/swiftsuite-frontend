@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { MdMoreHoriz, MdClose, MdSearch } from "react-icons/md";
 import { AnimatePresence, motion } from "framer-motion";
@@ -11,9 +11,10 @@ const UsersAdmin = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [hoveredUserId, setHoveredUserId] = useState(null);
+  const [openMenuUserId, setOpenMenuUserId] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const menuRefs = useRef({});
   const itemsPerPage = 10;
 
   const token = localStorage.getItem("token");
@@ -35,6 +36,19 @@ const UsersAdmin = () => {
     fetchUsers();
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!openMenuUserId) return;
+      const activeMenu = menuRefs.current[openMenuUserId];
+      if (activeMenu && !activeMenu.contains(e.target)) {
+        setOpenMenuUserId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openMenuUserId]);
+
   const filteredUsers = users.filter((u) =>
     `${u.first_name} ${u.last_name} ${u.email}`
       .toLowerCase()
@@ -50,7 +64,7 @@ const UsersAdmin = () => {
   const openDrawer = (user) => {
     setSelectedUser(user);
     setDrawerOpen(true);
-    setHoveredUserId(null);
+    setOpenMenuUserId(null);
   };
 
   const closeDrawer = () => {
@@ -60,19 +74,12 @@ const UsersAdmin = () => {
 
   const deleteUser = async () => {
     if (!selectedUser) return;
-
     setDeleting(true);
-
     try {
       await axios.delete(
         `https://service.swiftsuite.app/accounts/manage-user/${selectedUser.id}/`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
       setUsers((prev) => prev.filter((u) => u.id !== selectedUser.id));
       setShowDeleteConfirm(false);
       closeDrawer();
@@ -92,11 +99,11 @@ const UsersAdmin = () => {
   ];
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       <Toaster position="top-right" />
 
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
+        <h1 className="text-2xl font-semibold text-gray-800 flex items-center gap-2 flex-wrap">
           Users
           <span className="text-sm px-3 py-1 rounded-full bg-[#027840] text-white font-medium">
             {search.trim()
@@ -137,15 +144,15 @@ const UsersAdmin = () => {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white rounded-[13px] overflow-hidden border border-gray-300 table-fixed">
+      <div className="w-full">
+        <table className="w-full bg-white rounded-[13px] border border-gray-300 hidden sm:table">
           <thead className="bg-[#027840] text-white">
             <tr>
-              <th className="px-4 py-2 text-left">Name</th>
-              <th className="px-4 py-2 text-left">Email</th>
-              <th className="px-4 py-2 text-left">Phone</th>
-              <th className="px-4 py-2 text-left">Profile</th>
-              <th className="px-4 py-2 text-left">Actions</th>
+              <th className="px-4 py-3 text-left">Name</th>
+              <th className="px-4 py-3 text-left">Email</th>
+              <th className="px-4 py-3 text-left">Phone</th>
+              <th className="px-4 py-3 text-left">Profile</th>
+              <th className="px-4 py-3 text-right w-[90px]">Actions</th>
             </tr>
           </thead>
 
@@ -161,18 +168,20 @@ const UsersAdmin = () => {
 
             {!loading &&
               paginatedUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="border-b px-4 py-2">
+                <tr
+                  key={user.id}
+                  className={`hover:bg-gray-50 ${
+                    openMenuUserId === user.id ? "relative z-20" : ""
+                  }`}
+                >
+                  <td className="border-b px-4 py-3">
                     {user.first_name} {user.last_name}
                   </td>
-
-                  <td className="border-b px-4 py-2">{user.email}</td>
-
-                  <td className="border-b px-4 py-2">
+                  <td className="border-b px-4 py-3 break-all">{user.email}</td>
+                  <td className="border-b px-4 py-3">
                     {user.phone || "No phone"}
                   </td>
-
-                  <td className="border-b px-4 py-2">
+                  <td className="border-b px-4 py-3">
                     <img
                       src={
                         user.profile_image ||
@@ -182,35 +191,36 @@ const UsersAdmin = () => {
                       className="w-12 h-12 rounded-full object-cover border"
                     />
                   </td>
-
-                  <td className="border-b px-4 py-2">
+                  <td className="border-b px-4 py-3 text-right">
                     <div
-                      className="relative"
-                      onMouseEnter={() => setHoveredUserId(user.id)}
-                      onMouseLeave={() =>
-                        setTimeout(() => {
-                          if (hoveredUserId === user.id) {
-                            setHoveredUserId(null);
-                          }
-                        }, 600)
-                      }
+                      ref={(el) => {
+                        if (el) menuRefs.current[user.id] = el;
+                      }}
+                      className="relative inline-flex justify-end w-full"
                     >
-                      <button className="text-xl text-gray-600 hover:text-gray-900 transition p-1">
+                      <button
+                        onClick={() =>
+                          setOpenMenuUserId(
+                            openMenuUserId === user.id ? null : user.id
+                          )
+                        }
+                        className="text-xl text-gray-600 hover:text-gray-900 transition p-1"
+                      >
                         <MdMoreHoriz />
                       </button>
 
                       <AnimatePresence>
-                        {hoveredUserId === user.id && (
+                        {openMenuUserId === user.id && (
                           <motion.div
-                            initial={{ opacity: 0, y: -8, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: -8, scale: 0.95 }}
-                            transition={{ duration: 0.2 }}
-                            className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-xl z-50 overflow-hidden"
+                            initial={{ opacity: 0, y: -6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -6 }}
+                            transition={{ duration: 0.18 }}
+                            className="absolute right-0 top-full mt-2 w-[7rem] bg-white border rounded-lg shadow-xl z-50"
                           >
                             <button
                               onClick={() => openDrawer(user)}
-                              className="w-full text-left px-5 py-3 text-sm hover:bg-gray-100 transition font-medium"
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-100 transition font-medium"
                             >
                               View details
                             </button>
@@ -231,10 +241,108 @@ const UsersAdmin = () => {
             )}
           </tbody>
         </table>
+
+        <div className="sm:hidden space-y-4">
+          {loading &&
+            Array.from({ length: itemsPerPage }).map((_, i) => (
+              <div
+                key={i}
+                className="border border-gray-300 rounded-[13px] bg-white p-4 animate-pulse"
+              >
+                <div className="h-4 bg-gray-200 rounded mb-3" />
+                <div className="h-4 bg-gray-200 rounded mb-3" />
+                <div className="h-4 bg-gray-200 rounded mb-3" />
+                <div className="h-10 w-10 bg-gray-200 rounded-full" />
+              </div>
+            ))}
+
+          {!loading &&
+            paginatedUsers.map((user) => (
+              <div
+                key={user.id}
+                className="border border-gray-300 rounded-[13px] bg-white p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <img
+                      src={
+                        user.profile_image ||
+                        `https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}`
+                      }
+                      alt="Profile"
+                      className="w-12 h-12 rounded-full object-cover border shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-800 break-words">
+                        {user.first_name} {user.last_name}
+                      </p>
+                      <p className="text-sm text-gray-600 break-all">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    ref={(el) => {
+                      if (el) menuRefs.current[user.id] = el;
+                    }}
+                    className="relative shrink-0"
+                  >
+                    <button
+                      onClick={() =>
+                        setOpenMenuUserId(
+                          openMenuUserId === user.id ? null : user.id
+                        )
+                      }
+                      className="text-xl text-gray-600 hover:text-gray-900 transition p-1"
+                    >
+                      <MdMoreHoriz />
+                    </button>
+
+                    <AnimatePresence>
+                      {openMenuUserId === user.id && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -6 }}
+                          transition={{ duration: 0.18 }}
+                          className="absolute right-0 top-full mt-2 w-[7rem] bg-white border rounded-lg shadow-xl z-50"
+                        >
+                          <button
+                            onClick={() => openDrawer(user)}
+                            className="w-full text-left px-4 py-3 text-sm hover:bg-gray-100 transition font-medium"
+                          >
+                            View details
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+
+                <div className="mt-4 space-y-2 text-sm">
+                  <div className="flex items-start gap-2">
+                    <span className="font-medium text-gray-500 min-w-[52px]">
+                      Phone:
+                    </span>
+                    <span className="text-gray-800 break-words">
+                      {user.phone || "No phone"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+          {!loading && paginatedUsers.length === 0 && (
+            <div className="text-center py-10 text-gray-500 bg-white border border-gray-300 rounded-[13px]">
+              No users found
+            </div>
+          )}
+        </div>
       </div>
 
       {!loading && totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-8">
+        <div className="flex flex-wrap justify-center items-center gap-2 mt-8">
           <button
             onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
@@ -309,11 +417,9 @@ const UsersAdmin = () => {
                   <p className="font-bold text-xl">
                     {selectedUser.first_name} {selectedUser.last_name}
                   </p>
-
-                  <p className="text-gray-600 mt-1">
+                  <p className="text-gray-600 mt-1 break-all">
                     {selectedUser.email}
                   </p>
-
                   <p className="text-gray-500 mt-2">
                     {selectedUser.phone || "No phone number provided"}
                   </p>
@@ -354,12 +460,10 @@ const UsersAdmin = () => {
                 <h3 className="text-xl font-semibold text-red-600 mb-3">
                   Delete User
                 </h3>
-
                 <p className="text-gray-600 mb-6">
                   Are you sure you want to delete this user? This will
                   permanently remove the account and all associated data.
                 </p>
-
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={() => setShowDeleteConfirm(false)}
@@ -367,7 +471,6 @@ const UsersAdmin = () => {
                   >
                     Cancel
                   </button>
-
                   <button
                     onClick={deleteUser}
                     disabled={deleting}

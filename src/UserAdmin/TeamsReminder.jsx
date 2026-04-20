@@ -76,7 +76,7 @@ const TeamsReminder = () => {
           <ThreeDots height="40" width="40" color="#027840" />
         </div>
       ) : filteredMembers.length === 0 ? (
-        <p className="text-gray-500 text-center py-6">No team members found.</p>
+        <p className="text-gray-500 text-center py-6">No pending team members found.</p>
       ) : (
         <div className="space-y-4">
           {filteredMembers.map((member) => {

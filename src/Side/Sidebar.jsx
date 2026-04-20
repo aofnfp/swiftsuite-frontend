@@ -346,7 +346,7 @@ const Sidebar = () => {
                       : "text-[#089451] opacity-[0.6]"
                   } hover:bg-[#027840] hover:text-white hover:rounded px-[3.9rem]`}
                 >
-                  SKU
+                  Hold SKU
                 </p>
               </NavLink>
             </li>

@@ -3,6 +3,7 @@ import logo from '../Images/mainlogo.svg';
 import { FaBars } from 'react-icons/fa';
 import { IoMdClose } from 'react-icons/io';
 import { Link, useLocation } from 'react-router-dom';
+import { fetchAllVendors } from '../api/authApi';
 
 const Navbar = ({ openToggle }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -44,14 +45,29 @@ const Navbar = ({ openToggle }) => {
     return () => { document.body.style.overflow = ''; };
   }, [mobileOpen]);
 
-  // ✅ LOCALSTORAGE TOKEN CHECK (ONLY CHANGE)
+  
   useEffect(() => {
-    const checkToken = () => {
+    const checkAuth = async () => {
       const token = localStorage.getItem('token');
-      setIsAuthenticated(!!token);
+
+      if (!token) {
+        setIsAuthenticated(false);
+        return;
+      }
+
+      try {
+        await fetchAllVendors({ skipAuthRedirect: true });
+        setIsAuthenticated(true);
+      } catch (error) {
+        if (error?.response?.status === 401) {
+          setIsAuthenticated(false);
+        } else {
+          setIsAuthenticated(true);
+        }
+      }
     };
 
-    checkToken();
+    checkAuth();
   }, [location.pathname]);
 
   useEffect(() => {

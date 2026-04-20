@@ -65,7 +65,7 @@ const CustomIntegration = () => {
               <div className='flex-1 border border-gray-200 transition-shadow p-6 flex flex-col'>
                 <div className='py-4 mb-4'>
                   <h3 className='text-xl font-semibold text-gray-900 mb-2'>
-                    Enforce Vendor
+                    Expedite Vendor
                   </h3>
                   <p className='text-gray-600 text-sm'>
                     Starting at $199, enforce an action to integrate your choice supplier immediately.

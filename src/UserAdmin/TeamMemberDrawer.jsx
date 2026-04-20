@@ -112,13 +112,13 @@ const TeamMemberDrawer = ({ member, onClose, onUpdate, onDelete }) => {
       setEditing(false);
       if (onUpdate) onUpdate(res.data);
     } catch (error) {
-      console.error("Failed to update member:", error);
       toast.error(
-        error.response?.data?.message ||
+        error.response?.data?.detail ||
           "Failed to update member. Please try again."
       );
     } finally {
       setLoading(false);
+      setEditing(false);
     }
   };
 

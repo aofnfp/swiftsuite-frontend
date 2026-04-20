@@ -20,12 +20,12 @@ import gif from "../Images/gif.gif";
 import FixedCustomPagination from "./FixedCustomPagination";
 import { useGetVendorProducts } from "./CatalogueFetch";
 import { useFetchPageData } from "../hooks/useFetchPageData";
-import { Switch } from "@heroui/react";
+import { Switch } from 'antd';
 import { motion } from "framer-motion";
 import CustomDropdown from "./Dropdown/CustomDropdown";
 import VendorDropdown from "./Dropdown/VendorDropdown";
 import IdentifierDropdown from "./Dropdown/IdentifierDropdown";
-import {addAllProducts, fetchVendorEnrolled, productClickRequest, productUpdateRequest} from "../api/authApi";
+import { addAllProducts, fetchVendorEnrolled, productClickRequest, productUpdateRequest } from "../api/authApi";
 import axiosInstance from "../utils/axiosInstance";
 import { IoChevronDown } from "react-icons/io5";
 import SubscriptionModal from "../pages/SubscriptionModal";
@@ -33,7 +33,7 @@ import { useCatalogueStore } from "../stores/catalogueStore";
 
 const Catalogue = () => {
   const queryClient = useQueryClient();
-  
+
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
 
@@ -427,7 +427,7 @@ const Catalogue = () => {
     }));
   };
 
-    const handleFormInputChange = (e) => {
+  const handleFormInputChange = (e) => {
     const { name, value } = e.target;
     setFormFilters((prev) => ({ ...prev, [name]: value }));
     setActiveFilters((prev) => {
@@ -635,7 +635,7 @@ const Catalogue = () => {
 
   return (
     <div className="h-screen lg:mx-5 min-h-screen">
-       <SubscriptionModal
+      <SubscriptionModal
         isOpen={showModals}
         onClose={() => setShowModals(false)}
       />
@@ -761,11 +761,10 @@ const Catalogue = () => {
                         <p className="text-sm">List</p>
                         <Tooltip title="List View">
                           <button
-                            className={`p-2 rounded ${
-                              viewMode === "list"
-                                ? "bg-white text-green-600 shadow-sm"
-                                : "text-gray-600 hover:text-gray-800"
-                            }`}
+                            className={`p-2 rounded ${viewMode === "list"
+                              ? "bg-white text-green-600 shadow-sm"
+                              : "text-gray-600 hover:text-gray-800"
+                              }`}
                             onClick={() => setViewMode("list")}
                             aria-label="Switch to List View"
                           >
@@ -778,11 +777,10 @@ const Catalogue = () => {
                         <p className="text-sm">Grid</p>
                         <Tooltip title="Grid View">
                           <button
-                            className={`p-2 rounded ${
-                              viewMode === "grid"
-                                ? "bg-white text-green-600 shadow-sm"
-                                : "text-gray-600 hover:text-gray-800"
-                            }`}
+                            className={`p-2 rounded ${viewMode === "grid"
+                              ? "bg-white text-green-600 shadow-sm"
+                              : "text-gray-600 hover:text-gray-800"
+                              }`}
                             onClick={() => setViewMode("grid")}
                             aria-label="Switch to Grid View"
                           >
@@ -795,11 +793,10 @@ const Catalogue = () => {
                     <div className="relative w-full sm:w-auto">
                       <button
                         ref={advanceSearchButtonRef}
-                        className={`flex items-center gap-2 px-4 py-2 border rounded-lg font-medium w-full sm:w-auto ${
-                          isAdvanceSearchDisabled
-                            ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-                            : "capitalize bg-white border-2 border-[#089451] text-[#089451] font-semibold hover:bg-[#089451] hover:text-white transition-colors duration-200 min-w-[120px]"
-                        }`}
+                        className={`flex items-center gap-2 px-4 py-2 border rounded-lg font-medium w-full sm:w-auto ${isAdvanceSearchDisabled
+                          ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                          : "capitalize bg-white border-2 border-[#089451] text-[#089451] font-semibold hover:bg-[#089451] hover:text-white transition-colors duration-200 min-w-[120px]"
+                          }`}
                         onClick={toggleFilter}
                         aria-expanded={filterOpen}
                         aria-controls="advance-search-dropdown"
@@ -807,9 +804,8 @@ const Catalogue = () => {
                       >
                         Adv Search
                         <IoIosArrowDown
-                          className={`transition-transform ${
-                            filterOpen ? "rotate-180" : ""
-                          }`}
+                          className={`transition-transform ${filterOpen ? "rotate-180" : ""
+                            }`}
                         />
                       </button>
 
@@ -842,177 +838,179 @@ const Catalogue = () => {
             </div>
           </div>
           {showActionsLg && (
-          <section className="">
-            {!isLoading && catalogueProduct.length !== 0 && (
-              <div
-                className={`${
-                  showActionsLg
+            <section className="">
+              {!isLoading && catalogueProduct.length !== 0 && (
+                <div
+                  className={`${showActionsLg
                     ? "bg-gray-50 border-x border-gray-200 px-6 py-4"
                     : "lg:hidden"
-                }`}
-              >
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-                  <div>
-                    {activeFilters?.length > 0 ? (
-                      <>
-                        {activeFilters.map((filter, index) => (
-                          <div
-                            key={index}
-                            className="bg-green-100 text-green-800 border border-green-200 px-3 py-1 rounded-full flex items-center gap-2 text-sm"
-                          >
-                            <span className="font-medium">{filter.name}</span>
-                            {[
-                              "minprice",
-                              "maxprice",
-                              "minquantity",
-                              "maxquantity",
-                            ].includes(filter.name) && (
-                              <span className="text-green-600">
-                                {filter.name === "minprice" &&
-                                  `≥ $${filter.value}`}
-                                {filter.name === "maxprice" &&
-                                  `≤ $${filter.value}`}
-                                {filter.name === "minquantity" &&
-                                  `≥ ${filter.value}`}
-                                {filter.name === "maxquantity" &&
-                                  `≤ ${filter.value}`}
-                              </span>
-                            )}
-                            <button
-                              className="text-green-600 hover:text-red-600 font-bold text-sm w-4 h-4 flex items-center justify-center"
-                              onClick={() => removeFilter(filter.name)}
+                    }`}
+                >
+                  <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                    <div>
+                      {activeFilters?.length > 0 ? (
+                        <>
+                          {activeFilters.map((filter, index) => (
+                            <div
+                              key={index}
+                              className="bg-green-100 text-green-800 border border-green-200 px-3 py-1 rounded-full flex items-center gap-2 text-sm"
                             >
-                              ×
-                            </button>
+                              <span className="font-medium">{filter.name}</span>
+                              {[
+                                "minprice",
+                                "maxprice",
+                                "minquantity",
+                                "maxquantity",
+                              ].includes(filter.name) && (
+                                  <span className="text-green-600">
+                                    {filter.name === "minprice" &&
+                                      `≥ $${filter.value}`}
+                                    {filter.name === "maxprice" &&
+                                      `≤ $${filter.value}`}
+                                    {filter.name === "minquantity" &&
+                                      `≥ ${filter.value}`}
+                                    {filter.name === "maxquantity" &&
+                                      `≤ ${filter.value}`}
+                                  </span>
+                                )}
+                              <button
+                                className="text-green-600 hover:text-red-600 font-bold text-sm w-4 h-4 flex items-center justify-center"
+                                onClick={() => removeFilter(filter.name)}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                          <button
+                            className="text-red-600 hover:text-red-700 font-medium text-sm px-2 py-1 rounded hover:bg-red-50"
+                            onClick={clearFilters}
+                          >
+                            Clear All
+                          </button>
+                        </>
+                      ) : (
+                        <span className="text-gray-500 text-sm mt-2">
+                          No filters applied
+                        </span>
+                      )}
+                    </div>
+                    {!isLoading && productsToRender.length > 0 && (
+                      <div className="flex justify-between items-center space-x-10">
+                        <CustomPagination
+                          pageCount={Math.ceil(count / selectedProductPerPage)}
+                          onPageChange={(selectedPage) => setPage(selectedPage)}
+                          currentPage={page}
+                          itemsPerPage={selectedProductPerPage}
+                          totalItems={count}
+                          handleNextPage={handleNextPage}
+                          handlePreviousPage={handlePreviousPage}
+                        />
+                        {!isLoading && (
+                          <div className="flex items-center gap-2">
+                            <CustomDropdown
+                              selected={selectedProductPerPage}
+                              onChange={handleProductPerPageChange}
+                              open={open}
+                              setOpen={setOpen}
+                            />
                           </div>
-                        ))}
-                        <button
-                          className="text-red-600 hover:text-red-700 font-medium text-sm px-2 py-1 rounded hover:bg-red-50"
-                          onClick={clearFilters}
-                        >
-                          Clear All
-                        </button>
-                      </>
-                    ) : (
-                      <span className="text-gray-500 text-sm mt-2">
-                        No filters applied
-                      </span>
+                        )}
+                      </div>
                     )}
                   </div>
-                  {!isLoading && productsToRender.length > 0 && (
-                    <div className="flex justify-between items-center space-x-10">
-                      <CustomPagination
-                        pageCount={Math.ceil(count / selectedProductPerPage)}
-                        onPageChange={(selectedPage) => setPage(selectedPage)}
-                        currentPage={page}
-                        itemsPerPage={selectedProductPerPage}
-                        totalItems={count}
-                        handleNextPage={handleNextPage}
-                        handlePreviousPage={handlePreviousPage}
-                      />
-                      {!isLoading && (
-                        <div className="flex items-center gap-2">
-                          <CustomDropdown
-                            selected={selectedProductPerPage}
-                            onChange={handleProductPerPageChange}
-                            open={open}
-                            setOpen={setOpen}
+                  {!isLoading && catalogueProduct.length !== 0 && (
+                    <div className="flex flex-wrap items-center justify-between mt-4 md:px-2 px-0 py-3 bg-[#E7F2ED] rounded-md">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 text-sm text-gray-700 md:mb-0 mb-2">
+                          <input
+                            type="checkbox"
+                            disabled={
+                              !multiSelect ||
+                              isLoading ||
+                              catalogueProduct.length === 0
+                            }
+                            checked={
+                              productsToRender.length > 0 &&
+                              productsToRender.every((product) =>
+                                checkedItems.includes(product.id)
+                              )
+                            }
+                            onClick={() => selectAllProducts(productsToRender)}
+                            className={`${!multiSelect
+                              ? "cursor-not-allowed disabled border border-gray-200"
+                              : "border border-green-700"
+                              } w-4 h-4 appearance-none rounded checked:bg-green-700 focus:outline-none focus:ring-green-300`}
                           />
+                          <label
+                            htmlFor="selectAllCheckbox"
+                            className={`text-sm ${!multiSelect ? "text-gray-400" : "text-gray-700"
+                              }`}
+                          >
+                            Select all products on this page
+                          </label>
                         </div>
-                      )}
+                      </div>
+
+                      <div className="flex items-center  bg-gray-100 px-4 py-3 rounded-xl">
+                        <Switch
+                          checked={multiSelect}
+                          onChange={(checked) => setMultiSelect(checked)}
+                          className="bg-gray-300"
+                          style={{
+                            backgroundColor: multiSelect ? "#22c55e" : "#d1d5db", 
+                          }}
+                          thumbStyle={{
+                            backgroundColor: multiSelect ? "#ffffff" : "#ffffff",
+                          }}
+                        />
+                        <span className="ml-2 text-sm font-medium text-gray-600">
+                          MultiSelect
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2 items-center">
+                        <div className="flex items-center gap-2 px-3 py-2 rounded bg-green-700 text-white font-medium md:min-w-[14rem] justify-center">
+                          {loading ? (
+                            <img src={gif} alt="Loading..." className="w-5 h-5" />
+                          ) : (
+                            <>
+                              <FiShoppingBag />
+                              <button
+                                onClick={addAllToProduct}
+                                disabled={checkedItems.length === 0}
+                                className={`${checkedItems.length === 0
+                                  ? "cursor-not-allowed opacity-50"
+                                  : "cursor-pointer"
+                                  }`}
+                              >
+                                Add Selected to Product
+                              </button>
+                            </>
+                          )}
+                        </div>
+                        <div
+                          className={`flex items-center gap-2 px-3 py-2 rounded font-medium ${checkedItems.length === 0
+                            ? "bg-gray-300 text-gray-500 cursor-not-allowed opacity-50"
+                            : "bg-[#BB8232] text-white cursor-pointer"
+                            }`}
+                        >
+                          <MdOutlineDelete />
+                          <button
+                            onClick={() => setCheckedItems([])}
+                            disabled={checkedItems.length === 0}
+                            className={`${checkedItems.length === 0
+                              ? "cursor-not-allowed opacity-50"
+                              : "cursor-pointer"
+                              }`}
+                          >
+                            Deselect All
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
-                {!isLoading && catalogueProduct.length !== 0 && (
-                  <div className="flex flex-wrap items-center justify-between mt-4 md:px-2 px-0 py-3 bg-[#E7F2ED] rounded-md">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2 text-sm text-gray-700 md:mb-0 mb-2">
-                        <input
-                          type="checkbox"
-                          disabled={
-                            !multiSelect ||
-                            isLoading ||
-                            catalogueProduct.length === 0
-                          }
-                          checked={
-                            productsToRender.length > 0 &&
-                            productsToRender.every((product) =>
-                              checkedItems.includes(product.id)
-                            )
-                          }
-                          onClick={() => selectAllProducts(productsToRender)}
-                          className={`${
-                            !multiSelect
-                              ? "cursor-not-allowed disabled border border-gray-200"
-                              : "border border-green-700"
-                          } w-4 h-4 appearance-none rounded checked:bg-green-700 focus:outline-none focus:ring-green-300`}
-                        />
-                        <label
-                          htmlFor="selectAllCheckbox"
-                          className={`text-sm ${
-                            !multiSelect ? "text-gray-400" : "text-gray-700"
-                          }`}
-                        >
-                          Select all products on this page
-                        </label>
-                      </div>
-                    </div>
-                    <Switch
-                      className="md:mb-0 mb-2"
-                      color="success"
-                      size="sm"
-                      isSelected={multiSelect}
-                      onValueChange={(value) => setMultiSelect(value)}
-                    >
-                      MultiSelect
-                    </Switch>
-                    <div className="flex flex-wrap gap-2 items-center">
-                      <div className="flex items-center gap-2 px-3 py-2 rounded bg-green-700 text-white font-medium md:min-w-[14rem] justify-center">
-                        {loading ? (
-                          <img src={gif} alt="Loading..." className="w-5 h-5" />
-                        ) : (
-                          <>
-                            <FiShoppingBag />
-                            <button
-                              onClick={addAllToProduct}
-                              disabled={checkedItems.length === 0}
-                              className={`${
-                                checkedItems.length === 0
-                                  ? "cursor-not-allowed opacity-50"
-                                  : "cursor-pointer"
-                              }`}
-                            >
-                              Add Selected to Product
-                            </button>
-                          </>
-                        )}
-                      </div>
-                      <div
-                        className={`flex items-center gap-2 px-3 py-2 rounded font-medium ${
-                          checkedItems.length === 0
-                            ? "bg-gray-300 text-gray-500 cursor-not-allowed opacity-50"
-                            : "bg-[#BB8232] text-white cursor-pointer"
-                        }`}
-                      >
-                        <MdOutlineDelete />
-                        <button
-                          onClick={() => setCheckedItems([])}
-                          disabled={checkedItems.length === 0}
-                          className={`${
-                            checkedItems.length === 0
-                              ? "cursor-not-allowed opacity-50"
-                              : "cursor-pointer"
-                          }`}
-                        >
-                          Deselect All
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </section>
+              )}
+            </section>
           )}
         </section>
 

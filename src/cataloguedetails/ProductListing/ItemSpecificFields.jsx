@@ -1,4 +1,4 @@
-import { Input } from "@heroui/react";
+import { Input } from "antd";
 import { Search, X } from "react-feather";
 import { BiChevronDown, BiChevronUp } from "react-icons/bi";
 import { IoMdCheckmark } from "react-icons/io";
@@ -37,7 +37,7 @@ const ItemSpecificFields = ({
   const autofillFields = ["Brand", "Location", "Type", "MPN", "Map", "volume", "expiration date", "UPC", "Title", "Quantity", "Model", "Manufacturer", "MSRP", "Price", "SKU", "Product type", "Fragrance Name", "formulation", "Color", "Size", "Depth", "Length", "Weight", "Material", "Country/Region of Manufacture", "California Prop 65 Warning", "Unit Quantity", "Unit Type", "Volume", "Formulation", "Size Type", "US Size", "MSRP", "Shipping Weight", "Shipping Length", "Shipping Width", "Shipping Height", "Best Offer Enabled", "Gift", "Category Mapping", "Availability", "Product", "Description", "Image", "Category", "Brand Name", "UPC Code", "MPN Code", "SKU Code", "Quantity Code", "Product Type Code", "Fragrance Code", "Color Code", "Size Code", "Depth Code", "Length Code", "Weight Code", "Material Code", "Country Code", "Region Code", "Warning Code", "Unit Quantity Code", "Unit Type Code", "Volume Code", "Formulation Code", "Size Type Code", "US Size Code", "MSRP Code", "Shipping Weight Code", "Shipping Length Code", "Shipping Width Code", "Shipping Height Code", "Best Offer Enabled Code", "Gift Code", "Category Mapping Code", "category", "country", "Country of Origin"];
 
   return (
-    <section>
+    <section className="item-specific-fields">
       <div>
         {itemSpecificFields && Object.entries(itemSpecificFields).length > 0 && (
           <div className="gap-4 w-full p-5 rounded-lg py-5 bg-white">

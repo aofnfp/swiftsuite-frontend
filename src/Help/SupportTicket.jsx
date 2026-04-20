@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { SlPicture } from "react-icons/sl";
 import { FiChevronDown } from "react-icons/fi";
+import { Select } from "antd";
 
 const SupportTicket = () => {
   const fileInput = useRef(null);
@@ -117,23 +118,21 @@ const SupportTicket = () => {
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Select Request Type
                 </label>
-                <select
-                  required
-                  className="w-full sm:w-2/3 lg:w-1/2 p-2.5 bg-white border-b border-gray-300 text-gray-900 text-sm rounded focus:ring-2 focus:ring-green-500 focus:outline-none"
-                  value={formData.requestType}
-                  onChange={(e) =>
-                    setFormData({ ...formData, requestType: e.target.value })
+                <Select
+                  className="w-1/2"
+                  value={formData.requestType || ""}
+                  onChange={(value) =>
+                    setFormData({ ...formData, requestType: value })
                   }
-                >
-                  <option value="">Select type</option>
-                  <option value="General Enquiry">General Enquiry</option>
-                  <option value="Technical Support">Technical Support</option>
-                  <option value="Billing & Payment">Billing & Payment</option>
-                  <option value="Account Management">Account Management</option>
-                  <option value="Feedback & Suggestions">
-                    Feedback & Suggestions
-                  </option>
-                </select>
+                  options={[
+                    { value: "", label: "Select type"},
+                    { value: "General Enquiry", label: "General Enquiry" },
+                    { value: "Technical Support", label: "Technical Support" },
+                    { value: "Billing & Payment", label: "Billing & Payment" },
+                    { value: "Account Management", label: "Account Management" },
+                    { value: "Feedback & Suggestions", label: "Feedback & Suggestions" },
+                  ]}
+                />
               </div>
 
               <div className="space-y-2">
@@ -142,9 +141,8 @@ const SupportTicket = () => {
                 </label>
 
                 <div
-                  className={`shadow-lg rounded-3xl border-2 border-dotted ${
-                    attachmentPreview ? "border-green-500" : "border-gray-300"
-                  } flex flex-col items-center justify-center w-full sm:w-2/3 lg:w-[70%] h-[140px] sm:h-[160px] relative overflow-hidden cursor-pointer`}
+                  className={`shadow-lg rounded-3xl border-2 border-dotted ${attachmentPreview ? "border-green-500" : "border-gray-300"
+                    } flex flex-col items-center justify-center w-full sm:w-2/3 lg:w-[70%] h-[140px] sm:h-[160px] relative overflow-hidden cursor-pointer`}
                   onClick={() => fileInput.current?.click()}
                 >
                   {attachmentPreview ? (
@@ -217,11 +215,10 @@ const SupportTicket = () => {
               {supportHistory.map((item, idx) => (
                 <div
                   key={item.regNo}
-                  className={`px-4 sm:px-6 py-5 ${
-                    idx !== supportHistory.length - 1
+                  className={`px-4 sm:px-6 py-5 ${idx !== supportHistory.length - 1
                       ? "border-b border-gray-200"
                       : ""
-                  }`}
+                    }`}
                 >
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     <div className="flex flex-col items-start">
@@ -291,9 +288,8 @@ const SupportTicket = () => {
                         </span>
 
                         <FiChevronDown
-                          className={`text-gray-500 transition-transform ${
-                            isOpen ? "rotate-180" : ""
-                          }`}
+                          className={`text-gray-500 transition-transform ${isOpen ? "rotate-180" : ""
+                            }`}
                         />
                       </button>
 

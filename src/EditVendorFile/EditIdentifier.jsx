@@ -29,7 +29,7 @@ const EditIdentifier = () => {
   };
 
   const handlePrevious = () => {
-    navigate('/layout/editenrollment', { replace: false }); // Use absolute path
+    navigate('/layout/editenrollment', { replace: false }); 
   };
 
   useEffect(() => {
@@ -40,7 +40,7 @@ const EditIdentifier = () => {
         setMyForm(enrolment);
         if (enrolment && Object.keys(enrolment).length > 0) {
           setValue('vendor_identifier', enrolment?.identifier || '');
-          setValue('description', enrolment?.description || ''); // Set description if available
+          setValue('description', enrolment?.description || ''); 
         } else {
         }
       } catch (error) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Input } from "@heroui/react";
+import { Input } from "antd";
 import { Search, X } from "react-feather";
 import { BiChevronDown, BiChevronUp } from "react-icons/bi";
 import { IoMdCheckmark } from "react-icons/io";
@@ -72,7 +72,7 @@ const WooCategorySelect = ({
             <Search className="h-4 w-4 text-gray-400" />
             <Input
               size="sm"
-              className="flex-1"
+               className="w-full h-10 font-semibold text-black border-none hover:!text-black focus:ring-green-300 focus:border-gray-300 bg-transparent"
               placeholder="Search category..."
               value={filterValue}
               onChange={(e) => {

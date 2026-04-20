@@ -1,27 +1,30 @@
-import React, { useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
-import { useForm } from 'react-hook-form';
-import { countries } from '../Countries';
-import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md';
+import React, { useEffect, useCallback } from "react";
+import { useSelector } from "react-redux";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { useForm } from "react-hook-form";
+import { countries } from "../Countries";
+import { MdArrowDropDown, MdArrowDropUp } from "react-icons/md";
 import { MdOutlineArrowBackIosNew, MdInfo } from "react-icons/md";
 import ResponsiveTooltip from "../ResponsiveTooltip";
 import { Toaster, toast } from "sonner";
-import { Link, useNavigate } from 'react-router-dom';
-import { ThreeDots } from 'react-loader-spinner';
-import { ArrowLeft } from 'react-feather';
-import { marketplaceEnrolment, woocommerceEnrolment, testWoocommerceConnection } from '../../api/authApi';
-import { useMarketplaceStore } from '../../stores/marketplaceStore';
-
-
+import { Link, useNavigate } from "react-router-dom";
+import { ThreeDots } from "react-loader-spinner";
+import { ArrowLeft } from "react-feather";
+import {
+  marketplaceEnrolment,
+  woocommerceEnrolment,
+  testWoocommerceConnection,
+} from "../../api/authApi";
+import { useMarketplaceStore } from "../../stores/marketplaceStore";
+import { Select } from "antd";
 
 const Woocommerce = () => {
   const store = useSelector((state) => state.vendor.vendorData);
-  const userId = localStorage.getItem('userId')
-    ? JSON.parse(localStorage.getItem('userId'))
+  const userId = localStorage.getItem("userId")
+    ? JSON.parse(localStorage.getItem("userId"))
     : null;
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
   const price = useMarketplaceStore((state) => state.wcPriceUpdate);
@@ -29,34 +32,58 @@ const Woocommerce = () => {
   const quantity = useMarketplaceStore((state) => state.wcQuantityUpdate);
   const setQuantity = useMarketplaceStore((state) => state.setWcQuantityUpdate);
   const enforcement = useMarketplaceStore((state) => state.wcMapEnforcement);
-  const setEnforcement = useMarketplaceStore((state) => state.setWcMapEnforcement);
+  const setEnforcement = useMarketplaceStore(
+    (state) => state.setWcMapEnforcement,
+  );
   const msrp = useMarketplaceStore((state) => state.wcAutoPopulateMsrp);
   const setMsrp = useMarketplaceStore((state) => state.setWcAutoPopulateMsrp);
   const sendMinPrice = useMarketplaceStore((state) => state.wcSendMinPrice);
-  const setSendMinPrice = useMarketplaceStore((state) => state.setWcSendMinPrice);
+  const setSendMinPrice = useMarketplaceStore(
+    (state) => state.setWcSendMinPrice,
+  );
   const selectedCountry = useMarketplaceStore((state) => state.selectedCountry);
-  const setSelectedCountry = useMarketplaceStore((state) => state.setSelectedCountry);
+  const setSelectedCountry = useMarketplaceStore(
+    (state) => state.setSelectedCountry,
+  );
   const productStatus = useMarketplaceStore((state) => state.wcProductStatus);
-  const setProductStatus = useMarketplaceStore((state) => state.setWcProductStatus);
-  const isStatusDropdownOpen = useMarketplaceStore((state) => state.wcStatusDropdownOpen);
-  const setIsStatusDropdownOpen = useMarketplaceStore((state) => state.setWcStatusDropdownOpen);
+  const setProductStatus = useMarketplaceStore(
+    (state) => state.setWcProductStatus,
+  );
+  const isStatusDropdownOpen = useMarketplaceStore(
+    (state) => state.wcStatusDropdownOpen,
+  );
+  const setIsStatusDropdownOpen = useMarketplaceStore(
+    (state) => state.setWcStatusDropdownOpen,
+  );
   const loading = useMarketplaceStore((state) => state.wcLoading);
   const setLoading = useMarketplaceStore((state) => state.setWcLoading);
   const apiKeysLoading = useMarketplaceStore((state) => state.wcApiKeysLoading);
-  const setApiKeysLoading = useMarketplaceStore((state) => state.setWcApiKeysLoading);
-  const connectStoreLoading = useMarketplaceStore((state) => state.wcConnectStoreLoading);
-  const setConnectStoreLoading = useMarketplaceStore((state) => state.setWcConnectStoreLoading);
+  const setApiKeysLoading = useMarketplaceStore(
+    (state) => state.setWcApiKeysLoading,
+  );
+  const connectStoreLoading = useMarketplaceStore(
+    (state) => state.wcConnectStoreLoading,
+  );
+  const setConnectStoreLoading = useMarketplaceStore(
+    (state) => state.setWcConnectStoreLoading,
+  );
   const initialLoading = useMarketplaceStore((state) => state.wcInitialLoading);
-  const setInitialLoading = useMarketplaceStore((state) => state.setWcInitialLoading);
-  const hasExistingEnrolment = useMarketplaceStore((state) => state.wcHasExistingEnrolment);
-  const setHasExistingEnrolment = useMarketplaceStore((state) => state.setWcHasExistingEnrolment);
+  const setInitialLoading = useMarketplaceStore(
+    (state) => state.setWcInitialLoading,
+  );
+  const hasExistingEnrolment = useMarketplaceStore(
+    (state) => state.wcHasExistingEnrolment,
+  );
+  const setHasExistingEnrolment = useMarketplaceStore(
+    (state) => state.setWcHasExistingEnrolment,
+  );
   const resetWcStore = useMarketplaceStore((state) => state.resetWcStore);
 
   const Schema = yup.object().shape({
     wc_consumer_url: yup
       .string()
-      .required('Store URL is required')
-      .test('is-valid-url', 'Must be a valid URL', (value) => {
+      .required("Store URL is required")
+      .test("is-valid-url", "Must be a valid URL", (value) => {
         if (!value) return false;
         const withProtocol = /^(https?:\/\/)/i.test(value)
           ? value
@@ -65,45 +92,45 @@ const Woocommerce = () => {
           const url = new URL(withProtocol);
           const domainRegex = /^(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
           return (
-            (url.protocol === 'http:' || url.protocol === 'https:') &&
+            (url.protocol === "http:" || url.protocol === "https:") &&
             domainRegex.test(url.hostname)
           );
         } catch {
           return false;
         }
       }),
-    wc_consumer_key: yup.string().required('Consumer key is required'),
-    wc_consumer_secret: yup.string().required('Consumer secret is required'),
-    region: yup.string().required('Marketplace Region is required'),
+    wc_consumer_key: yup.string().required("Consumer key is required"),
+    wc_consumer_secret: yup.string().required("Consumer secret is required"),
+    region: yup.string().required("Marketplace Region is required"),
     fixed_percentage_markup: yup
       .number()
-      .transform((v, o) => (String(o).trim() === '' ? null : v))
-      .typeError('Fixed percentage must be a number')
-      .min(0, 'Fixed percentage must be non-negative')
+      .transform((v, o) => (String(o).trim() === "" ? null : v))
+      .typeError("Fixed percentage must be a number")
+      .min(0, "Fixed percentage must be non-negative")
       .nullable(),
     fixed_markup: yup
       .number()
-      .transform((v, o) => (String(o).trim() === '' ? null : v))
-      .typeError('Fixed amount must be a number')
-      .min(0, 'Fixed amount must be non-negative')
+      .transform((v, o) => (String(o).trim() === "" ? null : v))
+      .typeError("Fixed amount must be a number")
+      .min(0, "Fixed amount must be non-negative")
       .nullable(),
     min_profit_mergin: yup
       .number()
-      .transform((v, o) => (String(o).trim() === '' ? null : v))
-      .typeError('Minimum profit margin must be a number')
-      .min(0, 'Minimum profit margin must be non-negative')
+      .transform((v, o) => (String(o).trim() === "" ? null : v))
+      .typeError("Minimum profit margin must be a number")
+      .min(0, "Minimum profit margin must be non-negative")
       .nullable(),
     profit_margin: yup
       .number()
-      .transform((v, o) => (String(o).trim() === '' ? null : v))
-      .typeError('Margin must be a number')
-      .min(0, 'Margin must be non-negative')
+      .transform((v, o) => (String(o).trim() === "" ? null : v))
+      .typeError("Margin must be a number")
+      .min(0, "Margin must be non-negative")
       .nullable(),
     maximum_quantity: yup
       .number()
-      .transform((v, o) => (String(o).trim() === '' ? null : v))
-      .typeError('Maximum quantity must be a number')
-      .min(1, 'Maximum quantity must be at least 1')
+      .transform((v, o) => (String(o).trim() === "" ? null : v))
+      .typeError("Maximum quantity must be a number")
+      .min(1, "Maximum quantity must be at least 1")
       .nullable(),
   });
 
@@ -116,21 +143,21 @@ const Woocommerce = () => {
     reset,
   } = useForm({
     resolver: yupResolver(Schema),
-    mode: 'onChange',
+    mode: "onChange",
     defaultValues: {
-      marketplace_name: 'woocommerce',
-      region: '',
+      marketplace_name: "woocommerce",
+      region: "",
     },
   });
 
-  const priceUpdate = watch('enable_price_update');
-  const quantityUpdate = watch('enable_quantity_update');
-  const enforcementCheck = watch('wc_map_enforcement');
-  const msrpCheck = watch('wc_auto_populate_msrp');
-  const sendMinPriceCheck = watch('send_min_price');
-  const wcConsumerUrl = watch('wc_consumer_url');
-  const wcConsumerKey = watch('wc_consumer_key');
-  const wcConsumerSecret = watch('wc_consumer_secret');
+  const priceUpdate = watch("enable_price_update");
+  const quantityUpdate = watch("enable_quantity_update");
+  const enforcementCheck = watch("wc_map_enforcement");
+  const msrpCheck = watch("wc_auto_populate_msrp");
+  const sendMinPriceCheck = watch("send_min_price");
+  const wcConsumerUrl = watch("wc_consumer_url");
+  const wcConsumerKey = watch("wc_consumer_key");
+  const wcConsumerSecret = watch("wc_consumer_secret");
 
   const marketList = useMarketplaceStore((state) => state.marketList);
 
@@ -142,40 +169,38 @@ const Woocommerce = () => {
 
     try {
       setInitialLoading(true);
-      const response = await marketplaceEnrolment(userId, 'woocommerce');
+      const response = await marketplaceEnrolment(userId, "woocommerce");
 
       if (response && response.status === 200) {
         const data = response.data;
 
         const formPayload = {
-          marketplace_name: data.marketplace_name || 'woocommerce',
-          region: data.region || '',
-          wc_consumer_url: data.wc_consumer_url || '',
-          wc_consumer_key: data.wc_consumer_key || '',
-          wc_consumer_secret: data.wc_consumer_secret || '',
+          marketplace_name: data.marketplace_name || "woocommerce",
+          region: data.region || "",
+          wc_consumer_url: data.wc_consumer_url || "",
+          wc_consumer_key: data.wc_consumer_key || "",
+          wc_consumer_secret: data.wc_consumer_secret || "",
           fixed_percentage_markup:
             data.fixed_percentage_markup != null
               ? String(data.fixed_percentage_markup)
-              : '',
+              : "",
           fixed_markup:
-            data.fixed_markup != null ? String(data.fixed_markup) : '',
+            data.fixed_markup != null ? String(data.fixed_markup) : "",
           enable_price_update: Boolean(data.enable_price_update),
           enable_quantity_update: Boolean(data.enable_quantity_update),
           wc_map_enforcement: Boolean(data.wc_map_enforcement),
           wc_auto_populate_msrp: Boolean(data.wc_auto_populate_msrp),
           send_min_price: Boolean(data.send_min_price),
-          RIO_strategy: data.RIO_strategy || '',
+          RIO_strategy: data.RIO_strategy || "",
           min_profit_mergin:
             data.min_profit_mergin != null
               ? String(data.min_profit_mergin)
-              : '',
+              : "",
           profit_margin:
-            data.profit_margin != null ? String(data.profit_margin) : '',
+            data.profit_margin != null ? String(data.profit_margin) : "",
           maximum_quantity:
-            data.maximum_quantity != null
-              ? String(data.maximum_quantity)
-              : '',
-          wc_product_status: data.wc_product_status || 'Publish',
+            data.maximum_quantity != null ? String(data.maximum_quantity) : "",
+          wc_product_status: data.wc_product_status || "Publish",
         };
 
         reset(formPayload);
@@ -185,16 +210,16 @@ const Woocommerce = () => {
         setEnforcement(Boolean(data.wc_map_enforcement));
         setMsrp(Boolean(data.wc_auto_populate_msrp));
         setSendMinPrice(Boolean(data.send_min_price));
-        setSelectedCountry(data.region || '');
-        setProductStatus(data.wc_product_status || 'Publish');
+        setSelectedCountry(data.region || "");
+        setProductStatus(data.wc_product_status || "Publish");
         setHasExistingEnrolment(true);
 
-        toast.success('Previous enrolment filled');
+        toast.success("Previous enrolment filled");
       }
     } catch (err) {
       if (err.response?.status !== 404) {
-        console.error('Failed to load enrolment', err);
-        toast.error('Could not load previous settings');
+        console.error("Failed to load enrolment", err);
+        toast.error("Could not load previous settings");
       }
     } finally {
       setInitialLoading(false);
@@ -207,11 +232,11 @@ const Woocommerce = () => {
 
   const onSubmit = async (data) => {
     if (!token) {
-      toast.error('Authentication token missing');
+      toast.error("Authentication token missing");
       return;
     }
 
-    let normalizedUrl = data.wc_consumer_url?.trim() || '';
+    let normalizedUrl = data.wc_consumer_url?.trim() || "";
     if (normalizedUrl && !/^(https?:\/\/)/i.test(normalizedUrl)) {
       normalizedUrl = `https://${normalizedUrl}`;
     }
@@ -241,23 +266,23 @@ const Woocommerce = () => {
     try {
       setLoading(true);
       const response = hasExistingEnrolment
-        ? await marketplaceEnrolment(userId, 'woocommerce', payload)
+        ? await marketplaceEnrolment(userId, "woocommerce", payload)
         : await woocommerceEnrolment(userId, payload);
 
       if (response.status === 200 || response.status === 201) {
-        toast.success('WooCommerce account configured successfully! 🎉');
-        navigate('/marketplace/success');
+        toast.success("WooCommerce account configured successfully! 🎉");
+        navigate("/marketplace/success");
       } else {
         const result = response.data;
-        if (result === "User is already enrolled in WooCommerce marketplace."){
-          toast.error(result)
-        }else {
-          toast.error("Failed to enroll Woocommerce")
+        if (result === "User is already enrolled in WooCommerce marketplace.") {
+          toast.error(result);
+        } else {
+          toast.error("Failed to enroll Woocommerce");
         }
       }
     } catch (err) {
       console.error(err);
-      toast.error('Network error – please try again.');
+      toast.error("Network error – please try again.");
     } finally {
       setLoading(false);
     }
@@ -266,20 +291,21 @@ const Woocommerce = () => {
   const handleCountryChange = (e) => {
     const val = e.target.value;
     setSelectedCountry(val);
-    setValue('region', val);
+    setValue("region", val);
   };
 
-  const toggleStatusDropdown = () => setIsStatusDropdownOpen(!isStatusDropdownOpen);
+  const toggleStatusDropdown = () =>
+    setIsStatusDropdownOpen(!isStatusDropdownOpen);
   const handleStatusSelect = (status) => {
     setProductStatus(status);
-    setValue('wc_product_status', status);
+    setValue("wc_product_status", status);
     setIsStatusDropdownOpen(false);
   };
 
   const handleCreateAPIKeys = async () => {
     const urlValue = wcConsumerUrl?.trim();
     if (!urlValue) {
-      toast.error('Please enter a Site URL first.');
+      toast.error("Please enter a Site URL first.");
       return;
     }
 
@@ -290,32 +316,31 @@ const Woocommerce = () => {
     try {
       const url = new URL(withProto);
       const domainRegex = /^(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
-      if (!domainRegex.test(url.hostname)) throw new Error('invalid');
+      if (!domainRegex.test(url.hostname)) throw new Error("invalid");
 
       setApiKeysLoading(true);
       const target = `${url.origin}/wp-admin/admin.php?page=wc-settings&tab=advanced&section=keys`;
-      window.open(target, '_blank');
+      window.open(target, "_blank");
     } catch {
-      toast.error('Invalid URL – e.g. https://example.com');
+      toast.error("Invalid URL – e.g. https://example.com");
     } finally {
       setApiKeysLoading(false);
     }
   };
 
   const handleConnectStore = async () => {
-  setConnectStoreLoading(true);
+    setConnectStoreLoading(true);
 
-  try {
-    const res = await testWoocommerceConnection(userId);
+    try {
+      const res = await testWoocommerceConnection(userId);
 
-    toast.success(res.data?.message || "WooCommerce connection successful");
-  } catch (err) {
-    toast.error("Failed to connect to WooCommerce");
-  } finally {
-    setConnectStoreLoading(false);
-  }
-};
-
+      toast.success(res.data?.message || "WooCommerce connection successful");
+    } catch (err) {
+      toast.error("Failed to connect to WooCommerce");
+    } finally {
+      setConnectStoreLoading(false);
+    }
+  };
 
   return (
     <>
@@ -326,15 +351,20 @@ const Woocommerce = () => {
 
       <Toaster position="top-right" richColors closeButton />
       <div className="pb-10">
-          <div className="flex justify-between items-center mt-5 mb-3">
-                    <div className="flex items-center gap-4">
-                      <Link to="/layout/mymarket" className="flex items-center gap-2 mt-5 bg-[#BB8232] rounded-lg text-white p-2">
-                        <ArrowLeft size={20} />
-                        Return
-                      </Link>
-                    </div>
-                    <p className="relative lg:top-4 lg:left-0 md:left-10 font-bold text-xl">Edit Woocommerce</p>
+        <div className="flex justify-between items-center mt-5 mb-3">
+          <div className="flex items-center gap-4">
+            <Link
+              to="/layout/mymarket"
+              className="flex items-center gap-2 mt-5 bg-[#BB8232] rounded-lg text-white p-2"
+            >
+              <ArrowLeft size={20} />
+              Return
+            </Link>
           </div>
+          <p className="relative lg:top-4 lg:left-0 md:left-10 font-bold text-xl">
+            Edit Woocommerce
+          </p>
+        </div>
         <section className="bg-white shadow-lg px-2 w-full py-2 rounded-[10px]">
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="bg-white lg:w-[100%] w-[93%] md:w-[90%] lg:ms-0 md:ms-10 ms-3">
@@ -353,7 +383,7 @@ const Woocommerce = () => {
                   <div className="w-full sm:flex-1">
                     <input
                       id="marketplace_name"
-                      {...register('marketplace_name')}
+                      {...register("marketplace_name")}
                       type="text"
                       value="woocommerce"
                       readOnly
@@ -370,20 +400,22 @@ const Woocommerce = () => {
                     Marketplace Region:
                   </label>
                   <div className="w-full sm:flex-1 relative">
-                    <select
+                    <Select
                       id="region"
-                      {...register('region')}
-                      className="px-2 w-full h-[38px] bg-[#F9F9F9] border border-gray-300 rounded shadow-sm focus:outline-none appearance-none"
-                      value={selectedCountry}
+                      {...register("region")}
+                      defaultValue=""
+                      className="w-full"
                       onChange={handleCountryChange}
                     >
-                      <option value="">Select Country</option>
+                      <option value="">
+                        Select Country
+                      </option>
                       {countries.map((c) => (
                         <option key={c.name} value={c.name}>
                           {c.name}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                     <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xl text-gray-500">
                       <MdArrowDropDown />
                     </span>
@@ -407,10 +439,10 @@ const Woocommerce = () => {
                       <div className="relative">
                         <input
                           id="wc_consumer_url"
-                          {...register('wc_consumer_url')}
+                          {...register("wc_consumer_url")}
                           type="text"
                           className={`border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded ${
-                            errors.wc_consumer_url ? 'border-red-400' : ''
+                            errors.wc_consumer_url ? "border-red-400" : ""
                           }`}
                         />
                       </div>
@@ -430,7 +462,7 @@ const Woocommerce = () => {
                       onClick={handleCreateAPIKeys}
                       disabled={apiKeysLoading}
                       className={`bg-[#089451] text-white border py-1 px-3 rounded font-bold w-[10rem] border-[#089451] transition-colors h-[35px] whitespace-nowrap text-sm flex items-center justify-center gap-2 ${
-                        apiKeysLoading ? 'opacity-75' : ''
+                        apiKeysLoading ? "opacity-75" : ""
                       }`}
                     >
                       {apiKeysLoading ? (
@@ -439,7 +471,7 @@ const Woocommerce = () => {
                           <ThreeDots height="20" width="20" color="#fff" />
                         </>
                       ) : (
-                        'Create API Keys'
+                        "Create API Keys"
                       )}
                     </button>
 
@@ -461,7 +493,7 @@ const Woocommerce = () => {
                   <div className="w-full sm:flex-1">
                     <input
                       id="wc_consumer_key"
-                      {...register('wc_consumer_key')}
+                      {...register("wc_consumer_key")}
                       type="text"
                       className="border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded"
                     />
@@ -483,7 +515,7 @@ const Woocommerce = () => {
                   <div className="w-full sm:flex-1">
                     <input
                       id="wc_consumer_secret"
-                      {...register('wc_consumer_secret')}
+                      {...register("wc_consumer_secret")}
                       type="password"
                       className="border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded"
                     />
@@ -505,7 +537,7 @@ const Woocommerce = () => {
                     {connectStoreLoading ? (
                       <ThreeDots height="20" width="20" color="#fff" />
                     ) : (
-                      'Test Connection'
+                      "Test Connection"
                     )}
                   </button>
                 </div>
@@ -525,7 +557,7 @@ const Woocommerce = () => {
                   <div className="w-full sm:flex-1">
                     <input
                       id="fixed_percentage_markup"
-                      {...register('fixed_percentage_markup')}
+                      {...register("fixed_percentage_markup")}
                       type="number"
                       step="0.01"
                       className="border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded"
@@ -548,7 +580,7 @@ const Woocommerce = () => {
                   <div className="w-full sm:flex-1">
                     <input
                       id="fixed_markup"
-                      {...register('fixed_markup')}
+                      {...register("fixed_markup")}
                       type="number"
                       step="0.01"
                       className="border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded"
@@ -572,14 +604,14 @@ const Woocommerce = () => {
                       Enable Price Update:
                     </label>
                     <input
-                      {...register('enable_price_update')}
+                      {...register("enable_price_update")}
                       type="checkbox"
                       checked={price}
                       onChange={(e) => {
                         setPrice(e.target.checked);
-                        setValue('enable_price_update', e.target.checked);
+                        setValue("enable_price_update", e.target.checked);
                       }}
-                      className="md:w-5 w-8 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none appearance-none bg-white checked:bg-[#027840] checked:border-green-500 relative  checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5"
+                      className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/5"
                       aria-label="Enable automatic price updates"
                     />
                   </div>
@@ -589,14 +621,14 @@ const Woocommerce = () => {
                       Enable Quantity Update:
                     </label>
                     <input
-                      {...register('enable_quantity_update')}
+                      {...register("enable_quantity_update")}
                       type="checkbox"
                       checked={quantity}
                       onChange={(e) => {
                         setQuantity(e.target.checked);
-                        setValue('enable_quantity_update', e.target.checked);
+                        setValue("enable_quantity_update", e.target.checked);
                       }}
-                      className="md:w-5 w-8 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none appearance-none bg-white checked:bg-[#027840] checked:border-green-500 relative  checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5"
+                      className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/5"
                       aria-label="Enable automatic quantity updates"
                     />
                   </div>
@@ -606,14 +638,14 @@ const Woocommerce = () => {
                       Send Minimum Price:
                     </label>
                     <input
-                      {...register('send_min_price')}
+                      {...register("send_min_price")}
                       type="checkbox"
                       checked={sendMinPrice}
                       onChange={(e) => {
                         setSendMinPrice(e.target.checked);
-                        setValue('send_min_price', e.target.checked);
+                        setValue("send_min_price", e.target.checked);
                       }}
-                      className="md:w-5 w-8 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none appearance-none bg-white checked:bg-[#027840] checked:border-green-500  checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5"
+                      className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/5"
                       aria-label="Enable send minimum price"
                     />
                   </div>
@@ -629,7 +661,7 @@ const Woocommerce = () => {
                   <div className="w-full sm:flex-1 relative">
                     <select
                       id="RIO_strategy"
-                      {...register('RIO_strategy')}
+                      {...register("RIO_strategy")}
                       className="px-2 w-full h-[38px] bg-[#F9F9F9] border border-gray-300 rounded shadow-sm focus:outline-none appearance-none"
                     >
                       <option value="">Select ROI Strategy</option>
@@ -653,7 +685,7 @@ const Woocommerce = () => {
                   <div className="w-full sm:flex-1">
                     <input
                       id="min_profit_mergin"
-                      {...register('min_profit_mergin')}
+                      {...register("min_profit_mergin")}
                       type="number"
                       step="0.01"
                       className="border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded"
@@ -676,7 +708,7 @@ const Woocommerce = () => {
                   <div className="w-full sm:flex-1">
                     <input
                       id="profit_margin"
-                      {...register('profit_margin')}
+                      {...register("profit_margin")}
                       type="number"
                       step="0.01"
                       className="border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded"
@@ -695,14 +727,14 @@ const Woocommerce = () => {
                       Map Enforcement:
                     </label>
                     <input
-                      {...register('wc_map_enforcement')}
+                      {...register("wc_map_enforcement")}
                       type="checkbox"
                       checked={enforcement}
                       onChange={(e) => {
                         setEnforcement(e.target.checked);
-                        setValue('wc_map_enforcement', e.target.checked);
+                        setValue("wc_map_enforcement", e.target.checked);
                       }}
-                      className="md:w-5 w-8 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none appearance-none bg-white checked:bg-[#027840] checked:border-green-500 relative  checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5"
+                      className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/5"
                       aria-label="Enable map enforcement"
                     />
                   </div>
@@ -712,14 +744,14 @@ const Woocommerce = () => {
                       Auto Populate MSRP:
                     </label>
                     <input
-                      {...register('wc_auto_populate_msrp')}
+                      {...register("wc_auto_populate_msrp")}
                       type="checkbox"
                       checked={msrp}
                       onChange={(e) => {
                         setMsrp(e.target.checked);
-                        setValue('wc_auto_populate_msrp', e.target.checked);
+                        setValue("wc_auto_populate_msrp", e.target.checked);
                       }}
-                      className="md:w-5 w-8 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none appearance-none bg-white checked:bg-[#027840] checked:border-green-500 relative  checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5"
+                      className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
                       aria-label="Enable auto populate MSRP"
                     />
                   </div>
@@ -735,7 +767,7 @@ const Woocommerce = () => {
                   <div className="w-full sm:flex-1">
                     <input
                       id="maximum_quantity"
-                      {...register('maximum_quantity')}
+                      {...register("maximum_quantity")}
                       type="number"
                       step="1"
                       className="border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded"
@@ -760,7 +792,7 @@ const Woocommerce = () => {
                   <div className="w-full sm:flex-1 relative">
                     <input
                       type="hidden"
-                      {...register('wc_product_status')}
+                      {...register("wc_product_status")}
                       value={productStatus}
                     />
                     <button
@@ -780,7 +812,7 @@ const Woocommerce = () => {
 
                     {isStatusDropdownOpen && (
                       <div className="absolute z-10 w-full bg-white border border-gray-300 rounded shadow-lg dropdown-menu">
-                        {['Publish', 'Draft', 'Pending Review'].map((s) => (
+                        {["Publish", "Draft", "Pending Review"].map((s) => (
                           <button
                             key={s}
                             type="button"
@@ -832,7 +864,11 @@ const Woocommerce = () => {
                       />
                     </svg>
                   )}
-                  {loading ? 'Submitting...' : hasExistingEnrolment ? 'Update' : 'Submit'}
+                  {loading
+                    ? "Submitting..."
+                    : hasExistingEnrolment
+                      ? "Update"
+                      : "Submit"}
                 </button>
               </div>
             </div>

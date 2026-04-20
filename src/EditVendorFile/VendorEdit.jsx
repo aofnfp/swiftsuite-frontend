@@ -5,7 +5,7 @@ import { useEditVendorStore } from '../stores/editVendorStore';
 
 import EditProductType from './EditProductType';
 import EditIdentifier from './EditIdentifier';
-import SuccessEdit from './SuccessEdit';
+
 
 const VendorEdit = () => {
   const navigate = useNavigate();
@@ -84,11 +84,6 @@ const VendorEdit = () => {
         <div className="rounded-xl w-full max-w-3xl min-h-[300px] mb-10 py-2">
           {currentIndex === 0 && <EditIdentifier vendorData={vendorData} />}
           {currentIndex === 1 && <EditProductType vendorData={vendorData} />}
-          {currentIndex === 2 && (
-            <div className="flex justify-center items-center min-h-[60vh]">
-              <SuccessEdit />
-            </div>
-          )}
         </div>
       </div>
     </section>

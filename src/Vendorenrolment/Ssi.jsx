@@ -158,7 +158,9 @@ const Ssi = () => {
           const { status, data } = err.response;
           if (status === 400 && data.error) {
             toast.error(data.error || "Duplicate Enrolment.");
-          } else if (status === 500) {
+          }else if (status === 403) {
+          toast.error(err.response.data?.detail || "You are not authorized to perform this action.");
+        } else if (status === 500) {
             toast.error("An internal server issue has occurred. Please contact customer service.");
           } else {
             toast.error(`Error ${status}: Something went wrong.`);
@@ -226,7 +228,7 @@ const Ssi = () => {
                               type="checkbox"
                               checked={checkbox.checked}
                               onChange={() => handleCheckBoxCategory(checkbox.id)}
-                              className="w-5 h-5 rounded-lg border border-gray-500 focus:outline-none appearance-none bg-white checked:bg-[#027840] checked:border-[#027840] relative checked:after:content-['✓'] checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1/2 checked:after:transform checked:after:-translate-x-1/2 checked:after:leading-5"
+                              className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
                             />
                           </div>
                         ))}
@@ -305,7 +307,7 @@ const Ssi = () => {
                     type="checkbox"
                     onChange={() => setIsChecked(!isChecked)}
                     checked={isChecked}
-                    className='lg:mt-0 mt-2 md:mt-2 border h-[20px] w-[15%] lg:w-[40%] border-gray-500 focus:outline-none py-1 rounded checked:bg-[#027840] checked:border-[#027840]'
+                    className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
                   />
                   <ResponsiveTooltip title="Lorem ipsum dolor sit amet.">
                     <MdInfo />
@@ -351,7 +353,7 @@ const Ssi = () => {
                     {...register("update_inventory")}
                     onChange={() => setInventory(!inventory)}
                     checked={inventory}
-                    className=' border h-[20px] w-[15%] lg:w-[40%] border-gray-500 focus:outline-none py-1 rounded checked:bg-[#027840] checked:border-[#027840]'
+                    className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
                   />
                   <ResponsiveTooltip title="Swift Suite will start updating inventory on marketplace for synced products.">
                     <MdInfo />
@@ -366,7 +368,7 @@ const Ssi = () => {
                     {...register("send_orders")}
                     onChange={() => setOrder(!order)}
                     checked={order}
-                    className=' border h-[20px] w-[15%] lg:w-[40%] border-gray-500 focus:outline-none py-1 rounded checked:bg-[#027840] checked:border-[#027840]'
+                    className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
                   />
                   <ResponsiveTooltip title="Check to allow order to be sent to supplier for fulfilment.">
                     <MdInfo />
@@ -389,7 +391,7 @@ const Ssi = () => {
                 </div>
               </div>
 
-<div className='mt-10 flex justify-center items-center gap-10'>
+              <div className='mt-10 flex justify-center items-center gap-10'>
                           <button
                             onClick={handlePrevious}
                             type='button'
@@ -408,7 +410,7 @@ const Ssi = () => {
                               'Next'
                             )}
                           </button>
-                        </div>
+              </div>
             </div>
           </div>
         </form>

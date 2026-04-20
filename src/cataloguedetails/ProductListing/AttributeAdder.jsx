@@ -1,4 +1,4 @@
-import { Button } from "@heroui/react";
+import { Button } from "antd";
 import React, { useEffect, useRef, useState } from "react";
 import { MdDelete } from "react-icons/md";
 
@@ -46,9 +46,9 @@ const AttributeAdder = ({ onChange, initial = [] }) => {
       <div className="flex items-center justify-between mb-2">
         <h4 className="font-semibold">WooCommerce Attributes</h4>
         <Button
-          className="text-white"
+           className="h-10 font-semibold bg-[#089451] text-white border-none hover:!bg-[#06703d] hover:!text-white"
           type="button"
-          onPress={addAttribute}
+          onClick={addAttribute}
           variant='solid'
           color="success"
           size="lg"
@@ -83,10 +83,11 @@ const AttributeAdder = ({ onChange, initial = [] }) => {
             />
             <Button
               type="button"
-              onPress={() => removeAttribute(idx)}
-              value='outline'
-              color="danger"
-              size="sm"
+              className="h-10 font-semibold bg-[#089451] text-white border-none hover:!bg-[#06703d] hover:!text-white"
+              onClick={() => removeAttribute(idx)}
+              variant="outline"
+              danger
+              size="small"
             >
               <MdDelete size={20} />
             </Button>

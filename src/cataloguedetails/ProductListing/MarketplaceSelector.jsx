@@ -1,6 +1,5 @@
 import React from "react";
-import { Image } from "@heroui/react";
-import { Checkbox } from "@heroui/react";
+import { Checkbox } from "antd";
 
 const MarketplaceSelector = ({
   hasMarketplace,
@@ -15,44 +14,72 @@ const MarketplaceSelector = ({
   isAmazon,
   setIsAmazon,
 }) => {
+  const marketplaces = [
+    {
+      key: "Ebay",
+      checked: isEbay,
+      onChange: setIsEbay,
+      image: "https://i.postimg.cc/3xZSgy9Z/ebay.png",
+      alt: "eBay",
+    },
+    {
+      key: "Shopify",
+      checked: isShopify,
+      onChange: setIsShopify,
+      image: "https://i.postimg.cc/ZqRGnFZN/shopify.png",
+      alt: "Shopify",
+    },
+    {
+      key: "Woocommerce",
+      checked: isWoocommerce,
+      onChange: setIsWoocommerce,
+      image: "https://i.postimg.cc/Wbfbs7QB/woocommerce.png",
+      alt: "WooCommerce",
+    },
+    {
+      key: "Walmart",
+      checked: isWalmart,
+      onChange: setIsWalmart,
+      image: "https://i.postimg.cc/vZpK8RPJ/walmart.png",
+      alt: "Walmart",
+    },
+    {
+      key: "Amazon",
+      checked: isAmazon,
+      onChange: setIsAmazon,
+      image: "https://i.postimg.cc/JzYvBDpB/amazon.png",
+      alt: "Amazon",
+    },
+  ];
+
   return (
-    <div className="bg-gray-100 p-4 my-5 rounded-lg space-y-4">
-       <div className="space-y-2">
-        {hasMarketplace("Ebay") && (
-          <div className="flex items-center space-x-2 border border-gray-300 p-2 rounded">
-            <Checkbox isSelected={isEbay} onValueChange={(checked) => setIsEbay(checked)} color="success">
-              <Image isZoomed src="https://i.postimg.cc/3xZSgy9Z/ebay.png" alt="eBay" className="w-20 h-8 -z-1" />
-            </Checkbox>
-          </div>
-        )}
-        {hasMarketplace("Shopify") && (
-          <div className="flex items-center space-x-2 border border-gray-300 p-2 rounded">
-            <Checkbox isSelected={isShopify} onValueChange={(checked) => setIsShopify(checked)} color="success">
-              <Image isZoomed src="https://i.postimg.cc/ZqRGnFZN/shopify.png" alt="shopify" className="w-20 h-8 -z-1" />
-            </Checkbox>
-          </div>
-        )}
-        {hasMarketplace("Woocommerce") && (
-          <div className="flex items-center space-x-2 border border-gray-300 p-2 rounded">
-            <Checkbox isSelected={isWoocommerce} onValueChange={(checked) => setIsWoocommerce(checked)} color="success">
-              <Image isZoomed src="https://i.postimg.cc/Wbfbs7QB/woocommerce.png" alt="woocommerce" className="w-20 h-8 -z-1" />
-            </Checkbox>
-          </div>
-        )}
-        {hasMarketplace("Walmart") && (
-          <div className="flex items-center space-x-2 border border-gray-300 p-2 rounded">
-            <Checkbox isSelected={isWalmart} onValueChange={(checked) => setIsWalmart(checked)} color="success">
-              <Image isZoomed src="https://i.postimg.cc/vZpK8RPJ/walmart.png" alt="walmart" className="w-20 h-8 -z-1" />
-            </Checkbox>
-          </div>
-        )}
-        {hasMarketplace("Amazon") && (
-          <div className="flex items-center space-x-2 border border-gray-300 p-2 rounded">
-            <Checkbox isSelected={isAmazon} onValueChange={(checked) => setIsAmazon(checked)} color="success">
-              <Image isZoomed src="https://i.postimg.cc/JzYvBDpB/amazon.png" alt="amazon" className="w-20 h-8 -z-1" />
-            </Checkbox>
-          </div>
-        )}
+    <div className="marketplace-selector bg-gray-100 p-4 my-5 rounded-lg space-y-4">
+      <div className="space-y-3">
+        {marketplaces
+          .filter((market) => hasMarketplace(market.key))
+          .map((market) => (
+            <label
+              key={market.key}
+              className={`flex h-10 items-center justify-between gap-3 rounded-lg border px-3 py-1 bg-white transition-all cursor-pointer ${
+                market.checked
+                  ? "border-[#089451] shadow-sm"
+                  : "border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Checkbox
+                  checked={market.checked}
+                  onChange={(e) => market.onChange(e.target.checked)}
+                />
+                <span className="text-sm font-medium text-gray-700">{market.key}</span>
+              </div>
+              <img
+                src={market.image}
+                alt={market.alt}
+                className="h-9 w-auto object-contain"
+              />
+            </label>
+          ))}
       </div>
     </div>
   );

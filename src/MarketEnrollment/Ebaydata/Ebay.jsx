@@ -9,6 +9,7 @@ import { FaRegCheckSquare } from "react-icons/fa";
 import { MdArrowDropDown } from "react-icons/md";
 import { FiRefreshCw } from "react-icons/fi";
 import { TbPlugConnected } from "react-icons/tb";
+import { IoClose } from "react-icons/io5";
 import gif from './images/gif.gif';
 import AccessModal from './AccessModal';
 import { Link, useNavigate } from 'react-router-dom';
@@ -19,6 +20,7 @@ import { marketplaceEnrolment, marketplaceOAuthCallback, refreshEbayConnection, 
 import { extractStoreId } from '../../utils/utils';
 
 import { useMarketplaceStore } from '../../stores/marketplaceStore';
+import { Select } from 'antd';
 
 const Ebay = () => {
   const store = useSelector(state => state.vendor.vendorData);
@@ -27,8 +29,6 @@ const Ebay = () => {
   const userId = userIdString ? JSON.parse(userIdString) : null;
   const navigate = useNavigate();
   const vendorName = localStorage.getItem('vendorName');
-
-  
 
   const connectClickedState = useMarketplaceStore((state) => state.connectClicked);
   const setConnectClickedState = useMarketplaceStore((state) => state.setConnectClicked);
@@ -375,6 +375,14 @@ const Ebay = () => {
     }
   }, [setConnectClickedState, setConnectTime, setShowAccessCodeButton, setIsRotate]);
 
+  const dismissAccessCodeButton = useCallback(() => {
+    if (accessCodeTimeoutRef.current) {
+      clearTimeout(accessCodeTimeoutRef.current);
+      accessCodeTimeoutRef.current = null;
+    }
+    setShowAccessCodeButton(false);
+  }, [setShowAccessCodeButton]);
+
   const sendCode = useCallback(async () => {
     if (!authorization_code.trim()) {
       toast.error('Please enter the authorization code');
@@ -386,11 +394,6 @@ const Ebay = () => {
 
       if (response.status === 200) {
         toast.success("eBay connection successful!");
-        setConnectClickedState(false);
-        setConnectTime(null);
-        setShowAccessCodeButton(false);
-        setModal2Open(false);
-        setAuthorization_code('');
         
         if (timeoutRef.current) {
           clearTimeout(timeoutRef.current);
@@ -401,18 +404,31 @@ const Ebay = () => {
           accessCodeTimeoutRef.current = null;
         }
         
-        await refreshEbaySilent();
+        setAuthorization_code('');
+        setModal2Open(false);
+        setConnectClickedState(false);
+        setConnectTime(null);
+        setShowAccessCodeButton(false);
+        
+        const refreshedData = await refreshEbaySilent();
+        if (refreshedData) {
+          toast.success('eBay policies loaded successfully!');
+        }
       } else if (response.status === 400) {
-        toast.error("Invalid authorization code");
+        toast.error("Invalid authorization code. Please try again.");
+      } else if (response.status === 401) {
+        toast.error("Unauthorized. Please restart the authentication process.");
       } else if (response.status === 500) {
-        toast.error("Authorization code has expired");
+        toast.error("Authorization code has expired. Please authenticate again.");
       } else {
-        toast.error("Connection failed");
+        toast.error("Connection failed. Please try again.");
       }
     } catch (error) {
-      toast.error("Connection error:", error);
+      console.error('Authorization error:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
+      toast.error(`Connection error: ${errorMessage}`);
     }
-  }, [authorization_code, userId, refreshEbaySilent, setConnectClickedState, setConnectTime, setShowAccessCodeButton, setModal2Open, setAuthorization_code]);
+  }, [authorization_code, userId, refreshEbaySilent, setAuthorization_code, setModal2Open, setConnectClickedState, setConnectTime, setShowAccessCodeButton]);
 
   useEffect(() => {
     console.log(userId, token);
@@ -484,8 +500,6 @@ const Ebay = () => {
     }
   }, [userId, token, refreshEbaySilent, reset, setValue]);
 
-  
-
   useEffect(() => {
     if (connectClickedState) {
       const currentTime = Date.now();
@@ -529,17 +543,17 @@ const Ebay = () => {
   }, []);
 
   useEffect(() => {
-  if (!formValues.send_min_price) {
-    setValue('min_profit_mergin', '', { shouldValidate: true });
-  }
-}, [formValues.send_min_price, setValue]);
+    if (!formValues.send_min_price) {
+      setValue('min_profit_mergin', '', { shouldValidate: true });
+    }
+  }, [formValues.send_min_price, setValue]);
 
-useEffect(() => {
-  if (!formValues.enable_best_offer) {
-    setValue("send_min_price", false, { shouldValidate: true });
-    setValue("min_profit_mergin", "", { shouldValidate: true });
-  }
-}, [formValues.enable_best_offer, setValue]);
+  useEffect(() => {
+    if (!formValues.enable_best_offer) {
+      setValue("send_min_price", false, { shouldValidate: true });
+      setValue("min_profit_mergin", "", { shouldValidate: true });
+    }
+  }, [formValues.enable_best_offer, setValue]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -620,19 +634,22 @@ useEffect(() => {
                       Marketplace Region:
                     </label>
                     <div className="w-full sm:flex-1">
-                      <select
-                        {...register("region")}
-                        className="px-2 w-full h-[38px] bg-[#F9F9F9] border border-gray-300 rounded shadow-sm focus:outline-none"
-                        value={selectedCountry || formValues.region || ''}
-                        onChange={handleCountryChange}
-                      >
-                        <option value="">Select Country</option>
-                        {countries.map((country) => (
-                          <option key={country.name} value={country.name}>
-                            {country.name}
-                          </option>
-                        ))}
-                      </select>
+                      <Select
+                      id="region"
+                      {...register("region")}
+                      defaultValue=""
+                      className="w-full"
+                      onChange={handleCountryChange}
+                    >
+                      <option value="">
+                        Select Country
+                      </option>
+                      {countries.map((c) => (
+                        <option key={c.name} value={c.name}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </Select>
                       {errors.region && (
                         <p className="text-red-500 text-xs mt-1">{errors.region.message}</p>
                       )}
@@ -652,15 +669,26 @@ useEffect(() => {
                     </div>
                   </Tooltip>
                   
-                  {connectClickedState && (
+                  {connectClickedState && showAccessCodeButton && (
                     <Tooltip title="Enter the code provided by eBay after authentication" arrow>
-                      <button
-                        type='button'
-                        onClick={() => setModal2Open(true)}
-                        className="bg-[#089451] text-white rounded px-3 py-1 hover:bg-[#0A7A44] transition-colors"
-                      >
-                        Enter Access Code
-                      </button>
+                      <div className="relative flex items-center">
+                        <button
+                          type='button'
+                          onClick={() => setModal2Open(true)}
+                          className="flex items-center gap-2 bg-gradient-to-r from-[#027840] to-[#0aad62] text-white rounded-lg px-4 py-2 pr-8 text-sm font-semibold shadow-md hover:shadow-lg hover:from-[#0aad62] hover:to-[#089451] transition-all duration-200 border border-[#067a43]"
+                        >
+                          <span className="inline-flex items-center justify-center w-5 h-5 bg-white bg-opacity-20 rounded-full text-xs font-bold">✉</span>
+                          Enter Access Code
+                        </button>
+                        <button
+                          type='button'
+                          onClick={dismissAccessCodeButton}
+                          className="absolute -top-2 -right-2 w-5 h-5 bg-gray-500 hover:bg-red-500 text-white rounded-full flex items-center justify-center shadow transition-colors duration-150 z-10"
+                          title="Dismiss"
+                        >
+                          <IoClose size={12} />
+                        </button>
+                      </div>
                     </Tooltip>
                   )}
                   
@@ -758,7 +786,7 @@ useEffect(() => {
                           {...register("enable_price_update")} 
                           type="checkbox" 
                           onChange={handleChange}
-                          className="md:w-5 w-8 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5" 
+                          className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
                         />
                       </label>
                     </Tooltip>
@@ -774,7 +802,7 @@ useEffect(() => {
                           {...register("enable_quantity_update")} 
                           type="checkbox" 
                           onChange={handleChange}
-                          className="md:w-5 w-8 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5" 
+                          className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
                         />
                       </label>
                     </Tooltip>
@@ -792,7 +820,7 @@ useEffect(() => {
                           type="checkbox" 
                           checked={formValues.enable_charity} 
                           onChange={handleChange} 
-                          className="md:w-5 w-8 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5" 
+                          className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
                         />
                       </label>
                     </div>
@@ -845,7 +873,7 @@ useEffect(() => {
                             type="checkbox"
                             checked={formValues.enable_best_offer}
                             onChange={handleChange}
-                            className="md:w-5 w-8 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5"
+                            className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
                           />
                         </label>
                       </Tooltip>
@@ -865,7 +893,7 @@ useEffect(() => {
                             disabled={!formValues.enable_best_offer}
                             checked={formValues.send_min_price}
                             onChange={handleChange}
-                            className={`md:w-5 w-8 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5 ${
+                            className={`appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2 ${
                               !formValues.enable_best_offer ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
                           />
@@ -950,7 +978,7 @@ useEffect(() => {
                         {...register("warn_copyright_complaints")} 
                         checked={formValues.warn_copyright_complaints} 
                         onChange={handleChange} 
-                        className="md:w-5 w-8 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5" 
+                        className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/5"
                       />
                     </label>
                   </div>
@@ -962,7 +990,7 @@ useEffect(() => {
                         type="checkbox" 
                         checked={formValues.warn_restriction_violation} 
                         onChange={handleChange} 
-                        className="md:w-5 w-8 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5" 
+                        className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/5" 
                       />
                     </label>
                   </div>
@@ -1131,7 +1159,7 @@ useEffect(() => {
         </section>
         <Toaster position="top-right" />
       </div>
-      <AccessModal />
+      <AccessModal sendCode={sendCode} />
     </>
   );
 };

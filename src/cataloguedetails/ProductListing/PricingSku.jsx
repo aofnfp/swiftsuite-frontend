@@ -1,4 +1,4 @@
-import { Button, Tooltip } from "@heroui/react";
+import { Button, Tooltip } from "antd";
 import React, { useState } from "react";
 import { FaPlus } from "react-icons/fa";
 import { FaMinus } from "react-icons/fa6";
@@ -24,7 +24,7 @@ const PricingSku = ({
       <div onClick={handleToggle} className="flex justify-between cursor-pointer shadow bg-white p-3">
         <div className="font-bold">Pricing and SKU</div>
         {!open ? (
-          <Tooltip content="Add New Pricing">
+          <Tooltip title="Add New Pricing">
             <Button onClick={handleToggle} color="success">
               <FaPlus
                 size={15}
@@ -33,7 +33,7 @@ const PricingSku = ({
             </Button>
           </Tooltip>
         ) : (
-          <Tooltip content="close">
+          <Tooltip title="Close" placement="top">
             <Button onClick={handleToggle} color="success">
               <FaMinus
                 size={15}

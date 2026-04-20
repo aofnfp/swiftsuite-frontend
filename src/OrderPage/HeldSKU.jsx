@@ -1,6 +1,30 @@
 import React, { useState, useEffect } from 'react'
 import { ChevronDown, Package, Trash2, Eye, AlertCircle, Loader, Lock, Search, X, Plus } from 'lucide-react'
 
+const getErrorMessage = async (response, fallbackMessage) => {
+  if (response.status === 403) {
+    try {
+      const data = await response.json()
+      if (data?.detail) {
+        return data.detail
+      }
+      return fallbackMessage
+    } catch {
+      return fallbackMessage
+    }
+  }
+
+  try {
+    const data = await response.json()
+    if (data?.detail) {
+      return data.detail
+    }
+    return fallbackMessage
+  } catch {
+    return fallbackMessage
+  }
+}
+
 const SkeletonLoader = () => {
   return (
     <div className="space-y-4">
@@ -54,7 +78,8 @@ const AddSKUModal = ({ isOpen, accountId, accountName, onClose, onSkuAdded }) =>
       )
 
       if (!response.ok) {
-        throw new Error('Failed to add SKU')
+        const message = await getErrorMessage(response, 'Failed to add SKU')
+        throw new Error(message)
       }
 
       setSkuInput('')
@@ -204,7 +229,12 @@ const HeldSKU = () => {
             },
           }
         )
-        if (!response.ok) throw new Error('Failed to fetch accounts')
+
+        if (!response.ok) {
+          const message = await getErrorMessage(response, 'Failed to fetch accounts')
+          throw new Error(message)
+        }
+
         const data = await response.json()
         setAccounts(data)
 
@@ -220,14 +250,19 @@ const HeldSKU = () => {
                 },
               }
             )
+
             if (skuResponse.ok) {
               const skuData = await skuResponse.json()
               allSkus[account.id] = skuData.held_skus || []
+            } else if (skuResponse.status === 403) {
+              const message = await getErrorMessage(skuResponse, 'Failed to fetch SKUs')
+              setError(message)
             }
           } catch (err) {
             console.error(`Error fetching SKUs for account ${account.id}:`, err)
           }
         }
+
         setHeldSkus(allSkus)
       } catch (err) {
         setError(err.message || 'Error loading accounts')
@@ -251,7 +286,12 @@ const HeldSKU = () => {
           },
         }
       )
-      if (!response.ok) throw new Error('Failed to fetch SKUs')
+
+      if (!response.ok) {
+        const message = await getErrorMessage(response, 'Failed to fetch SKUs')
+        throw new Error(message)
+      }
+
       const data = await response.json()
       setHeldSkus((prev) => ({
         ...prev,
@@ -276,7 +316,12 @@ const HeldSKU = () => {
           },
         }
       )
-      if (!response.ok) throw new Error('Failed to fetch SKU details')
+
+      if (!response.ok) {
+        const message = await getErrorMessage(response, 'Failed to fetch SKU details')
+        throw new Error(message)
+      }
+
       const data = await response.json()
       setSkuDetails((prev) => ({
         ...prev,
@@ -304,7 +349,12 @@ const HeldSKU = () => {
           },
         }
       )
-      if (!response.ok) throw new Error('Failed to delete SKU')
+
+      if (!response.ok) {
+        const message = await getErrorMessage(response, 'Failed to delete SKU')
+        throw new Error(message)
+      }
+
       await fetchHeldSkus(accountId)
       setSelectedSku(null)
     } catch (err) {

@@ -3,8 +3,8 @@ import { formatDeliveryDate, getStatusStyles } from "../utils/utils";
 import DeliveryDetails from "./DeliveryDetails";
 import Stepper from "./Stepper";
 import { toast } from "sonner";
-import usps from "../../public/image/usps.png";
-import fedex from "../../public/image/fedex.png";
+import usps from "../Images/usps.png";
+import fedex from "../Images/fedex.png";
 
 const CustomerDetails = ({ orderItem = {} }) => {
   const trackingNumber = orderItem?.vendor_orders?.tracking_number;

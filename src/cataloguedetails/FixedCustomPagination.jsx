@@ -47,7 +47,7 @@ const FixedCustomPagination = ({ pageCount, onPageChange, currentPage, handleNex
       size="sm"
       radius="md"
       variant={currentPage === page ? "bordered" : "flat"}
-      className={`min-w-11 h-10 mx-0.5 font-semibold transition-all bg-[#a4b1ab] text-white border-none hover:!bg-[#4c5e55] hover:!text-white ${
+      className={`min-w-11 h-10 mx-0.5 font-semibold transition-all bg-[#a4b1ab] border-none hover:!bg-[#4c5e55] hover:!text-white ${
         currentPage === page
           ? "bg-white border border-slate-500 text-slate-900 shadow-sm"
           : "bg-[#d7d8de] text-slate-700 hover:bg-[#cfd1d9]"

@@ -1062,6 +1062,7 @@ const Catalogue = () => {
         <Displaycatalogue
           isLoading={isLoading}
           isFetching={isFetching}
+          isSuccess={isSuccess}
           error={error}
           multiSelect={multiSelect}
           token={token}

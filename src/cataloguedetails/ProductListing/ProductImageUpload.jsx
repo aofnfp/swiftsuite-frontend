@@ -181,14 +181,12 @@ function ProductImageUpload({ productListing, thumbnailImage, setThumbnailImage,
         <div className="flex items-center justify-between mb-4 flex-wrap">
           <div className="relative group w-[320px] h-[260px] flex items-center justify-center bg-white rounded-xl border-2 border-gray-200 shadow-md overflow-hidden">
             <Image
-              className="w-full h-full object-contain"
               src={mainImage}
               alt={productListing?.title || "Main Product"}
-              className="object-contain max-h-full max-w-full"
+              className="w-full h-full object-contain max-h-full max-w-full"
               onError={() => setMainImage("")}
-              preview={false} 
+              preview={false}
             />
-
             <a
               href={mainImage}
               download
@@ -288,9 +286,9 @@ function ProductImageUpload({ productListing, thumbnailImage, setThumbnailImage,
                   src={productListing?.image || productListing?.picture_detail}
                   alt="Original Product"
                   className={`w-full h-24 object-cover rounded-lg cursor-pointer border-2 transition-colors duration-200 ${mainImage ===
-                      (productListing?.image || productListing?.picture_detail)
-                      ? "border-blue-500"
-                      : "border-gray-200 hover:border-blue-400"
+                    (productListing?.image || productListing?.picture_detail)
+                    ? "border-blue-500"
+                    : "border-gray-200 hover:border-blue-400"
                     }`}
                   onClick={() =>
                     handleImageClick(
@@ -309,8 +307,8 @@ function ProductImageUpload({ productListing, thumbnailImage, setThumbnailImage,
                   src={img.image_url}
                   alt={`Product ${index + 1}`}
                   className={`w-full h-24 object-cover rounded-lg cursor-pointer border-2 transition-colors duration-200 ${mainImage === img.image_url
-                      ? "border-blue-500"
-                      : "border-gray-200 hover:border-blue-400"
+                    ? "border-blue-500"
+                    : "border-gray-200 hover:border-blue-400"
                     }`}
                   onClick={() => handleImageClick(img.image_url)}
                 />

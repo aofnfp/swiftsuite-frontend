@@ -244,25 +244,31 @@ const Catalogue = () => {
   const hasNextPage = page * selectedProductPerPage < count;
   const hasPreviousPage = page > 1;
 
+  // Sync selectedVendorIdentifier when identifiers load or change.
+  // Only auto-select the first identifier if the currently selected one is
+  // not present in the new list AND we don't already have a valid selection.
   useEffect(() => {
-    if (isSuccess && catalogueIdentifiers.length > 0) {
+    if (!isSuccess || productChange === "all" || catalogueIdentifiers.length === 0) return;
+
+    const identifierExists = catalogueIdentifiers.some(
+      (id) => id.vendor_identifier === selectedProductCatalogue
+    );
+
+    if (!identifierExists) {
+      // Current selection is stale or empty — fall back to the first identifier.
       const firstIdentifier = catalogueIdentifiers[0];
-      const identifierExists = catalogueIdentifiers.some(
+      setSelectedProductCatalogue(firstIdentifier.vendor_identifier);
+      dispatch(setProduct(firstIdentifier.vendor_identifier));
+      setSelectedVendorIdentifier(firstIdentifier);
+      setPaginationContext("identifier");
+      setPage(1);
+    } else {
+      // Keep selectedVendorIdentifier in sync with the full object from the list.
+      const matched = catalogueIdentifiers.find(
         (id) => id.vendor_identifier === selectedProductCatalogue
       );
-      if (!identifierExists && productChange !== "all" && data?.products?.length > 0) {
-        setSelectedProductCatalogue(firstIdentifier.vendor_identifier);
-        dispatch(setProduct(firstIdentifier.vendor_identifier));
-        setSelectedVendorIdentifier(firstIdentifier);
-        setPaginationContext("identifier");
-        setPage(1);
-      } else if (productChange !== "all") {
-        const matched = catalogueIdentifiers.find(
-          (id) => id.vendor_identifier === selectedProductCatalogue
-        );
-        if (matched) {
-          setSelectedVendorIdentifier(matched);
-        }
+      if (matched) {
+        setSelectedVendorIdentifier(matched);
       }
     }
   }, [
@@ -272,15 +278,24 @@ const Catalogue = () => {
     selectedProductCatalogue,
     dispatch,
   ]);
-  useEffect(() => {
-    if (productChange && productChange !== "all") {
-      const matchedVendor = catalogue.find(
-        (item) => item.name === productChange
-      );
 
-      if (matchedVendor) {
-        setSelectedVendor(matchedVendor);
-      }
+  // Sync selectedVendor when catalogue becomes available (e.g. after enrolled
+  // vendors load on page refresh) or when productChange changes.
+  // Guard against running before enrolledVendors has populated catalogue.
+  useEffect(() => {
+    if (!productChange || productChange === "all") {
+      // "all" vendor — clear the vendor selection
+      if (selectedVendor !== null) setSelectedVendor(null);
+      return;
+    }
+
+    // catalogue[0] is always the "all" entry; real vendors start at index 1.
+    // Don't attempt a match until the enrolled vendors have been fetched.
+    if (catalogue.length <= 1) return;
+
+    const matchedVendor = catalogue.find((item) => item.name === productChange);
+    if (matchedVendor && matchedVendor.id !== selectedVendor?.id) {
+      setSelectedVendor(matchedVendor);
     }
   }, [productChange, catalogue]);
 

@@ -153,15 +153,21 @@ const Displaycatalogue = ({
     e.stopPropagation();
   };
 
+  // True during the pre-fetch window (vendor selected, query not yet resolved)
+  // as well as while the query is actively loading or refetching.
+  const showSkeleton =
+    isLoading ||
+    isFetching ||
+    (productChange && productChange !== "all" && !isSuccess && !error);
+
   return (
     <div className="bg-[#E7F2ED] mt-20 w-full min-w-full">
       <Toaster position="top-right" />
-      {(isLoading || isFetching) &&
-        viewMode === "list" &&
+      {showSkeleton && viewMode === "list" &&
         Array.from({ length: 5 }).map((_, idx) => (
           <CatalogueSkeleton key={idx} />
         ))}
-      {(isLoading || isFetching) && viewMode === "grid" && <CatalogueGridSkeleton />}
+      {showSkeleton && viewMode === "grid" && <CatalogueGridSkeleton />}
 
       {error ? (
         <div className="text-red-500 text-xl mb-4 text-center w-full">

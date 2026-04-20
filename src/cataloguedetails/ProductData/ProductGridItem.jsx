@@ -1,7 +1,7 @@
 import React from "react";
 import { IoIosCart } from "react-icons/io";
 import { RiDeleteBin5Line } from "react-icons/ri";
-import { Image } from "@heroui/react";
+import { Image, Space } from "antd";
 import { IoPricetagOutline } from "react-icons/io5";
 
 const ProductGridItem = ({
@@ -61,11 +61,19 @@ const ProductGridItem = ({
 
       <div className="flex justify-center items-center w-full mt-6 mb-4">
         <div className="h-40 w-40 flex justify-center items-center border border-gray-200 rounded-md z-0">
-          <Image
-            isZoomed
+        <Image
+            width={140}
+            height={140}
             src={image}
             alt={title || ""}
-            className="object-cover min-w-[140px] max-w-[140px] h-[140px] rounded-md"
+            className="object-cover rounded-md"
+            preview={{
+              mask: (
+                <div className="flex items-center justify-center w-full h-full text-white font-medium">
+                  View
+                </div>
+              ),
+            }}
           />
         </div>
       </div>

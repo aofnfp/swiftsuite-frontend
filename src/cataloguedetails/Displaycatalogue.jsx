@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { toast, Toaster } from "sonner";
 import {
-  Image,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -12,10 +11,14 @@ import CatalogueGridSkeleton from "./CatalogueGridSkeleton";
 import { IoIosCart } from "react-icons/io";
 import { IoPricetag } from "react-icons/io5";
 import { useAddSingleProduct } from "./CatalogueFetch";
+import { Image, Space } from "antd";
+
 
 const Displaycatalogue = ({
   selectedProductCatalogue,
   isLoading,
+  isFetching,
+  isSuccess,
   productsToRender,
   error,
   currentItems,
@@ -56,7 +59,7 @@ const Displaycatalogue = ({
     }
   };
 
-  const stripTags = (html) => html.replace(/<[^>]*>/g, "");
+  const stripTags = (html) => (html ? html.replace(/<[^>]*>/g, "") : "");
 
   const getProductImage = (product) => {
     let images = [];
@@ -109,13 +112,23 @@ const Displaycatalogue = ({
       }
     });
 
-    const uniqueImages = [...new Set(images)].filter(
-      (url) =>
-        url &&
-        typeof url === "string" &&
-        url.trim() !== "" &&
-        url.match(/^https?:\/\//)
-    );
+    const uniqueImages = [...new Set(images)].filter((url) => {
+      if (!url || typeof url !== "string") return false;
+      const normalized = url.trim().toLowerCase();
+
+      if (
+        normalized === "" ||
+        normalized === "null" ||
+        normalized === "undefined" ||
+        normalized.includes("unavailable") ||
+        normalized.includes("no-image") ||
+        normalized.includes("no_image")
+      ) {
+        return false;
+      }
+
+      return /^https?:\/\//.test(normalized);
+    });
 
     return uniqueImages.length > 0 ? uniqueImages[0] : null;
   };
@@ -136,25 +149,34 @@ const Displaycatalogue = ({
     setImageErrors((prev) => ({ ...prev, [productId]: true }));
   };
 
+  const stopCardClick = (e) => {
+    e.stopPropagation();
+  };
+
+  // True during the pre-fetch window (vendor selected, query not yet resolved)
+  // as well as while the query is actively loading or refetching.
+  const showSkeleton =
+    isLoading ||
+    isFetching ||
+    (productChange && productChange !== "all" && !isSuccess && !error);
+
   return (
     <div className="bg-[#E7F2ED] mt-20 w-full min-w-full">
       <Toaster position="top-right" />
-      {isLoading &&
-        viewMode === "list" &&
+      {showSkeleton && viewMode === "list" &&
         Array.from({ length: 5 }).map((_, idx) => (
           <CatalogueSkeleton key={idx} />
         ))}
-      {isLoading && viewMode === "grid" && <CatalogueGridSkeleton />}
+      {showSkeleton && viewMode === "grid" && <CatalogueGridSkeleton />}
 
       {error ? (
         <div className="text-red-500 text-xl mb-4 text-center w-full">
           {error}
         </div>
       ) : (
-        // List view
         <div className="flex gap-6 mb-34 w-full min-w-full">
           <div className="rounded-lg overflow-hidden w-full min-w-full">
-            {!isLoading &&
+            {isSuccess &&
               (productsToRender?.length === 0 && currentItems?.length === 0 ? (
                 <div className="text-red-500 bg-[#E7F2ED] h-screen text-xl text-center mt-20 w-full">
                   Sorry, we couldn't find any results
@@ -170,11 +192,10 @@ const Displaycatalogue = ({
                           //   handleProductClick(product);
                           // }}
                           key={index}
-                          className={`${
-                            checkedItems.includes(product?.id)
-                              ? "border border-[#089451]"
-                              : "border border-gray-200"
-                          } group flex flex-col sm:flex-row justify-between p-4 gap-4 items-start w-full bg-white rounded-lg ps-7 relative mb-5 hover:shadow-lg`}
+                          className={`${checkedItems.includes(product?.id)
+                            ? "border border-[#089451]"
+                            : "border border-gray-200"
+                            } group flex flex-col sm:flex-row justify-between p-4 gap-4 items-start w-full bg-white rounded-lg ps-7 relative mb-5 hover:shadow-lg`}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleProductClick(product);
@@ -184,11 +205,10 @@ const Displaycatalogue = ({
                             <div className="absolute top-28 left-2 -z-1">
                               <input
                                 type="checkbox"
-                                className={`w-4 h-4 appearance-none border-1 border-[#089451] rounded ${
-                                  checkedItems.includes(product?.id)
-                                    ? "bg-[#089451] border-[#089451]"
-                                    : ""
-                                }`}
+                                className={`w-4 h-4 appearance-none border-1 border-[#089451] rounded ${checkedItems.includes(product?.id)
+                                  ? "bg-[#089451] border-[#089451]"
+                                  : ""
+                                  }`}
                                 checked={checkedItems.includes(product?.id)}
                                 onClick={(e) => e.stopPropagation()}
                                 onChange={() => handleCheckbox(product)}
@@ -198,27 +218,37 @@ const Displaycatalogue = ({
 
                           <div className="flex gap-4 w-full sm:w-2/3">
                             <div
-                              className={`${
-                                productChange === "fragrancex"
-                                  ? "object-cover min-w-[120px] max-w-[150px] h-[200px] -z-1 border border-gray-200 rounded p-2"
-                                  : "min-w-[120px] max-w-[170px] h-[200px] flex items-center justify-center rounded overflow-hidden bg-white border border-gray-100 p-2"
-                              }`}
+                              className={`${productChange === "fragrancex"
+                                ? "object-cover min-w-[120px] max-w-[150px] h-[200px] -z-1 border border-gray-200 rounded p-2"
+                                : "min-w-[120px] max-w-[170px] h-[200px] flex items-center justify-center rounded overflow-hidden bg-white border border-gray-100 p-2"
+                                }`}
+                              onClick={stopCardClick}
+                              onMouseDown={stopCardClick}
                             >
                               {imageErrors[product?.id] ||
-                              !getProductImage(product) ? (
+                                !getProductImage(product) ? (
                                 <span className="text-gray-500 text-xs text-center px-2">
                                   Image not available
                                 </span>
                               ) : (
                                 <Image
-                                  isZoomed
+                                  width={140}
+                                  height={140}
                                   src={getProductImage(product)}
-                                  alt={getProductAltText(
-                                    product,
-                                    imageErrors[product?.id]
-                                  )}
-                                  className="object-cover min-w-[140px] max-w-[140px] h-[180px] -z-1"
+                                  alt={getProductAltText(product, imageErrors[product?.id])}
+                                  className="object-cover rounded-md"
                                   onError={() => handleImageError(product?.id)}
+                                  preview={
+                                    getProductImage(product) && !imageErrors[product?.id]
+                                      ? {
+                                        mask: (
+                                          <div className="flex items-center justify-center w-full h-full text-white font-medium">
+                                            View
+                                          </div>
+                                        ),
+                                      }
+                                      : false
+                                  }
                                 />
                               )}
                             </div>
@@ -286,14 +316,14 @@ const Displaycatalogue = ({
                               <p className="text-xs text-gray-600 mt-1 line-clamp-3">
                                 {stripTags
                                   ? stripTags(
-                                      product?.description ||
-                                        product?.description1 ||
-                                        product?.full_description
-                                    ) || "No description available"
-                                  : product?.description ||
+                                    product?.description ||
                                     product?.description1 ||
-                                    product?.full_description ||
-                                    "No description available"}
+                                    product?.full_description
+                                  ) || "No description available"
+                                  : product?.description ||
+                                  product?.description1 ||
+                                  product?.full_description ||
+                                  "No description available"}
                               </p>
                             </div>
                           </div>
@@ -391,11 +421,10 @@ const Displaycatalogue = ({
                                 <div className="lg:-ms-10 md:ms-0 -ms-12">
                                   <input
                                     type="checkbox"
-                                    className={`lg:mr-5 ms:mr-5 md:mr-3 w-4 h-4 col-span-1 appearance-none border-1 border-[#089451] rounded ${
-                                      checkedItems.includes(product?.id)
-                                        ? "bg-[#089451] border-[#089451]"
-                                        : ""
-                                    }`}
+                                    className={`lg:mr-5 ms:mr-5 md:mr-3 w-4 h-4 col-span-1 appearance-none border-1 border-[#089451] rounded ${checkedItems.includes(product?.id)
+                                      ? "bg-[#089451] border-[#089451]"
+                                      : ""
+                                      }`}
                                     checked={checkedItems.includes(product?.id)}
                                     onClick={(e) => e.stopPropagation()}
                                     onChange={() => handleCheckbox(product)}
@@ -403,8 +432,9 @@ const Displaycatalogue = ({
                                 </div>
                               )}
                               <div className="h-40 w-40 flex justify-center items-center border border-gray-200 rounded-md">
+                                <div onClick={stopCardClick} onMouseDown={stopCardClick}>
                                 {imageErrors[product?.id] ||
-                                !getProductImage(product) ? (
+                                  !getProductImage(product) ? (
                                   <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs bg-[#f5f5f5] rounded-md">
                                     <svg
                                       width="32"
@@ -434,18 +464,26 @@ const Displaycatalogue = ({
                                   </div>
                                 ) : (
                                   <Image
-                                    isZoomed
+                                    width={140}
+                                    height={140}
                                     src={getProductImage(product)}
-                                    alt={getProductAltText(
-                                      product,
-                                      imageErrors[product?.id]
-                                    )}
-                                    className="object-cover min-w-[140px] max-w-[140px] h-[140px] rounded-md -z-1"
-                                    onError={() =>
-                                      handleImageError(product?.id)
+                                    alt={getProductAltText(product, imageErrors[product?.id])}
+                                    className="object-cover rounded-md"
+                                    onError={() => handleImageError(product?.id)}
+                                    preview={
+                                      getProductImage(product) && !imageErrors[product?.id]
+                                        ? {
+                                          mask: (
+                                            <div className="flex items-center justify-center w-full h-full text-white font-medium">
+                                              View
+                                            </div>
+                                          ),
+                                        }
+                                        : false
                                     }
                                   />
                                 )}
+                                </div>
                               </div>
                             </div>
 
@@ -509,37 +547,37 @@ const Displaycatalogue = ({
                               </div>
                             </div>
                             {productChange !== "all" && (
-                            <Popover placement="bottom" showArrow={true}>
-                              <PopoverTrigger className="absolute top-8 right-2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-200 bg-green-50 rounded-full cursor-pointer text-[#089451] p-1 -z-1">
-                                <button>
-                                  <BsThreeDotsVertical size={16} />
-                                </button>
-                              </PopoverTrigger>
-                              <PopoverContent className="z-50 bg-white shadow-md rounded p-2 me-10 -ms-10">
-                                <div className="px-1 py-2">
-                                  <div>
-                                    <div
-                                      className="hover:bg-gray-900 cursor-pointer bg-[#089451] text-center rounded px-2 py-1 text-white text-sm"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleProductClick(product);
-                                      }}
-                                    >
-                                      View product details
-                                    </div>
-                                    <div
-                                      className="hover:bg-orange-700 cursor-pointer bg-[#BB8232] text-white my-2 text-center rounded px-2 py-1 text-sm"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        addSingleToProduct(product?.id);
-                                      }}
-                                    >
-                                      Add to product
+                              <Popover placement="bottom" showArrow={true}>
+                                <PopoverTrigger className="absolute top-8 right-2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-200 bg-green-50 rounded-full cursor-pointer text-[#089451] p-1 -z-1">
+                                  <button>
+                                    <BsThreeDotsVertical size={16} />
+                                  </button>
+                                </PopoverTrigger>
+                                <PopoverContent className="z-50 bg-white shadow-md rounded p-2 me-10 -ms-10">
+                                  <div className="px-1 py-2">
+                                    <div>
+                                      <div
+                                        className="hover:bg-gray-900 cursor-pointer bg-[#089451] text-center rounded px-2 py-1 text-white text-sm"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleProductClick(product);
+                                        }}
+                                      >
+                                        View product details
+                                      </div>
+                                      <div
+                                        className="hover:bg-orange-700 cursor-pointer bg-[#BB8232] text-white my-2 text-center rounded px-2 py-1 text-sm"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          addSingleToProduct(product?.id);
+                                        }}
+                                      >
+                                        Add to product
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              </PopoverContent>
-                            </Popover>
+                                </PopoverContent>
+                              </Popover>
                             )}
                           </div>
                         </div>

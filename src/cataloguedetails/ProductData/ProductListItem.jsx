@@ -2,7 +2,7 @@ import React from "react";
 import { IoIosCart } from "react-icons/io";
 
 import { RiDeleteBin5Line } from "react-icons/ri";
-import { Image } from "@heroui/react";
+import { Image, Space } from "antd";
 import { IoPricetagOutline } from "react-icons/io5";
 import { formatTimeAgo } from "../../utils/utils";
 
@@ -45,6 +45,10 @@ const ProductListItem = ({
     created_at,
   } = product || {};
 
+  const stopCardClick = (e) => {
+    e.stopPropagation();
+  };
+
   return (
     <div
       onClick={() => handleListing(product)}
@@ -54,12 +58,24 @@ const ProductListItem = ({
         <div className="absolute -top-3 left-0 bg-green-600 text-white text-xs font-semibold px-2 py-1 rounded-md shadow-md">
           Added {formatTimeAgo(created_at)}
         </div>
-        <div className="min-w-[120px] mt-5 max-w-[170px] h-[180px] flex items-center justify-center rounded overflow-hidden bg-white border border-gray-100 p-3 z-0 relative">
+        <div
+          className="min-w-[120px] mt-5 max-w-[170px] h-[180px] flex items-center justify-center rounded overflow-hidden bg-white border border-gray-100 p-3 z-0 relative"
+          onClick={stopCardClick}
+          onMouseDown={stopCardClick}
+        >
           <Image
-            isZoomed
+            width={140}
+            height={140}
             src={image}
             alt={title || ""}
-            className="object-cover min-w-[140px] max-w-[140px] h-[180px]"
+            className="object-cover rounded-md"
+            preview={{
+              mask: (
+                <div className="flex items-center justify-center w-full h-full text-white font-medium">
+                  View
+                </div>
+              ),
+            }}
           />
         </div>
 

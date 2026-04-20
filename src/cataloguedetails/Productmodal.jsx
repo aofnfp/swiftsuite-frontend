@@ -1,9 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Modal, ModalContent, ModalBody } from "@heroui/react";
+import React, { useState } from "react";
+import { Button, Image, Modal } from "antd";
 import { toast, Toaster } from "sonner";
 import gif from "../Images/gif.gif";
 import { productModal } from "../api/authApi";
-import { Image } from "@heroui/react";
 import { useQueryClient } from "@tanstack/react-query";
 
 
@@ -50,7 +49,6 @@ const Productmodal = ({
   catalogue,
   page,
 }) => {
-  const dropdownRef = useRef(null);
   const queryClient = useQueryClient();
   const [myLoader, setMyLoader] = useState(false);
 
@@ -68,33 +66,33 @@ const Productmodal = ({
   const vendor_name = safe(selectProductcontd?.vendor_name);
   const brand = safe(
     selectProductcontd?.brand ||
-      getFeatureValue("Manufacturer") ||
-      getFeatureValue("Brand")
+    getFeatureValue("Manufacturer") ||
+    getFeatureValue("Brand")
   );
   const category = safe(
     selectProductcontd?.category ||
-      getFeatureValue("Type") ||
-      getFeatureValue("Product Type")
+    getFeatureValue("Type") ||
+    getFeatureValue("Product Type")
   );
   const weight = safe(
     selectProductcontd?.weight ||
-      getFeatureValue("ItemWeight") ||
-      getFeatureValue("ShippingWeight")
+    getFeatureValue("ItemWeight") ||
+    getFeatureValue("ShippingWeight")
   );
   const height = safe(
     selectProductcontd?.height ||
-      getFeatureValue("ItemHeight") ||
-      selectProductcontd?.shipping_height
+    getFeatureValue("ItemHeight") ||
+    selectProductcontd?.shipping_height
   );
   const width = safe(
     selectProductcontd?.width ||
-      getFeatureValue("ItemWidth") ||
-      selectProductcontd?.shipping_width
+    getFeatureValue("ItemWidth") ||
+    selectProductcontd?.shipping_width
   );
   const depth = safe(
     selectProductcontd?.depth ||
-      getFeatureValue("ItemLength") ||
-      selectProductcontd?.shipping_length
+    getFeatureValue("ItemLength") ||
+    selectProductcontd?.shipping_length
   );
   const variation = safe(selectProductcontd?.variation);
   const parentSku = safe(selectProductcontd?.parent_sku);
@@ -208,12 +206,12 @@ const Productmodal = ({
   const addDetails = async () => {
     setMyLoader(true);
     console.log("Sending to backend:", {
-    userId,
-    selectedProductId,
-    productChange,
-    selectedProductCatalogue,
-    updatedProduct
-  });
+      userId,
+      selectedProductId,
+      productChange,
+      selectedProductCatalogue,
+      updatedProduct
+    });
 
     try {
       await productModal(
@@ -242,231 +240,208 @@ const Productmodal = ({
     }
   };
 
-  /* ---- Click-outside close ---- */
-  useEffect(() => {
-    const handler = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        onClose();
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [onClose]);
-
-  /* ------------------- JSX ------------------- */
   return (
     <Modal
-      ref={dropdownRef}
-      isOpen={isOpen}
-      onClose={onClose}
-      isDismissable={false}
-      showCloseButton={false}
-      className="z-[10000] !font-mirza !rounded-none scrollbar-thin scrollbar-thumb-white scrollbar-track-white !p-0 mb-10 md:max-h-[90vh] max-h-[80vh] md:max-w-[50vw] max-w-[90vw] h-[80vh]"
-      style={{ overflowY: "auto" }}
+      open={isOpen}
+      onCancel={onClose}
+      footer={null}
+      closable={false}
+      maskClosable
+      className="z-[10000] !font-mirza !rounded-none scrollbar-thin scrollbar-thumb-white scrollbar-track-white !p-0 mb-10 md:max-h-[100vh] max-h-[95vh] md:max-w-[50vw] max-w-[90vw]"
+      style={{ top: 8 }}
+      bodyStyle={{ padding: 0, overflowY: "auto", maxHeight: "92vh" }}
+      width="50vw"
+      destroyOnClose
     >
-      <ModalContent className="!p-0">
-        <ModalBody className="!p-0">
-          <section className="flex flex-col md:flex-row bg-white shadow-lg h-full">
-            {/* ==== LEFT: Specs ==== */}
-            <div className="flex flex-col gap-4 p-4 md:w-[30%] text-sm overflow-y-auto">
-
-              {/* Brand */}
-              {brand && (
-                <div className="bg-[#00000033] p-3 rounded-lg">
-                  <h3 className="font-bold">Brand</h3>
-                  <p>{brand}</p>
-                </div>
-              )}
-
-              {/* Category */}
-              {category && (
-                <div className="bg-[#02784033] p-3 rounded-lg">
-                  <h3 className="font-bold">Category</h3>
-                  <p>{category}</p>
-                </div>
-              )}
-
-              {/* Price & Quantity – right after Category */}
-              {(price || quantity) && (
-                <div className="p-3 bg-[#09845133] rounded-lg">
-                  <h3 className="font-bold">Pricing & Stock</h3>
-                  <div className="mt-1 space-y-1">
-                    {price && (
-                      <div className="flex gap-2">
-                        <span>Price:</span>
-                        <span>${parseFloat(price).toFixed(2)}</span>
-                      </div>
-                    )}
-                    {quantity && (
-                      <div className="flex gap-2">
-                        <span>Quantity:</span>
-                        <span>{quantity}</span>
-                      </div>
-                    )}
+      <section className="flex flex-col md:flex-row bg-white shadow-lg min-h-[88vh]">
+        <div className="flex flex-col gap-4 p-4 md:w-[30%] text-sm overflow-y-auto">
+          {brand && (
+            <div className="bg-[#00000033] p-3 rounded-lg">
+              <h3 className="font-bold">Brand</h3>
+              <p>{brand}</p>
+            </div>
+          )}
+          {category && (
+            <div className="bg-[#02784033] p-3 rounded-lg">
+              <h3 className="font-bold">Category</h3>
+              <p>{category}</p>
+            </div>
+          )}
+          {(price || quantity) && (
+            <div className="p-3 bg-[#09845133] rounded-lg">
+              <h3 className="font-bold">Pricing & Stock</h3>
+              <div className="mt-1 space-y-1">
+                {price && (
+                  <div className="flex gap-2">
+                    <span>Price:</span>
+                    <span>${parseFloat(price).toFixed(2)}</span>
                   </div>
-                </div>
-              )}
+                )}
+                {quantity && (
+                  <div className="flex gap-2">
+                    <span>Quantity:</span>
+                    <span>{quantity}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
-              {/* Key Features */}
-              {keyFeatures.length > 0 && (
-                <div className="p-3 bg-[#BB823266] rounded-lg">
-                  <h3 className="font-bold">Key Features</h3>
-                  <ul className="mt-1 space-y-1 text-gray-700">
-                    {keyFeatures.map((f, i) => (
-                      <li key={i}>• {f}</li>
-                    ))}
+          {keyFeatures.length > 0 && (
+            <div className="p-3 bg-[#BB823266] rounded-lg">
+              <h3 className="font-bold">Key Features</h3>
+              <ul className="mt-1 space-y-1 text-gray-700">
+                {keyFeatures.map((f, i) => (
+                  <li key={i}>• {f}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {weight && (
+            <div className="p-3">
+              <h3 className="font-bold">Weight</h3>
+              <p>{weight}</p>
+            </div>
+          )}
+
+          {(height || width || depth) && (
+            <div className="p-3 bg-[#BB823266] rounded-lg">
+              <h3 className="font-bold">Dimensions</h3>
+              <div className="mt-1 space-y-1">
+                {height && (
+                  <div className="flex gap-2">
+                    <span>Height:</span>
+                    <span>{height}</span>
+                  </div>
+                )}
+                {width && (
+                  <div className="flex gap-2">
+                    <span>Width:</span>
+                    <span>{width}</span>
+                  </div>
+                )}
+                {depth && (
+                  <div className="flex gap-2">
+                    <span>Depth:</span>
+                    <span>{depth}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {(variation || parentSku || sku || upc) && (
+            <div className="bg-[#00000033] p-3 rounded-lg">
+              <h3 className="font-bold">Specifications</h3>
+              <dl className="grid grid-cols-3 gap-x-2 text-sm mt-1">
+                {variation && (
+                  <>
+                    <dt className="font-medium">Variation:</dt>
+                    <dd className="col-span-2 text-gray-700">{variation}</dd>
+                  </>
+                )}
+                {parentSku && (
+                  <>
+                    <dt className="font-medium">Parent SKU:</dt>
+                    <dd className="col-span-2 text-gray-700">{parentSku}</dd>
+                  </>
+                )}
+                {sku && (
+                  <>
+                    <dt className="font-medium">SKU:</dt>
+                    <dd className="col-span-2 text-gray-700">{sku}</dd>
+                  </>
+                )}
+                {upc && (
+                  <>
+                    <dt className="font-medium">UPC:</dt>
+                    <dd className="col-span-2 text-gray-700">{upc}</dd>
+                  </>
+                )}
+              </dl>
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col md:w-[70%]">
+          <div className="flex justify-center p-4 md:p-6">
+            <Image
+              width={300}
+              height={300}
+              src={image}
+              alt={title || "Product"}
+              className="object-cover rounded-md"
+              preview={{
+                mask: (
+                  <div className="flex items-center justify-center w-full h-full backdrop-blur-sm bg-black/40 text-white font-medium">
+                    View
+                  </div>
+                ),
+              }}
+            />
+          </div>
+
+          <div className="flex-1 px-4 md:px-6 pb-4 space-y-6 text-sm overflow-y-auto">
+            {title && (
+              <div>
+                <p className="font-semibold text-base text-gray-900">
+                  Product Name:
+                </p>
+                <p className="mt-1 text-gray-800">{title}</p>
+              </div>
+            )}
+
+            {description && (
+              <div>
+                <p className="font-semibold text-base text-gray-900">
+                  Product Detail:
+                </p>
+                <p className="mt-1 whitespace-pre-line leading-relaxed text-gray-700">
+                  {description}
+                </p>
+              </div>
+            )}
+
+            {(getFeatureValue("AdditionalFeature1") ||
+              getFeatureValue("AdditionalFeature2") ||
+              getFeatureValue("AdditionalFeature3")) && (
+                <div>
+                  <p className="font-semibold text-base text-gray-900">
+                    Product Features:
+                  </p>
+                  <ul className="mt-2 space-y-1 text-gray-700">
+                    {getFeatureValue("AdditionalFeature1") && (
+                      <li>• {getFeatureValue("AdditionalFeature1")}</li>
+                    )}
+                    {getFeatureValue("AdditionalFeature2") && (
+                      <li>• {getFeatureValue("AdditionalFeature2")}</li>
+                    )}
+                    {getFeatureValue("AdditionalFeature3") && (
+                      <li>• {getFeatureValue("AdditionalFeature3")}</li>
+                    )}
                   </ul>
                 </div>
               )}
+          </div>
 
-              {/* Weight */}
-              {weight && (
-                <div className="p-3">
-                  <h3 className="font-bold">Weight</h3>
-                  <p>{weight}</p>
-                </div>
+          <div className="p-4 md:p-6 bg-white border-t">
+            <Button
+              onClick={addDetails}
+              disabled={myLoader}
+              className="h-10 w-full max-w-xs mx-auto bg-[#098451] text-white rounded-md border border-[#098451] hover:bg-white hover:text-[#098451] transition-all duration-200 disabled:opacity-70"
+            >
+              {myLoader ? (
+                <img src={gif} alt="Loading" className="w-6 h-6" />
+              ) : (
+                "Add Product"
               )}
+            </Button>
+          </div>
+        </div>
 
-              {/* Dimensions */}
-              {(height || width || depth) && (
-                <div className="p-3 bg-[#BB823266] rounded-lg">
-                  <h3 className="font-bold">Dimensions</h3>
-                  <div className="mt-1 space-y-1">
-                    {height && (
-                      <div className="flex gap-2">
-                        <span>Height:</span>
-                        <span>{height}</span>
-                      </div>
-                    )}
-                    {width && (
-                      <div className="flex gap-2">
-                        <span>Width:</span>
-                        <span>{width}</span>
-                      </div>
-                    )}
-                    {depth && (
-                      <div className="flex gap-2">
-                        <span>Depth:</span>
-                        <span>{depth}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Specifications */}
-              {(variation || parentSku || sku || upc) && (
-                <div className="bg-[#00000033] p-3 rounded-lg">
-                  <h3 className="font-bold">Specifications</h3>
-                  <dl className="grid grid-cols-3 gap-x-2 text-sm mt-1">
-                    {variation && (
-                      <>
-                        <dt className="font-medium">Variation:</dt>
-                        <dd className="col-span-2 text-gray-700">{variation}</dd>
-                      </>
-                    )}
-                    {parentSku && (
-                      <>
-                        <dt className="font-medium">Parent SKU:</dt>
-                        <dd className="col-span-2 text-gray-700">{parentSku}</dd>
-                      </>
-                    )}
-                    {sku && (
-                      <>
-                        <dt className="font-medium">SKU:</dt>
-                        <dd className="col-span-2 text-gray-700">{sku}</dd>
-                      </>
-                    )}
-                    {upc && (
-                      <>
-                        <dt className="font-medium">UPC:</dt>
-                        <dd className="col-span-2 text-gray-700">{upc}</dd>
-                      </>
-                    )}
-                  </dl>
-                </div>
-              )}
-            </div>
-
-            {/* ==== RIGHT: Image → Content → Button ==== */}
-            <div className="flex flex-col md:w-[70%]">
-              {/* Image – NO gray background */}
-              <div className="flex justify-center p-4 md:p-6">
-                <Image
-                  isZoomed
-                  src={image || "https://via.placeholder.com/300"}
-                  alt={title || "Product"}
-                  className="w-full max-w-[280px] h-64 md:h-72 object-contain rounded-lg shadow-md"
-                />
-              </div>
-
-              {/* Text Content */}
-              <div className="flex-1 px-4 md:px-6 pb-4 space-y-6 text-sm overflow-y-auto">
-                {/* Product Name */}
-                {title && (
-                  <div>
-                    <p className="font-semibold text-base text-gray-900">
-                      Product Name:
-                    </p>
-                    <p className="mt-1 text-gray-800">{title}</p>
-                  </div>
-                )}
-
-                {/* Product Detail */}
-                {description && (
-                  <div>
-                    <p className="font-semibold text-base text-gray-900">
-                      Product Detail:
-                    </p>
-                    <p className="mt-1 whitespace-pre-line leading-relaxed text-gray-700">
-                      {description}
-                    </p>
-                  </div>
-                )}
-
-                {/* Additional Features */}
-                {(getFeatureValue("AdditionalFeature1") ||
-                  getFeatureValue("AdditionalFeature2") ||
-                  getFeatureValue("AdditionalFeature3")) && (
-                  <div>
-                    <p className="font-semibold text-base text-gray-900">
-                      Product Features:
-                    </p>
-                    <ul className="mt-2 space-y-1 text-gray-700">
-                      {getFeatureValue("AdditionalFeature1") && (
-                        <li>• {getFeatureValue("AdditionalFeature1")}</li>
-                      )}
-                      {getFeatureValue("AdditionalFeature2") && (
-                        <li>• {getFeatureValue("AdditionalFeature2")}</li>
-                      )}
-                      {getFeatureValue("AdditionalFeature3") && (
-                        <li>• {getFeatureValue("AdditionalFeature3")}</li>
-                      )}
-                    </ul>
-                  </div>
-                )}
-              </div>
-
-              {/* Add Button */}
-              <div className="p-4 md:p-6 bg-white border-t">
-                <button
-                  onClick={addDetails}
-                  disabled={myLoader}
-                  className="flex items-center justify-center h-10 w-full max-w-xs mx-auto bg-[#098451] text-white rounded-md border border-[#098451] hover:bg-white hover:text-[#098451] transition-all duration-200 disabled:opacity-70"
-                >
-                  {myLoader ? (
-                    <img src={gif} alt="Loading" className="w-6 h-6" />
-                  ) : (
-                    "Add Product"
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <Toaster position="top-right" />
-          </section>
-        </ModalBody>
-      </ModalContent>
+        <Toaster position="top-right" />
+      </section>
     </Modal>
   );
 };

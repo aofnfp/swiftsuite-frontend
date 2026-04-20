@@ -1,4 +1,4 @@
-import { Image } from "@heroui/react";
+import { Image, Space } from "antd";
 import React from "react";
 
 const OrderItem = ({ orderItem = [] }) => {

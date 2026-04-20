@@ -15,8 +15,7 @@ const DescriptionSection = ({ value, onChange, modules }) => {
           theme="snow"
           placeholder="Enter detailed description..."
           modules={modules}
-          className="h-[300px]"
-          id="folder"
+          className="h-[400px]"
         />
       </div>
     </div>

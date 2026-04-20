@@ -12,8 +12,6 @@ export const useCatalogueStore = create(
       paginationContext: "vendor",
       productChange: "all",
       filterApplied: false,
-      selectedVendor: null,
-      selectedVendorIdentifier: null,
       multiSelect: false,
       showActionsLg: false,
       selectedProductIds: [],
@@ -29,8 +27,6 @@ export const useCatalogueStore = create(
       setPaginationContext: (context) => set({ paginationContext: context }),
       setProductChange: (value) => set({ productChange: value }),
       setFilterApplied: (applied) => set({ filterApplied: !!applied }),
-      setSelectedVendor: (vendor) => set({ selectedVendor: vendor }),
-      setSelectedVendorIdentifier: (id) => set({ selectedVendorIdentifier: id }),
       setSelectedProductIds: (ids) => set({ selectedProductIds: Array.isArray(ids) ? ids : [] }),
 
       resetCatalogue: () =>
@@ -45,8 +41,6 @@ export const useCatalogueStore = create(
           filterApplied: false,
           multiSelect: false,
           showActionsLg: false,
-          selectedVendor: null,
-          selectedVendorIdentifier: null,
           selectedProductIds: [],
         }),
     }),
@@ -62,12 +56,10 @@ export const useCatalogueStore = create(
         paginationContext: state.paginationContext,
         productChange: state.productChange,
         filterApplied: state.filterApplied,
-        selectedVendor: state.selectedVendor,
-        selectedVendorIdentifier: state.selectedVendorIdentifier,
-      multiSelect: state.multiSelect,
-      showActionsLg: state.showActionsLg,
-      selectedProductIds: state.selectedProductIds,
-    }),
+        multiSelect: state.multiSelect,
+        showActionsLg: state.showActionsLg,
+        selectedProductIds: state.selectedProductIds,
+      }),
     }
   )
 );

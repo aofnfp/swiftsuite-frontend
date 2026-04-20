@@ -9,7 +9,6 @@ import InventoryLogHeader from "./InventoryLogHeader";
 import InventoryLogTable from "./InventoryLogTable";
 import FixedCustomPagination from "../../cataloguedetails/FixedCustomPagination";
 import Loader from "../../OrderPage/Loader";
-import { Switch } from "@heroui/react";
 import { useInventoryPrefsStore } from "../../stores/inventoryPrefs";
 
 const InventoryLog = () => {

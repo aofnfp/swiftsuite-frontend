@@ -222,7 +222,7 @@ const Fragrancex = () => {
                   type="checkbox"
                   checked={adultSignatureChecked}
                   onChange={handleAdultSignatureCheck}
-                  className="md:w-5 w-6 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5"
+                  className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
                 />
                 <ResponsiveTooltip title="$5 cost is added to any product with adult signature required.">
                   <MdInfo className="text-gray-600 mt-0.5" />
@@ -438,7 +438,7 @@ const Fragrancex = () => {
                   {...register("update_inventory")}
                   checked={inventory}
                   onChange={() => setInventory(!inventory)}
-                  className="md:w-5 w-6 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5"
+                 className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
                 />
                 <ResponsiveTooltip title="Swift Suite will start updating inventory on marketplace for synced products.">
                   <MdInfo className="text-gray-600 mt-0.5" />
@@ -454,8 +454,7 @@ const Fragrancex = () => {
                   {...register("send_orders")}
                   checked={order}
                   onChange={() => setOrder(!order)}
-                  className="md:w-5 w-6 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5"
-                />
+                 className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2" />
                 <ResponsiveTooltip title="Check to allow order to be sent to supplier for fulfilment.">
                   <MdInfo className="text-gray-600 mt-0.5" />
                 </ResponsiveTooltip>
@@ -470,8 +469,7 @@ const Fragrancex = () => {
                   {...register("update_tracking")}
                   checked={tracking}
                   onChange={() => setTracking(!tracking)}
-                  className="md:w-5 w-6 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5"
-                />
+                 className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2" />
                 <ResponsiveTooltip title="Start Updating Order Tracking.">
                   <MdInfo className="text-gray-600 mt-0.5" />
                 </ResponsiveTooltip>

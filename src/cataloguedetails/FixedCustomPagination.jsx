@@ -1,4 +1,4 @@
-import { Button } from '@heroui/react';
+import { Button } from 'antd';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 const FixedCustomPagination = ({ pageCount, onPageChange, currentPage, handleNextPage, handlePreviousPage, handleFirstPage, handleLastPage }) => {
@@ -13,7 +13,11 @@ const FixedCustomPagination = ({ pageCount, onPageChange, currentPage, handleNex
       pageNumbers.push(renderPageNumber(1));
       
       if (currentPage > 3) {
-        pageNumbers.push(<span key="ellipsis1">....</span>);
+        pageNumbers.push(
+          <span key="ellipsis1" className="px-1 text-gray-500 font-semibold">
+            ...
+          </span>
+        );
       }
       
       const startPage = Math.max(2, currentPage - 1);
@@ -24,7 +28,11 @@ const FixedCustomPagination = ({ pageCount, onPageChange, currentPage, handleNex
       }
       
       if (currentPage < pageCount - 2) {
-        pageNumbers.push(<span key="ellipsis2">....</span>);
+        pageNumbers.push(
+          <span key="ellipsis2" className="px-1 text-gray-500 font-semibold">
+            ...
+          </span>
+        );
       }
       
       pageNumbers.push(renderPageNumber(pageCount));
@@ -36,41 +44,60 @@ const FixedCustomPagination = ({ pageCount, onPageChange, currentPage, handleNex
   const renderPageNumber = (page) => (
     <Button
       key={page}
-      className={`px-3 py-1 mx-1 rounded ${currentPage === page ? 'border border-gray-500 font-bold' : ''}`}
-      onPress={() => onPageChange(page)}
+      size="sm"
+      radius="md"
+      variant={currentPage === page ? "bordered" : "flat"}
+      className={`min-w-11 h-10 mx-0.5 font-semibold transition-all bg-[#a4b1ab] border-none hover:!bg-[#4c5e55] hover:!text-white ${
+        currentPage === page
+          ? "bg-white border border-slate-500 text-slate-900 shadow-sm"
+          : "bg-[#d7d8de] text-slate-700 hover:bg-[#cfd1d9]"
+      }`}
+      onClick={() => onPageChange(page)}
     >
       {page}
     </Button>
   );
 
   return (
-    <div className="flex items-center space-x-2 text-gray-800 bg-white p-2 rounded shadow">
+    <div className="flex flex-wrap items-center gap-2 text-gray-800 bg-[#eef1f0] p-3 rounded-lg border border-gray-200">
       <Button
-        className="flex items-center text-gray-700 hover:text-black"
+        size="sm"
+        radius="md"
+        variant="flat"
+        className="h-10 font-semibold bg-[#a4b1ab] text-white border-none hover:!bg-[#4c5e55] hover:!text-white"
         disabled={currentPage === 1}
         onPress={handleFirstPage}
       >
         <FaChevronLeft className="mr-1" /> First
       </Button>
       <Button
-        className="flex items-center text-gray-700 hover:text-black"
+        size="sm"
+        radius="md"
+        variant="flat"
+        className="h-10 font-semibold bg-[#a4b1ab] text-white border-none hover:!bg-[#4c5e55] hover:!text-white"
         disabled={currentPage === 1}
         onPress={handlePreviousPage}
       >
         <FaChevronLeft className="mr-1" /> Previous
       </Button>
 
-      <div className="flex items-center space-x-1">{displayPageNumbers()}</div>
+      <div className="flex items-center gap-1 rounded-lg bg-[#eef1f0] px-1">{displayPageNumbers()}</div>
 
       <Button
-        className="flex items-center text-gray-700 hover:text-black"
+        size="sm"
+        radius="md"
+        variant="flat"
+         className="h-10 font-semibold bg-[#a4b1ab] text-white border-none hover:!bg-[#4c5e55] hover:!text-white"
         disabled={currentPage === pageCount}
         onPress={handleNextPage}
       >
         Next <FaChevronRight className="ml-1" />
       </Button>
       <Button
-        className="flex items-center text-gray-700 hover:text-black"
+        size="sm"
+        radius="md"
+        variant="flat"
+         className="h-10 font-semibold bg-[#a4b1ab] text-white border-none hover:!bg-[#4c5e55] hover:!text-white"
         disabled={currentPage === pageCount}
         onPress={handleLastPage}
       >

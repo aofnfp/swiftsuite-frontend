@@ -14,7 +14,7 @@ const SalesReport = ({ onBack }) => {
   const [fromDate, setFromDate] = useState(today(getLocalTimeZone()));
   const [toDate, setToDate] = useState(today(getLocalTimeZone()));
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState("Export PDF");
+  const [selected, setSelected] = useState(" Export PDF");
 
   const options = [
     { value: "export", label: "Export PDF" },

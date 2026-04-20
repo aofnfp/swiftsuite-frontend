@@ -35,19 +35,15 @@ const Listing = () => {
   const token = localStorage.getItem("token");
   const [isDropdownOpen, setIsDropdownOpen] = useState(null);
   const [productListing, setProductListing] = useState("")
-  const isMappingChecked = useListingStore((state) => state.isMappingChecked);
-  const setIsMappingChecked = useListingStore((state) => state.setIsMappingChecked);
-  const isGiftChecked = useListingStore((state) => state.isGiftChecked);
-  const setIsGiftChecked = useListingStore((state) => state.setIsGiftChecked);
-  const bestOfferEnabled = useListingStore((state) => state.bestOfferEnabled);
-  const setBestOfferEnabled = useListingStore((state) => state.setBestOfferEnabled);
-  const enableCharity = useListingStore((state) => state.enableCharity);
   const description = useListingStore((state) => state.description);
   const setDescription = useListingStore((state) => state.setDescription);
-  const setEnableCharity = useListingStore((state) => state.setEnableCharity);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [subcategories, setSubcategories] = useState([]) || [];
+  const [isMappingChecked, setIsMappingChecked] = useState(false);
+  const [isGiftChecked, setIsGiftChecked] = useState(false);
+  const [bestOfferEnabled, setBestOfferEnabled] = useState(false);
+  const [enableCharity, setEnableCharity] = useState(false);
   const [middleCategories, setMiddleCategories] = useState([]) || [];
   const [lastCategories, setLastCategories] = useState([]) || [];
   const [searchQuery, setSearchQuery] = useState("");
@@ -77,6 +73,7 @@ const Listing = () => {
   const setWcAttributes = useListingStore((state) => state.setWcAttributes);
   const [customInputValues, setCustomInputValues] = useState({});
   const [newItemSpecific, setNewItemSpecific] = useState(false);
+
   const maxLength = 80;
   const title = useListingStore((state) => state.title);
   const setTitle = useListingStore((state) => state.setTitle);
@@ -621,7 +618,6 @@ const Listing = () => {
       setHandleSubmitLoader(false);
       toast.success(response);
     } catch (error) {
-      console.log(error)
       setHandleSubmitLoader(false);
       handleApiError(error);
     }
@@ -842,7 +838,7 @@ const Listing = () => {
                 </div>
                 <div>
                   <input
-                    className="w-5 h-5 rounded-lg border border-gray-500 focus:outline-none appearance-none bg-white checked:bg-green-500 checked:border-green-500 relative checked:after:content-['✓'] checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1/2 checked:after:transform checked:after:-translate-x-1/2 checked:after:leading-5"
+                    className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
                     type="checkbox" onChange={(e) => setIsMappingChecked(e.target.checked)} checked={isMappingChecked} />
                 </div>
               </div>
@@ -853,7 +849,7 @@ const Listing = () => {
                 </div>
                 <div className="flex items-center space-x-2">
                   <input
-                    className="w-5 h-5 rounded-lg border border-gray-500 focus:outline-none appearance-none bg-white checked:bg-green-500 checked:border-green-500 relative checked:after:content-['✓'] checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1/2 checked:after:transform checked:after:-translate-x-1/2 checked:after:leading-5"
+                   className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
                     type="checkbox"
                     onChange={(e) => setIsGiftChecked(e.target.checked)}
                     checked={isGiftChecked}
@@ -869,8 +865,8 @@ const Listing = () => {
                 </div>
                 <div className="flex items-center space-x-2">
                   <input
-                    className="w-5 h-5 rounded-lg border border-gray-500 focus:outline-none appearance-none bg-white checked:bg-green-500 checked:border-green-500 relative checked:after:content-['✓'] checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1/2 checked:after:transform checked:after:-translate-x-1/2 checked:after:leading-5"
-                    type="checkbox" onChange={(e) => setBestOfferEnabled(e.target.checked)} checked={bestOfferEnabled} />
+                  className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
+                  type="checkbox" onChange={(e) => setBestOfferEnabled(e.target.checked)} checked={bestOfferEnabled} />
                 </div>
               </div>
             </div>

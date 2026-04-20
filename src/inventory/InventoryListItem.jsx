@@ -5,8 +5,7 @@ import { MdOutlineCalendarViewMonth } from "react-icons/md";
 import { FiExternalLink } from "react-icons/fi";
 import MarketLogos from "./MarketLogos";
 import VendorLogo from "./VendorLogos";
-import { Image } from "@heroui/react";
-import { Tooltip } from "antd";
+import { Tooltip, Image } from "antd";
 import { formatInventoryDate } from "../utils/utils";
 
 const InventoryListItem = ({ item, handleEditInventory, deleteLoader, setSelectedItemId, setShowModal, showCheckboxes, checkedItems, onToggleItem, handleInventoryDetail }) => {
@@ -18,7 +17,6 @@ const InventoryListItem = ({ item, handleEditInventory, deleteLoader, setSelecte
   }
 
   const status = item?.ends_status;
-  // Treat missing or explicit "Null" as no status
   const hasStatus = status && status !== "Null" && status !== "null";
   const isActive = hasStatus && status.toLowerCase() === "active";
 
@@ -44,10 +42,18 @@ const InventoryListItem = ({ item, handleEditInventory, deleteLoader, setSelecte
         </p>
         <div className="flex items-center justify-center w-full mt-6">
           <Image
-            isZoomed
+            width={140}
+            height={140}
             src={item?.picture_detail || "NoImage"}
             alt={item?.title || ""}
-            className="w-24 h-24 object-cover rounded-md shadow-sm -z-1"
+            className="object-cover rounded-md"
+            preview={{
+              mask: (
+                <div className="flex items-center justify-center w-full h-full backdrop-blur-sm bg-black/40 text-white font-medium">
+                  View
+                </div>
+              ),
+            }}
           />
         </div>
       </div>

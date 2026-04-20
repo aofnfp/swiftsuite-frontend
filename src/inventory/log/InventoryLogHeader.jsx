@@ -1,4 +1,4 @@
-import { Switch } from '@heroui/react';
+import { Switch } from 'antd';
 import React from 'react'
 
 const InventoryLogHeader = ({
@@ -14,15 +14,23 @@ const InventoryLogHeader = ({
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
       <h1 className="text-2xl font-bold text-green-700">Inventory Update</h1>
       <div className="flex items-center">
-        <Switch
-          className="md:mb-0 mb-2"
-          color="success"
-          size="sm"
-          isSelected={inventoryLogChange}
-          onValueChange={(value) => setInventoryLogChange(value)}
-        >
-          {inventoryLogChange ? "Price and quantity update log" : "Inventorylog"}
-        </Switch>
+        <div className="flex items-center  bg-gray-100 px-4 py-3 rounded-xl">
+          <Switch
+            checked={inventoryLogChange}
+            onChange={(checked) => setInventoryLogChange(checked)}
+            className="bg-gray-300"
+            style={{
+              backgroundColor: inventoryLogChange ? "#22c55e" : "#d1d5db",
+            }}
+            thumbStyle={{
+              backgroundColor: inventoryLogChange ? "#ffffff" : "#ffffff",
+            }}
+          />
+          <span className="ml-2 text-sm font-medium text-gray-600">
+            {inventoryLogChange ? "Quantity update log" : "Marketplace log"}
+          </span>
+        </div>
+
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">

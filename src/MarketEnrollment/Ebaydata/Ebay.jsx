@@ -20,6 +20,7 @@ import { marketplaceEnrolment, marketplaceOAuthCallback, refreshEbayConnection, 
 import { extractStoreId } from '../../utils/utils';
 
 import { useMarketplaceStore } from '../../stores/marketplaceStore';
+import { Select } from 'antd';
 
 const Ebay = () => {
   const store = useSelector(state => state.vendor.vendorData);
@@ -633,19 +634,22 @@ const Ebay = () => {
                       Marketplace Region:
                     </label>
                     <div className="w-full sm:flex-1">
-                      <select
-                        {...register("region")}
-                        className="px-2 w-full h-[38px] bg-[#F9F9F9] border border-gray-300 rounded shadow-sm focus:outline-none"
-                        value={selectedCountry || formValues.region || ''}
-                        onChange={handleCountryChange}
-                      >
-                        <option value="">Select Country</option>
-                        {countries.map((country) => (
-                          <option key={country.name} value={country.name}>
-                            {country.name}
-                          </option>
-                        ))}
-                      </select>
+                      <Select
+                      id="region"
+                      {...register("region")}
+                      defaultValue=""
+                      className="w-full"
+                      onChange={handleCountryChange}
+                    >
+                      <option value="">
+                        Select Country
+                      </option>
+                      {countries.map((c) => (
+                        <option key={c.name} value={c.name}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </Select>
                       {errors.region && (
                         <p className="text-red-500 text-xs mt-1">{errors.region.message}</p>
                       )}
@@ -782,7 +786,7 @@ const Ebay = () => {
                           {...register("enable_price_update")} 
                           type="checkbox" 
                           onChange={handleChange}
-                          className="md:w-5 w-8 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5" 
+                          className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
                         />
                       </label>
                     </Tooltip>
@@ -798,7 +802,7 @@ const Ebay = () => {
                           {...register("enable_quantity_update")} 
                           type="checkbox" 
                           onChange={handleChange}
-                          className="md:w-5 w-8 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5" 
+                          className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
                         />
                       </label>
                     </Tooltip>
@@ -816,7 +820,7 @@ const Ebay = () => {
                           type="checkbox" 
                           checked={formValues.enable_charity} 
                           onChange={handleChange} 
-                          className="md:w-5 w-8 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5" 
+                          className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
                         />
                       </label>
                     </div>
@@ -869,7 +873,7 @@ const Ebay = () => {
                             type="checkbox"
                             checked={formValues.enable_best_offer}
                             onChange={handleChange}
-                            className="md:w-5 w-8 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5"
+                            className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
                           />
                         </label>
                       </Tooltip>
@@ -889,7 +893,7 @@ const Ebay = () => {
                             disabled={!formValues.enable_best_offer}
                             checked={formValues.send_min_price}
                             onChange={handleChange}
-                            className={`md:w-5 w-8 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5 ${
+                            className={`appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2 ${
                               !formValues.enable_best_offer ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
                           />
@@ -974,7 +978,7 @@ const Ebay = () => {
                         {...register("warn_copyright_complaints")} 
                         checked={formValues.warn_copyright_complaints} 
                         onChange={handleChange} 
-                        className="md:w-5 w-8 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5" 
+                        className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/5"
                       />
                     </label>
                   </div>
@@ -986,7 +990,7 @@ const Ebay = () => {
                         type="checkbox" 
                         checked={formValues.warn_restriction_violation} 
                         onChange={handleChange} 
-                        className="md:w-5 w-8 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5" 
+                        className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/5" 
                       />
                     </label>
                   </div>

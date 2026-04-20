@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Tooltip } from "@heroui/react";
+import { Button, Tooltip } from "antd";
 import { FaMinus, FaPlus } from "react-icons/fa";
 import { MdArrowDropDown } from "react-icons/md";
 import { toast, Toaster } from "sonner";
@@ -92,8 +92,8 @@ const ListingPreferences = ({ productListing, setProductListing, enableCharity, 
       >
         <div className="font-bold">LISTING PREFERENCES</div>
         {!open ? (
-          <Tooltip content="Add New Pricing">
-            <Button onClick={handleToggle} color="success" size="10">
+          <Tooltip title="Add New Pricing" placement="top">
+            <Button onClick={handleToggle} className="h-10 font-semibold bg-[#089451] text-white border-none hover:!bg-[#06703d] hover:!text-white">
               <FaPlus
                 size={15}
                 className="text-white float-end hover:text-green-600 cursor-pointer"
@@ -101,8 +101,8 @@ const ListingPreferences = ({ productListing, setProductListing, enableCharity, 
             </Button>
           </Tooltip>
         ) : (
-          <Tooltip content="Close">
-            <Button onClick={handleToggle} color="success" size="10">
+          <Tooltip title="Close" placement="top">
+            <Button onClick={handleToggle} className="h-10 font-semibold bg-[#089451] text-white border-none hover:!bg-[#06703d] hover:!text-white">
               <FaMinus
                 size={15}
                 className="text-white float-end hover:text-green-600 cursor-pointer"
@@ -174,7 +174,7 @@ const ListingPreferences = ({ productListing, setProductListing, enableCharity, 
                   </div>
                   <div id="folder"
                     className={
-                      shipPolicyToggle ? "absolute w-full z-30 overflow-y-auto max-h-[30vh] bg-white shadow" : "hidden"
+                      shipPolicyToggle ? "absolute cursor-pointer w-full z-30 overflow-y-auto max-h-[30vh] bg-white shadow" : "hidden"
                     }
                   >
                     {fulfillmentPolicies.map((items, i) => (
@@ -201,7 +201,7 @@ const ListingPreferences = ({ productListing, setProductListing, enableCharity, 
                   </div>
                   <div id="folder"
                     className={
-                      returnPolicyToggle ? "absolute w-full z-20 overflow-y-auto max-h-[30vh] bg-white shadow" : "hidden"
+                      returnPolicyToggle ? "absolute cursor-pointer w-full z-20 overflow-y-auto max-h-[30vh] bg-white shadow" : "hidden"
                     }
                   >
                     {returnPolicies.map((items, i) => (
@@ -228,7 +228,7 @@ const ListingPreferences = ({ productListing, setProductListing, enableCharity, 
                   </div>
                   <div id="folder"
                     className={
-                      paymentPolicyToggle ? "absolute w-full z-10 bg-white shadow overflow-y-auto max-h-[30vh]" : "hidden"
+                      paymentPolicyToggle ? "absolute cursor-pointer w-full z-10 bg-white shadow overflow-y-auto max-h-[30vh]" : "hidden"
                     }
                   >
                     {paymentPolicies.map((items, i) => (
@@ -242,9 +242,8 @@ const ListingPreferences = ({ productListing, setProductListing, enableCharity, 
             </div>
           </section>
 
-          {/* {productListing?.enable_charity && ( */}
           <>
-            <h1 className="my-3 font-bold">CHARITY DONATION</h1>
+            <h3 className="my-3 font-bold">CHARITY DONATION</h3>
             <div className="flex items-center gap-2">
               <label htmlFor="" className="font-semibold">Enable Charity</label>
               <div>

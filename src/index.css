@@ -1,4 +1,4 @@
-@import 'tailwindcss/base';
+/* @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
@@ -119,4 +119,304 @@ input[type="number"]::-webkit-inner-spin-button {
 .transparent-scroll {
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.marketplace-selector .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #089451 !important;
+  border-color: #089451 !important;
+}
+
+.marketplace-selector .ant-checkbox-wrapper:hover .ant-checkbox-inner,
+.marketplace-selector .ant-checkbox:hover .ant-checkbox-inner,
+.marketplace-selector .ant-checkbox-input:focus + .ant-checkbox-inner {
+  border-color: #089451 !important;
+}
+
+.order-page .ant-btn-default:hover,
+.order-page .ant-btn-default:focus,
+.order-page .ant-btn-default:focus-visible {
+  color: #089451 !important;
+  border-color: #089451 !important;
+}
+
+.order-page .ant-dropdown-menu .ant-dropdown-menu-item-selected {
+  color: #089451 !important;
+  background-color: #e7f2ed !important;
+}
+
+.inventory-sorting .ant-btn-default:hover,
+.inventory-sorting .ant-btn-default:focus,
+.inventory-sorting .ant-btn-default:focus-visible {
+  color: #089451 !important;
+  border-color: #089451 !important;
+}
+
+.inventory-sorting .ant-dropdown-menu .ant-dropdown-menu-item-selected {
+  color: #089451 !important;
+  background-color: #e7f2ed !important;
+}
+
+.item-specific-fields .ant-input:hover,
+.item-specific-fields .ant-input:focus,
+.item-specific-fields .ant-input-focused,
+.item-specific-fields .ant-input-affix-wrapper:hover,
+.item-specific-fields .ant-input-affix-wrapper:focus,
+.item-specific-fields .ant-input-affix-wrapper-focused {
+  border-color: #089451 !important;
+  box-shadow: 0 0 0 2px rgba(8, 148, 81, 0.12) !important;
+} */
+
+
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* 🔥 Better font (replace Roboto) */
+/* @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'); */
+/* 🔥 Montserrat font */
+/* @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap'); */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+/* Base tweaks */
+@layer base {
+  input {
+    font-size: 16px;
+  }
+
+  h1, h2, h3, h4, h5 {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: #0f172a;
+  }
+
+  h1 { font-size: 32px; }
+  h2 { font-size: 26px; }
+  h3 { font-size: 20px; }
+}
+
+/* Global styling */
+body {
+  overflow-x: hidden;
+  /* font-family: 'Inter', sans-serif; */
+  font-family: 'Montserrat', sans-serif;
+  font-size: 15px;
+  /* font-weight: 600; */
+  line-height: 1.6;
+  color: #0f172a;
+  background-color: #f8fafc;
+}
+
+/* Scroll container */
+#folder {
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
+  background: #f8fafc;
+}
+
+#folder::-webkit-scrollbar {
+  width: 8px;
+}
+
+#folder::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+#folder::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+#folder::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+/* Card (🔥 big UI upgrade) */
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* Inputs */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Toasts */
+[data-sonner-toast] {
+  color: white !important;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  width: auto !important;
+  max-width: 90vw !important;
+  min-width: 200px;
+  word-break: break-word;
+}
+
+[data-sonner-toast][data-type="error"] {
+  background-color: #ca0e11 !important;
+}
+
+[data-sonner-toast][data-type="success"] {
+  background-color: #089451 !important;
+}
+
+/* Phone input */
+.PhoneInputInput {
+  background-color: #f9fafb !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  outline: none !important;
+}
+
+.PhoneInputInput:focus {
+  border-color: #089451 !important;
+  box-shadow: 0 0 0 2px rgba(8, 148, 81, 0.15) !important;
+}
+
+/* Mobile tweaks */
+@media (max-width: 640px) {
+  [data-sonner-toast] {
+    padding: 8px;
+    max-width: 70vw !important;
+    text-align: center;
+  }
+}
+
+/* Scroll helpers */
+.sidebar-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.transparent-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.transparent-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.transparent-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 999px;
+}
+
+.transparent-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.transparent-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+/* Buttons */
+button {
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+/* Ant Design overrides (kept your logic, improved feel) */
+.marketplace-selector .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #089451 !important;
+  border-color: #089451 !important;
+}
+
+.marketplace-selector .ant-checkbox-wrapper:hover .ant-checkbox-inner,
+.marketplace-selector .ant-checkbox:hover .ant-checkbox-inner,
+.marketplace-selector .ant-checkbox-input:focus + .ant-checkbox-inner {
+  border-color: #089451 !important;
+}
+
+.order-page .ant-btn-default:hover,
+.order-page .ant-btn-default:focus {
+  color: #089451 !important;
+  border-color: #089451 !important;
+}
+
+.order-page .ant-dropdown-menu .ant-dropdown-menu-item-selected {
+  color: #089451 !important;
+  background-color: #e7f2ed !important;
+}
+
+.inventory-sorting .ant-btn-default:hover,
+.inventory-sorting .ant-btn-default:focus {
+  color: #089451 !important;
+  border-color: #089451 !important;
+}
+
+.inventory-sorting .ant-dropdown-menu .ant-dropdown-menu-item-selected {
+  color: #089451 !important;
+  background-color: #e7f2ed !important;
+}
+
+.item-specific-fields .ant-input:hover,
+.item-specific-fields .ant-input:focus,
+.item-specific-fields .ant-input-affix-wrapper:hover,
+.item-specific-fields .ant-input-affix-wrapper-focused {
+  border-color: #089451 !important;
+  box-shadow: 0 0 0 2px rgba(8, 148, 81, 0.12) !important;
+}
+
+/* Selected item background */
+.ant-dropdown-menu-item-selected {
+  background-color: #e6f4ea !important;
+}
+
+/* Selected item text */
+.ant-dropdown-menu-item-selected .ant-dropdown-menu-title-content {
+  color: #027840 !important;
+}
+
+/* Hover effect */
+.ant-dropdown-menu-item:hover {
+  background-color: #f0fdf4 !important;
+}
+
+/* Selected option */
+.ant-select-item-option-selected {
+  background-color: #e6f4ea !important;
+  color: #027840 !important;
+}
+
+/* Hover */
+.ant-select-item-option-active {
+  background-color: #f0fdf4 !important;
+}
+
+/* Focus border */
+.ant-select-focused .ant-select-selector {
+  border-color: #027840 !important;
+  box-shadow: 0 0 0 2px rgba(2, 120, 64, 0.2) !important;
+}
+
+.ant-select-focused .ant-select-selector,
+.ant-select-selector:focus,
+.ant-select:not(.ant-select-disabled):not(.ant-select-customize-input):not(.ant-pagination-size-changer):hover .ant-select-selector {
+  border-color: #027840 !important;
+  box-shadow: 0 0 0 2px rgba(82, 196, 26, 0.2) !important;
+}
+
+.ant-select-selection-item {
+  color: #000000 !important;
 }

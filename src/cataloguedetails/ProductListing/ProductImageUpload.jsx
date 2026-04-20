@@ -3,10 +3,10 @@ import gif from "../../Images/gif.gif";
 import { Toaster, toast } from "sonner";
 import { MdOutlineDelete } from "react-icons/md";
 import { deleteListingImage, getListingImage, uploadListingImage } from "../../api/authApi";
-import { Image } from "@heroui/react";
+import { Image } from "antd";
 
 function ProductImageUpload({ productListing, thumbnailImage, setThumbnailImage, productId, userId }) {
-  const [mainImage, setMainImage] = useState(productListing?.image || productListing?.picture_detail || "");  
+  const [mainImage, setMainImage] = useState(productListing?.image || productListing?.picture_detail || "");
   const [loader, setLoader] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [deleteLoader, setDeleteLoader] = useState({});
@@ -49,8 +49,7 @@ function ProductImageUpload({ productListing, thumbnailImage, setThumbnailImage,
         successCount;
       if (currentTotal >= maxImages) {
         toast.warning(
-          `Maximum ${maxImages} images allowed. ${
-            files.length - i
+          `Maximum ${maxImages} images allowed. ${files.length - i
           } files skipped.`
         );
         break;
@@ -104,31 +103,31 @@ function ProductImageUpload({ productListing, thumbnailImage, setThumbnailImage,
   };
 
   const handleGetImage = async () => {
-  try {
-    const response = await getListingImage(userId, productId);
-    const imageData = response.image_data;
-    const imageUrls = imageData.flatMap((item) => {
-      try {
-        const parsed = JSON.parse(item.image_url);
-        return parsed.map((p) => ({
-          ...item,
-          image_url: p.image_url,
-        }));
-      } catch (e) {
-        toast.error("Error parsing image_url");
-        return [];
+    try {
+      const response = await getListingImage(userId, productId);
+      const imageData = response.image_data;
+      const imageUrls = imageData.flatMap((item) => {
+        try {
+          const parsed = JSON.parse(item.image_url);
+          return parsed.map((p) => ({
+            ...item,
+            image_url: p.image_url,
+          }));
+        } catch (e) {
+          toast.error("Error parsing image_url");
+          return [];
+        }
+      });
+      setThumbnailImageDisplay(imageUrls);
+      const images = imageUrls.map((img) => img.image_url);
+      const formattedImages = JSON.stringify(images);
+      setThumbnailImage(formattedImages);
+      if (!mainImage && imageUrls.length > 0) {
+        setMainImage(imageUrls[0].image_url);
       }
-    });
-    setThumbnailImageDisplay(imageUrls);
-    const images = imageUrls.map((img) => img.image_url);
-    const formattedImages = JSON.stringify(images);
-    setThumbnailImage(formattedImages);
-    if (!mainImage && imageUrls.length > 0) {
-      setMainImage(imageUrls[0].image_url);
+    } catch (error) {
     }
-  } catch (error) {
-  }
-};
+  };
 
   const handleImageClick = (img) => {
     setMainImage(img);
@@ -147,7 +146,7 @@ function ProductImageUpload({ productListing, thumbnailImage, setThumbnailImage,
       setThumbnailImage(remainingImageUrls.length > 0 ? updatedFormattedImages : "Null");
 
       // If deleted image was the main image, set a new main image
-      const deletedImageUrl = thumbnailImageDisplay.find((img) => img.id === imageId)?.image_url; 
+      const deletedImageUrl = thumbnailImageDisplay.find((img) => img.id === imageId)?.image_url;
       if (mainImage === deletedImageUrl) {
         setMainImage(
           updatedImages.length > 0
@@ -171,32 +170,37 @@ function ProductImageUpload({ productListing, thumbnailImage, setThumbnailImage,
     <section>
       <Toaster position="top-right" richColors />
       <div className="bg-white rounded-b-2xl border border-gray-200 p-5">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-semibold text-gray-700">
-              Main Product Image
-            </h3>
-            <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-              {totalImages}/{maxImages} images
-            </span>
-          </div>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-semibold text-gray-700">
+            Main Product Image
+          </h3>
+          <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+            {totalImages}/{maxImages} images
+          </span>
+        </div>
         <div className="flex items-center justify-between mb-4 flex-wrap">
-          <div className="relative">
-            {mainImage && (
-              <Image
-                isZoomed
-                src={mainImage}
-                className="w-96 h-72 object-cover rounded-xl border-2 border-gray-200 shadow-md -z-1"
-                alt="Main Product"
-              />
-            )}
+          <div className="relative group w-[320px] h-[260px] flex items-center justify-center bg-white rounded-xl border-2 border-gray-200 shadow-md overflow-hidden">
+            <Image
+              src={mainImage}
+              alt={productListing?.title || "Main Product"}
+              className="w-full h-full object-contain max-h-full max-w-full"
+              onError={() => setMainImage("")}
+              preview={false}
+            />
+            <a
+              href={mainImage}
+              download
+              className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition text-white text-sm"
+            >
+              Download
+            </a>
           </div>
           <div className="mb-8">
             <h3 className="text-lg font-semibold text-gray-700 mb-4">
               Add New Images
             </h3>
 
-            <div className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 ${dragActive ? "border-blue-400 bg-blue-50" : "border-gray-300 hover:border-blue-400 hover:bg-blue-50" } ${
-                totalImages >= maxImages || loader ? "opacity-50 cursor-not-allowed" : "cursor-pointer" }`}
+            <div className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 ${dragActive ? "border-blue-400 bg-blue-50" : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"} ${totalImages >= maxImages || loader ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -281,12 +285,11 @@ function ProductImageUpload({ productListing, thumbnailImage, setThumbnailImage,
                 <img
                   src={productListing?.image || productListing?.picture_detail}
                   alt="Original Product"
-                  className={`w-full h-24 object-cover rounded-lg cursor-pointer border-2 transition-colors duration-200 ${
-                    mainImage ===
+                  className={`w-full h-24 object-cover rounded-lg cursor-pointer border-2 transition-colors duration-200 ${mainImage ===
                     (productListing?.image || productListing?.picture_detail)
-                      ? "border-blue-500"
-                      : "border-gray-200 hover:border-blue-400"
-                  }`}
+                    ? "border-blue-500"
+                    : "border-gray-200 hover:border-blue-400"
+                    }`}
                   onClick={() =>
                     handleImageClick(
                       productListing?.image || productListing?.picture_detail
@@ -303,11 +306,10 @@ function ProductImageUpload({ productListing, thumbnailImage, setThumbnailImage,
                 <img
                   src={img.image_url}
                   alt={`Product ${index + 1}`}
-                  className={`w-full h-24 object-cover rounded-lg cursor-pointer border-2 transition-colors duration-200 ${
-                    mainImage === img.image_url
-                      ? "border-blue-500"
-                      : "border-gray-200 hover:border-blue-400"
-                  }`}
+                  className={`w-full h-24 object-cover rounded-lg cursor-pointer border-2 transition-colors duration-200 ${mainImage === img.image_url
+                    ? "border-blue-500"
+                    : "border-gray-200 hover:border-blue-400"
+                    }`}
                   onClick={() => handleImageClick(img.image_url)}
                 />
                 <button
@@ -329,7 +331,7 @@ function ProductImageUpload({ productListing, thumbnailImage, setThumbnailImage,
                   </div>
                 )}
                 <div className="absolute bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <div  onClick={() => handleImageClick(img.image_url)} className="bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded cursor-pointer">
+                  <div onClick={() => handleImageClick(img.image_url)} className="bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded cursor-pointer">
                     Click to set as main
                   </div>
                 </div>

@@ -1,7 +1,7 @@
 import { CiEdit } from "react-icons/ci";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { MdOutlineCalendarViewMonth } from "react-icons/md";
-import { Image, Tooltip } from "@heroui/react";
+import { Tooltip, Image } from "antd";
 import MarketLogos from "./MarketLogos";
 import VendorLogo from "./VendorLogos";
 import { formatInventoryDate } from "../utils/utils";
@@ -32,8 +32,8 @@ export default function InventoryGridItem({
             checked={checkedItems.includes(item.id)}
             onChange={() => onToggleItem(item.id)}
             className={`w-4 h-4 appearance-none border-1 border-[#089451] rounded ${checkedItems.includes(item?.id)
-                ? "bg-[#089451] border-[#089451]"
-                : ""
+              ? "bg-[#089451] border-[#089451]"
+              : ""
               }`}
           />
         </div>
@@ -53,10 +53,18 @@ export default function InventoryGridItem({
       </div>
       <div className="flex items-center justify-center p-5 w-full bg-white">
         <Image
-          isZoomed
-          src={item?.picture_detail || "/default-bag.jpg"}
-          alt={item?.title || "Product"}
-          className="h-32 object-contain z-0"
+          width={140}
+          height={140}
+          src={item?.picture_detail || "NoImage"}
+          alt={item?.title}
+          className="object-cover rounded-md"
+          preview={{
+            mask: (
+              <div className="flex items-center justify-center w-full h-full backdrop-blur-sm bg-black/40 text-white font-medium">
+                View
+              </div>
+            ),
+          }}
         />
       </div>
       <div className="p-2 bg-white">

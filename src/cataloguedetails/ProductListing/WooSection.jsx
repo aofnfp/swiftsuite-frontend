@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "@heroui/react";
+import { Button } from "antd";
 import GetWooCategory from "./GetWooCategory";
 import AttributeAdder from "./AttributeAdder";
 import { BiChevronDown, BiChevronUp } from "react-icons/bi";
@@ -41,12 +41,10 @@ const WooSection = ({
               <div className="font-semi-bold text-xl mt-3">Get WooCommerce Category</div>
               <div className="text-center">
                 <Button
-                  className="text-white"
-                  onPress={handleWooCommerceCategory}
+                   className="w-full h-10 font-semibold bg-[#089451] text-white border-none hover:!bg-[#06703d] hover:!text-white"
+                  OnClick={handleWooCommerceCategory}
                   disabled={!isWoocommerce}
                   isLoading={loadingWooCategories}
-                  variant="solid"
-                  color="success"
                   size="lg"
                 >
                   Category Name

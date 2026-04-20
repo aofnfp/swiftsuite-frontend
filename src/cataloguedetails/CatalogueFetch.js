@@ -31,6 +31,7 @@ export const useGetVendorProducts = ({
   }).toString();
 
   const endpoint = selectedProduct ? selectedProduct.endpoint.replace("${userId}", userId).replace("${page}", page) +`&limit=${selectedProductPerPage}` +(queryParams ? `&${queryParams}` : "") : "";
+  console.log(endpoint)
   return useQuery({
     queryKey: [
       "vendorProducts",

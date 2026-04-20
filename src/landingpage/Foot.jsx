@@ -19,7 +19,6 @@ const Foot = () => {
     '/layout/market',
     '/layout/mymarket',
     '/layout/editvendor',
-    '/layout/selectedproduct',
     '/layout/ebay',
     '/layout/listing',
     '/layout/order',

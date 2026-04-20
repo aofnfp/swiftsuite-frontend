@@ -7,7 +7,6 @@ import Product from '../cataloguedetails/Product';
 import Enrolment from '../Vendorenrolment/Enrolment';
 import Catalogue from '../cataloguedetails/Catalogue';
 import Inventory from '../inventory/Inventory';
-import Selectedproduct from '../SelectedProduct/Selectedproduct';
 import Ebay from '../MarketEnrollment/Ebaydata/Ebay';
 import Order from '../OrderPage/Order';
 import OrderDetails from '../OrderPage/OrderDetails';
@@ -80,7 +79,6 @@ const bgClass = newBgPaths.includes(location.pathname) ? 'bg-[#f2f2f2]' : 'bg-[#
             <Route path="/enrolment" element={<Enrolment />} />
             <Route path="/market" element={<MarketParent />} />
             <Route path="/success" element={<Success />} />
-            <Route path="/selectedproduct" element={<Selectedproduct />} />
             <Route path="/ebay" element={<Ebay />} />
             <Route path="/listing/:productId" element={<Listing />} />
             <Route path="/order" element={<Order />} />

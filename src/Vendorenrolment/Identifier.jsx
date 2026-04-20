@@ -56,13 +56,6 @@ const Identifier = () => {
     }
   };
 
-  useEffect(() => {
-    if (store) {
-      setValue("identifier", store.identifier);
-      setValue("description", store.description);
-    }
-  }, [store, setValue]);
-
   return (
     <section className="h-screen">
       <div className="bg-white py-3 shadow-lg">

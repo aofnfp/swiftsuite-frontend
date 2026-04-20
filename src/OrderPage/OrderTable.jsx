@@ -198,7 +198,7 @@ const OrderTable = ({ filteredUsers, handleRefresh, error, handleRowClick }) => 
                           <BsThreeDotsVertical size={20} />
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent>
+                      <PopoverContent className="bg-gray-100 rounded-lg shadow-lg">
                         <button
                           onClick={() => handleRowClick(order)}
                           className="mt-2 px-4 py-1 text-sm hover:bg-gray-200 rounded-md"

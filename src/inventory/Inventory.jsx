@@ -5,7 +5,8 @@ import { Tooltip } from "antd";
 import InventoryData from "./ListingTable/InventoryData";
 import { RiLayoutGridFill } from "react-icons/ri";
 import { MdOutlineCancel, MdOutlineDelete } from "react-icons/md";
-import { useDisclosure, Switch, Button, Skeleton } from "@heroui/react";
+import { useDisclosure } from "@heroui/react";
+import { Switch, Button, Skeleton } from 'antd';
 import EditInventoryModal from "./EditInventoryModal";
 import gif from "../Images/gif.gif";
 import { Toaster, toast } from "sonner";
@@ -35,7 +36,6 @@ const Inventory = () => {
   const { subscribed } = useSelector((state) => state.permission);
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
-  console.log(userId)
 
   const inventoryRef = useRef();
   const activeRequestRef = useRef(0);
@@ -421,7 +421,7 @@ const Inventory = () => {
           <div className="flex flex-col lg:flex-row lg:items-center gap-3 w-full">
             <div className="flex flex-wrap items-center gap-3 lg:flex-nowrap">
               {loader ? (
-                <Skeleton className="h-10 w-64 rounded-lg" />
+                <Skeleton className="h-10 w-64 rounded-lg" active={true} paragraph={{ rows: 1 }}/>
               ) : (
                 <InventoryPagination handleNextPage={handleNextPage} handlePreviousPage={handlePreviousPage} handleFirstPage={handleFirstPage} handleLastPage={handleLastPage} listingDetail={filteredItems} currentPage={page} pageCount={pageCount} totalItems={count} itemsPerPage={selectedProductPerPage} />
               )}
@@ -469,7 +469,22 @@ const Inventory = () => {
         <div className="w-full mt-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
           <div className="flex flex-col gap-4 w-full lg:w-auto">
             <div className="flex items-center">
-              <Switch className="md:mb-0 mb-2" color="success" size="sm" isSelected={multiSelect} onValueChange={(value) => setMultiSelect(value)}> Unmapped </Switch>
+              <div className="flex items-center  bg-gray-100 px-4 py-3 rounded-xl">
+                <Switch
+                  checked={multiSelect}
+                  onChange={(checked) => setMultiSelect(checked)}
+                  className="bg-gray-300"
+                  style={{
+                    backgroundColor: multiSelect ? "#22c55e" : "#d1d5db",
+                  }}
+                  thumbStyle={{
+                    backgroundColor: multiSelect ? "#ffffff" : "#ffffff",
+                  }}
+                />
+                <span className="ml-2 text-sm font-medium text-gray-600">
+                  Unmapped
+                </span>
+              </div>
             </div>
 
             {multiSelect && (
@@ -488,7 +503,7 @@ const Inventory = () => {
                 <VendorlistDropdown onChange={(v) => setSelectedVendor(v)} open={openVendor} setOpen={setOpenVendor} catalogue={vendorList} selected={selectedVendor || "Select Vendor"} />
                 <MarketplaceDropdown selected={selectedMarketplacePlatform?.endpointName || "Select Marketplace"} onChange={(v) => { setSelectedMarketplacePlatform(v); setSearch_query(v.endpointName); setPage(1); }} open={openMarketplacePlatform} setOpen={setOpenMarketplacePlatform} catalogue={marketplacesEnrolled} />
                 <div className="flex items-center gap-2">
-                  <button onClick={handleMapProducts} className={`flex items-center gap-2 px-4 py-2 rounded bg-green-700 text-white font-medium shadow-sm hover:bg-green-800 hover:shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${checkedItems.length === 0 ? "cursor-not-allowed opacity-50" : ""}`}>  
+                  <button onClick={handleMapProducts} className={`flex items-center gap-2 px-4 py-2 rounded bg-green-700 text-white font-medium shadow-sm hover:bg-green-800 hover:shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${checkedItems.length === 0 ? "cursor-not-allowed opacity-50" : ""}`}>
                     {loader ? (
                       <img src={gif} className="w-5 h-5" alt="loading" />
                     ) : (
@@ -514,7 +529,15 @@ const Inventory = () => {
             )}
           </div>
           <div className="flex items-center">
-            <Button onPress={() => inventoryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })} className="capitalize text-green-700 font-semibold" variant="bordered" color="success">  
+            <Button
+              className="!bg-green-700 !border-green-700 text-white hover:!text-white !hover:bg-green-800" size="large"
+              onClick={() =>
+                inventoryRef.current?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "start",
+                })
+              }
+            >
               View Saved Listings
             </Button>
           </div>
@@ -527,11 +550,11 @@ const Inventory = () => {
           <>
             {viewMode === "list" && (
               <InventoryListView data={getSortedListing()} handleEditInventory={handleEditInventory} deleteLoader={deleteLoader} setSelectedItemId={setSelectedItemId} setShowModal={setShowModal} handleInventoryDetail={handleInventoryDetail} showCheckboxes={multiSelect}
-               checkedItems={checkedItems} onToggleItem={(id) => { setCheckedItems((prev) => prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]); }} />
+                checkedItems={checkedItems} onToggleItem={(id) => { setCheckedItems((prev) => prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]); }} />
             )}
             {viewMode === "grid" && (
               <InventoryGridView data={getSortedListing()} handleEditInventory={handleEditInventory} deleteLoader={deleteLoader} setSelectedItemId={setSelectedItemId} setShowModal={setShowModal} handleInventoryDetail={handleInventoryDetail} showCheckboxes={multiSelect}
-               checkedItems={checkedItems} onToggleItem={(id) => { setCheckedItems((prev) => prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]); }} />
+                checkedItems={checkedItems} onToggleItem={(id) => { setCheckedItems((prev) => prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]); }} />
             )}
             {showModal && (
               <DeleteModal onConfirm={handleDelete} selectedItemId={selectedItemId} onClose={() => setShowModal(false)} />

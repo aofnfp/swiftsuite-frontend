@@ -2,13 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { toast, Toaster } from "sonner";
-import {
-  Button,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger,
-} from "@heroui/react";
+import { Button, Dropdown } from "antd";
 import FixedCustomPagination from "../cataloguedetails/FixedCustomPagination";
 import { orderProduct } from "../api/authApi";
 import OrderTable from "./OrderTable";
@@ -134,6 +128,16 @@ const Order = () => {
     { key: "creationDate", label: "Date" },
   ];
 
+  const sortMenuItems = SORT_OPTIONS.map((option) => ({
+    key: option.key,
+    label: option.label,
+  }));
+
+  const perPageMenuItems = [10, 20, 40, 60, 80, 100].map((num) => ({
+    key: String(num),
+    label: `${num} per page`,
+  }));
+
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
     setPage(1);
@@ -229,7 +233,7 @@ const Order = () => {
   };
 
   return (
-    <div className="bg-[#E7F2ED] p-5 md:mt-20 mt-10">
+    <div className="order-page bg-[#E7F2ED] p-5 md:mt-20 mt-10">
       <Toaster position="top-right" />
       <SubscriptionModal
         isOpen={showModal}
@@ -257,9 +261,7 @@ const Order = () => {
                             ? 'bg-[#E7F2ED] text-[#005D68] border border-[#8ed7c3] shadow-sm'
                             : 'bg-white text-gray-600 border border-gray-200 hover:bg-green-50'
                         }`}
-                        onPress={() => handleOrderStatus(status)}
-                        variant="bordered"
-                        size="lg"
+                        onClick={() => handleOrderStatus(status)}
                       >
                         {normalized}
                       </Button>
@@ -313,70 +315,50 @@ const Order = () => {
                 </div>
               )}
 
-              <Dropdown>
-                <DropdownTrigger>
-                  <Button
-                    className="capitalize text-black font-semibold -z-1"
-                    variant="bordered"
-                    disabled={orders.length === 0}
-                  >
-                    {sortConfig?.key
-                      ? `${
-                          SORT_OPTIONS.find((opt) => opt.key === sortConfig.key)
-                            ?.label
-                        } (${sortConfig.direction === "ascending" ? "Asc" : "Desc"})`
-                      : "Sort By"}
-                  </Button>
-                </DropdownTrigger>
-                <DropdownMenu
-                  aria-label="Sort selection"
-                  disallowEmptySelection
-                  selectionMode="single"
-                  selectedKeys={new Set([sortConfig.key])}
-                  onSelectionChange={(keys) => {
-                    const selectedKey = Array.from(keys)[0];
-                    if (selectedKey === 'creationDate') {
-                      const currentDir = sortConfig?.direction === 'descending' ? 'ascending' : 'descending';
-                      setSortConfig({ key: selectedKey, direction: currentDir });
+              <Dropdown
+                trigger={["click"]}
+                disabled={orders.length === 0}
+                menu={{
+                  items: sortMenuItems,
+                  selectable: true,
+                  selectedKeys: sortConfig?.key ? [sortConfig.key] : [],
+                  onClick: ({ key }) => {
+                    if (key === "creationDate") {
+                      const currentDir =
+                        sortConfig?.direction === "descending"
+                          ? "ascending"
+                          : "descending";
+                      setSortConfig({ key, direction: currentDir });
                     }
-                  }}
-                >
-                  {SORT_OPTIONS.map((option) => (
-                    <DropdownItem key={option.key}>{option.label}</DropdownItem>
-                  ))}
-                </DropdownMenu>
+                  },
+                }}
+              >
+                <Button className="capitalize text-black font-semibold">
+                  {sortConfig?.key
+                    ? `${
+                        SORT_OPTIONS.find((opt) => opt.key === sortConfig.key)
+                          ?.label
+                      } (${sortConfig.direction === "ascending" ? "Asc" : "Desc"})`
+                    : "Sort By"}
+                </Button>
               </Dropdown>
-              <Dropdown>
-                <DropdownTrigger>
-                  <Button
-                    className="capitalize text-black font-semibold -z-1"
-                    variant="bordered"
-                    disabled={orders.length === 0}
-                  >
-                    {selectedOrderPerPage} per page
-                  </Button>
-                </DropdownTrigger>
-                <DropdownMenu
-                  aria-label="Per page selection"
-                  disallowEmptySelection
-                  selectionMode="single"
-                  selectedKeys={new Set([String(selectedOrderPerPage)])}
-                  onSelectionChange={(keys) => {
-                    const selectedValue = Array.from(keys)[0];
+              <Dropdown
+                trigger={["click"]}
+                disabled={orders.length === 0}
+                menu={{
+                  items: perPageMenuItems,
+                  selectable: true,
+                  selectedKeys: [String(selectedOrderPerPage)],
+                  onClick: ({ key }) => {
                     handleOrderPerPageChange({
-                      target: { value: selectedValue },
+                      target: { value: key },
                     });
-                  }}
-                >
-                  {[10, 20, 40, 60, 80, 100].map((num) => (
-                    <DropdownItem
-                      key={String(num)}
-                      textValue={`${num} items per page`}
-                    >
-                      {num} per page
-                    </DropdownItem>
-                  ))}
-                </DropdownMenu>
+                  },
+                }}
+              >
+                <Button className="capitalize text-black font-semibold">
+                  {selectedOrderPerPage} per page
+                </Button>
               </Dropdown>
             </div>
           </div>

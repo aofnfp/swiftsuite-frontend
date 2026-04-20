@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Tooltip } from "@heroui/react";
+import { Button, Tooltip } from "antd";
 import { FaMinus, FaPlus } from "react-icons/fa";
 import { MdArrowDropDown } from "react-icons/md";
 import { toast, Toaster } from "sonner";
@@ -92,8 +92,8 @@ const ListingPreferences = ({ productListing, setProductListing, enableCharity, 
       >
         <div className="font-bold">LISTING PREFERENCES</div>
         {!open ? (
-          <Tooltip content="Add New Pricing">
-            <Button onClick={handleToggle} color="success" size="10">
+          <Tooltip title="Add New Pricing" placement="top">
+            <Button onClick={handleToggle} className="h-10 font-semibold bg-[#089451] text-white border-none hover:!bg-[#06703d] hover:!text-white">
               <FaPlus
                 size={15}
                 className="text-white float-end hover:text-green-600 cursor-pointer"
@@ -101,8 +101,8 @@ const ListingPreferences = ({ productListing, setProductListing, enableCharity, 
             </Button>
           </Tooltip>
         ) : (
-          <Tooltip content="Close">
-            <Button onClick={handleToggle} color="success" size="10">
+          <Tooltip title="Close" placement="top">
+            <Button onClick={handleToggle} className="h-10 font-semibold bg-[#089451] text-white border-none hover:!bg-[#06703d] hover:!text-white">
               <FaMinus
                 size={15}
                 className="text-white float-end hover:text-green-600 cursor-pointer"

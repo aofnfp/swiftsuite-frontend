@@ -3,7 +3,7 @@ import gif from "../../Images/gif.gif";
 import { Toaster, toast } from "sonner";
 import { MdOutlineDelete } from "react-icons/md";
 import { deleteListingImage, getListingImage, uploadListingImage } from "../../api/authApi";
-import { Image } from "@heroui/react";
+import { Image } from "antd";
 
 function ProductImageUpload({ productListing, thumbnailImage, setThumbnailImage, productId, userId }) {
   const [mainImage, setMainImage] = useState(productListing?.image || productListing?.picture_detail || "");  
@@ -183,10 +183,19 @@ function ProductImageUpload({ productListing, thumbnailImage, setThumbnailImage,
           <div className="relative">
             {mainImage && (
               <Image
-                isZoomed
+                width={320}
+                height={260}
                 src={mainImage}
-                className="w-96 h-72 object-cover rounded-xl border-2 border-gray-200 shadow-md -z-1"
-                alt="Main Product"
+                alt={productListing?.title || "Main Product"}
+                className="object-cover rounded-xl border-2 border-gray-200 shadow-md"
+                onError={() => setMainImage("")}
+                preview={{
+                  mask: (
+                    <div className="flex items-center justify-center w-full h-full text-white font-medium">
+                      View
+                    </div>
+                  ),
+                }}
               />
             )}
           </div>

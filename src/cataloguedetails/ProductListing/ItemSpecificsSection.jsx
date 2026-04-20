@@ -1,5 +1,5 @@
 import React from "react";
-import { Tooltip } from "@heroui/react";
+import { Tooltip } from "antd";
 import GetCategory from "./GetCategory";
 import ItemSpecificFields from "./ItemSpecificFields";
 import { BiCategoryAlt, BiChevronDown, BiChevronUp } from "react-icons/bi";
@@ -68,7 +68,7 @@ const ItemSpecificsSection = ({
                 placeholder="Enter category ID"
                 className="border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-green-500"
               />
-              <Tooltip content="get category">
+              <Tooltip title="get category" placement="top">
                 <button
                   type="button"
                   onClick={handleOpenModal}

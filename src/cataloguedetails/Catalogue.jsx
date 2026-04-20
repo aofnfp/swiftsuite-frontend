@@ -54,13 +54,14 @@ const Catalogue = () => {
   const paginationContext = useCatalogueStore((state) => state.paginationContext);
   const setPaginationContext = useCatalogueStore((state) => state.setPaginationContext);
   const productChange = useCatalogueStore((state) => state.productChange);
+  console.log(productChange)
   const setProductChange = useCatalogueStore((state) => state.setProductChange);
   const filterApplied = useCatalogueStore((state) => state.filterApplied);
   const setFilterApplied = useCatalogueStore((state) => state.setFilterApplied);
-  const selectedVendorIdentifier = useCatalogueStore((state) => state.selectedVendorIdentifier);
-  const setSelectedVendorIdentifier = useCatalogueStore((state) => state.setSelectedVendorIdentifier);
-  const selectedVendor = useCatalogueStore((state) => state.selectedVendor);
-  const setSelectedVendor = useCatalogueStore((state) => state.setSelectedVendor);
+  // const selectedVendorIdentifier = useCatalogueStore((state) => state.selectedVendorIdentifier);
+  // const setSelectedVendorIdentifier = useCatalogueStore((state) => state.setSelectedVendorIdentifier);
+  // const selectedVendor = useCatalogueStore((state) => state.selectedVendor);
+  // const setSelectedVendor = useCatalogueStore((state) => state.setSelectedVendor);
 
   const multiSelect = useCatalogueStore((state) => state.multiSelect);
   const setMultiSelect = useCatalogueStore((state) => state.setMultiSelect);
@@ -74,6 +75,8 @@ const Catalogue = () => {
   const advanceSearchButtonRef = useRef(null);
 
   const [endpoint, setEndpoint] = useState("");
+  const [selectedVendor, setSelectedVendor] = useState(null);
+  const [selectedVendorIdentifier, setSelectedVendorIdentifier] = useState(null);
   const [filter, setFilter] = useState(false);
   const [error, setError] = useState(null);
   const [currentItems, setCurrentItems] = useState([]);
@@ -269,6 +272,17 @@ const Catalogue = () => {
     selectedProductCatalogue,
     dispatch,
   ]);
+  useEffect(() => {
+    if (productChange && productChange !== "all") {
+      const matchedVendor = catalogue.find(
+        (item) => item.name === productChange
+      );
+
+      if (matchedVendor) {
+        setSelectedVendor(matchedVendor);
+      }
+    }
+  }, [productChange, catalogue]);
 
   useEffect(() => {
     if (isSuccess && data) {
@@ -957,7 +971,7 @@ const Catalogue = () => {
                           onChange={(checked) => setMultiSelect(checked)}
                           className="bg-gray-300"
                           style={{
-                            backgroundColor: multiSelect ? "#22c55e" : "#d1d5db", 
+                            backgroundColor: multiSelect ? "#22c55e" : "#d1d5db",
                           }}
                           thumbStyle={{
                             backgroundColor: multiSelect ? "#ffffff" : "#ffffff",

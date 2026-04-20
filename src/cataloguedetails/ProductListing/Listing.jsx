@@ -618,7 +618,6 @@ const Listing = () => {
       setHandleSubmitLoader(false);
       toast.success(response);
     } catch (error) {
-      console.log(error)
       setHandleSubmitLoader(false);
       handleApiError(error);
     }

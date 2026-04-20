@@ -54,14 +54,13 @@ const Catalogue = () => {
   const paginationContext = useCatalogueStore((state) => state.paginationContext);
   const setPaginationContext = useCatalogueStore((state) => state.setPaginationContext);
   const productChange = useCatalogueStore((state) => state.productChange);
-  console.log(productChange)
   const setProductChange = useCatalogueStore((state) => state.setProductChange);
   const filterApplied = useCatalogueStore((state) => state.filterApplied);
   const setFilterApplied = useCatalogueStore((state) => state.setFilterApplied);
-  // const selectedVendorIdentifier = useCatalogueStore((state) => state.selectedVendorIdentifier);
-  // const setSelectedVendorIdentifier = useCatalogueStore((state) => state.setSelectedVendorIdentifier);
-  // const selectedVendor = useCatalogueStore((state) => state.selectedVendor);
-  // const setSelectedVendor = useCatalogueStore((state) => state.setSelectedVendor);
+  const selectedVendorIdentifier = useCatalogueStore((state) => state.selectedVendorIdentifier);
+  const setSelectedVendorIdentifier = useCatalogueStore((state) => state.setSelectedVendorIdentifier);
+  const selectedVendor = useCatalogueStore((state) => state.selectedVendor);
+  const setSelectedVendor = useCatalogueStore((state) => state.setSelectedVendor);
 
   const multiSelect = useCatalogueStore((state) => state.multiSelect);
   const setMultiSelect = useCatalogueStore((state) => state.setMultiSelect);
@@ -75,8 +74,8 @@ const Catalogue = () => {
   const advanceSearchButtonRef = useRef(null);
 
   const [endpoint, setEndpoint] = useState("");
-  const [selectedVendor, setSelectedVendor] = useState(null);
-  const [selectedVendorIdentifier, setSelectedVendorIdentifier] = useState(null);
+  // selectedVendor and selectedVendorIdentifier are managed by the persisted
+  // Zustand store — do not redeclare them as local state here.
   const [filter, setFilter] = useState(false);
   const [error, setError] = useState(null);
   const [currentItems, setCurrentItems] = useState([]);
@@ -84,7 +83,9 @@ const Catalogue = () => {
   const [filterOpen, setFilterOpen] = useState(false);
   const [editableValue, setEditableValue] = useState("");
   const [allIdentifiers, setAllIdentifiers] = useState([]);
-  const [selectedProductCatalogue, setSelectedProductCatalogue] = useState(null);
+  const [selectedProductCatalogue, setSelectedProductCatalogue] = useState(
+    () => selectedVendorIdentifier?.vendor_identifier ?? null
+  );
   const [closeDetail, setCloseDetail] = useState(false);
   const [selectProductcontd, setSelectProductcontd] = useState("");
   const [selectedProductId, setSelectedProductId] = useState("");
@@ -244,18 +245,12 @@ const Catalogue = () => {
   const hasNextPage = page * selectedProductPerPage < count;
   const hasPreviousPage = page > 1;
 
-  // Sync selectedVendorIdentifier when identifiers load or change.
-  // Only auto-select the first identifier if the currently selected one is
-  // not present in the new list AND we don't already have a valid selection.
   useEffect(() => {
     if (!isSuccess || productChange === "all" || catalogueIdentifiers.length === 0) return;
-
     const identifierExists = catalogueIdentifiers.some(
       (id) => id.vendor_identifier === selectedProductCatalogue
     );
-
     if (!identifierExists) {
-      // Current selection is stale or empty — fall back to the first identifier.
       const firstIdentifier = catalogueIdentifiers[0];
       setSelectedProductCatalogue(firstIdentifier.vendor_identifier);
       dispatch(setProduct(firstIdentifier.vendor_identifier));
@@ -263,7 +258,6 @@ const Catalogue = () => {
       setPaginationContext("identifier");
       setPage(1);
     } else {
-      // Keep selectedVendorIdentifier in sync with the full object from the list.
       const matched = catalogueIdentifiers.find(
         (id) => id.vendor_identifier === selectedProductCatalogue
       );
@@ -288,11 +282,7 @@ const Catalogue = () => {
       if (selectedVendor !== null) setSelectedVendor(null);
       return;
     }
-
-    // catalogue[0] is always the "all" entry; real vendors start at index 1.
-    // Don't attempt a match until the enrolled vendors have been fetched.
     if (catalogue.length <= 1) return;
-
     const matchedVendor = catalogue.find((item) => item.name === productChange);
     if (matchedVendor && matchedVendor.id !== selectedVendor?.id) {
       setSelectedVendor(matchedVendor);

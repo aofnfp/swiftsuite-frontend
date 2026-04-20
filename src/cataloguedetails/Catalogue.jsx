@@ -220,7 +220,7 @@ const Catalogue = () => {
     }
   };
 
-  const { data, isLoading, isSuccess, isError } = useGetVendorProducts({
+  const { data, isLoading, isFetching, isSuccess, isError } = useGetVendorProducts({
     userId,
     productChange,
     catalogue,
@@ -233,8 +233,6 @@ const Catalogue = () => {
     selectedIdentifier: selectedProductCatalogue,
     filter,
   });
-
-  console.log(data)
 
   const catalogueProduct = data?.products || [];
   const catalogueIdentifiers = data?.identifiers || [];
@@ -1063,6 +1061,7 @@ const Catalogue = () => {
         />
         <Displaycatalogue
           isLoading={isLoading}
+          isFetching={isFetching}
           error={error}
           multiSelect={multiSelect}
           token={token}

@@ -17,6 +17,7 @@ import { Image, Space } from "antd";
 const Displaycatalogue = ({
   selectedProductCatalogue,
   isLoading,
+  isFetching,
   productsToRender,
   error,
   currentItems,
@@ -57,7 +58,7 @@ const Displaycatalogue = ({
     }
   };
 
-  const stripTags = (html) => html.replace(/<[^>]*>/g, "");
+  const stripTags = (html) => (html ? html.replace(/<[^>]*>/g, "") : "");
 
   const getProductImage = (product) => {
     let images = [];
@@ -171,9 +172,11 @@ const Displaycatalogue = ({
           <div className="rounded-lg overflow-hidden w-full min-w-full">
             {!isLoading &&
               (productsToRender?.length === 0 && currentItems?.length === 0 ? (
-                <div className="text-red-500 bg-[#E7F2ED] h-screen text-xl text-center mt-20 w-full">
-                  Sorry, we couldn't find any results
-                </div>
+                isFetching ? null : (
+                  <div className="text-red-500 bg-[#E7F2ED] h-screen text-xl text-center mt-20 w-full">
+                    Sorry, we couldn't find any results
+                  </div>
+                )
               ) : (
                 <>
                   {viewMode === "list" ? (

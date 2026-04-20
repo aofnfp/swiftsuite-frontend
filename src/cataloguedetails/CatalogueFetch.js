@@ -30,8 +30,6 @@ export const useGetVendorProducts = ({
     ...(isSearching && searchQuery ? { search: searchQuery } : {}),
   }).toString();
 
-  // The API returns all products + all_identifiers in one call — the identifier
-  // is client-side state only, never a filter param. Always fire the fetch.
   const endpoint = selectedProduct
     ? selectedProduct.endpoint
         .replace("${userId}", userId)
@@ -39,8 +37,6 @@ export const useGetVendorProducts = ({
       `&limit=${selectedProductPerPage}` +
       (queryParams ? `&${queryParams}` : "")
     : "";
-    console.log(endpoint)
-
   return useQuery({
     queryKey: [
       "vendorProducts",

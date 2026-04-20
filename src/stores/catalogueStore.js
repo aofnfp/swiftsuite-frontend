@@ -10,13 +10,8 @@ export const useCatalogueStore = create(
       debouncedQuery: "",
       page: 1,
       paginationContext: "vendor",
-      // The vendor name string (e.g. "fragrancex", "all"). The full vendor
-      // object is derived at runtime from the live catalogue array.
       productChange: "all",
       filterApplied: false,
-      // Only the identifier key string is persisted. The full identifier object
-      // is derived at runtime from the live identifiers returned by the API.
-      vendorIdentifierKey: null,
       multiSelect: false,
       showActionsLg: false,
       selectedProductIds: [],
@@ -32,7 +27,6 @@ export const useCatalogueStore = create(
       setPaginationContext: (context) => set({ paginationContext: context }),
       setProductChange: (value) => set({ productChange: value }),
       setFilterApplied: (applied) => set({ filterApplied: !!applied }),
-      setVendorIdentifierKey: (key) => set({ vendorIdentifierKey: key }),
       setSelectedProductIds: (ids) => set({ selectedProductIds: Array.isArray(ids) ? ids : [] }),
 
       resetCatalogue: () =>
@@ -45,7 +39,6 @@ export const useCatalogueStore = create(
           paginationContext: "vendor",
           productChange: "all",
           filterApplied: false,
-          vendorIdentifierKey: null,
           multiSelect: false,
           showActionsLg: false,
           selectedProductIds: [],
@@ -63,8 +56,6 @@ export const useCatalogueStore = create(
         paginationContext: state.paginationContext,
         productChange: state.productChange,
         filterApplied: state.filterApplied,
-        // Only persist the key strings, never the full objects
-        vendorIdentifierKey: state.vendorIdentifierKey,
         multiSelect: state.multiSelect,
         showActionsLg: state.showActionsLg,
         selectedProductIds: state.selectedProductIds,

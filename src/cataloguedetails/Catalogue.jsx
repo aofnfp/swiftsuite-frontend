@@ -57,9 +57,6 @@ const Catalogue = () => {
   const setProductChange = useCatalogueStore((state) => state.setProductChange);
   const filterApplied = useCatalogueStore((state) => state.filterApplied);
   const setFilterApplied = useCatalogueStore((state) => state.setFilterApplied);
-  // Only the key string is persisted — full objects are derived at runtime
-  const vendorIdentifierKey = useCatalogueStore((state) => state.vendorIdentifierKey);
-  const setVendorIdentifierKey = useCatalogueStore((state) => state.setVendorIdentifierKey);
 
   const multiSelect = useCatalogueStore((state) => state.multiSelect);
   const setMultiSelect = useCatalogueStore((state) => state.setMultiSelect);
@@ -84,9 +81,7 @@ const Catalogue = () => {
   const [filterOpen, setFilterOpen] = useState(false);
   const [editableValue, setEditableValue] = useState("");
   const [allIdentifiers, setAllIdentifiers] = useState([]);
-  const [selectedProductCatalogue, setSelectedProductCatalogue] = useState(
-    () => vendorIdentifierKey ?? null
-  );
+  const [selectedProductCatalogue, setSelectedProductCatalogue] = useState(null);
   const [closeDetail, setCloseDetail] = useState(false);
   const [selectProductcontd, setSelectProductcontd] = useState("");
   const [selectedProductId, setSelectedProductId] = useState("");
@@ -239,6 +234,8 @@ const Catalogue = () => {
     filter,
   });
 
+  console.log(data)
+
   const catalogueProduct = data?.products || [];
   const catalogueIdentifiers = data?.identifiers || [];
   const count = data?.count || 0;
@@ -254,7 +251,6 @@ const Catalogue = () => {
       // Current selection is stale or empty — fall back to the first identifier
       const firstIdentifier = catalogueIdentifiers[0];
       setSelectedProductCatalogue(firstIdentifier.vendor_identifier);
-      setVendorIdentifierKey(firstIdentifier.vendor_identifier);
       dispatch(setProduct(firstIdentifier.vendor_identifier));
       setSelectedVendorIdentifier(firstIdentifier);
       setPaginationContext("identifier");
@@ -266,7 +262,6 @@ const Catalogue = () => {
       );
       if (matched) {
         setSelectedVendorIdentifier(matched);
-        setVendorIdentifierKey(matched.vendor_identifier);
       }
     }
   }, [
@@ -283,10 +278,8 @@ const Catalogue = () => {
   useEffect(() => {
     if (!productChange || productChange === "all") {
       if (selectedVendor !== null) setSelectedVendor(null);
-      // Clear identifier when switching to "all"
       setSelectedVendorIdentifier(null);
       setSelectedProductCatalogue(null);
-      setVendorIdentifierKey(null);
       return;
     }
     if (catalogue.length <= 1) return;
@@ -744,7 +737,6 @@ const Catalogue = () => {
                         onChange={(identifier) => {
                           setSelectedVendorIdentifier(identifier);
                           setSelectedProductCatalogue(identifier?.vendor_identifier);
-                          setVendorIdentifierKey(identifier?.vendor_identifier ?? null);
                         }}
                         open={openIdentifier}
                         setOpen={setOpenIdentifier}

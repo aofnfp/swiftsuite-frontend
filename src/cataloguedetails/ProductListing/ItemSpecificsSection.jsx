@@ -45,6 +45,7 @@ const ItemSpecificsSection = ({
 useEffect(() => {
   if (productListing?.category_id) {
     setIsEbayOpen(true);
+    handleOpenModal();
   }
 }, [productListing?.category_id]);
 

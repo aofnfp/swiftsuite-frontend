@@ -7,6 +7,7 @@ import { Label } from "reactstrap";
 const ItemSpecificFields = ({
   itemSpecificFields,
   setItemSpecificFields,
+  requiredFields = [],
   selectedValues,
   setSelectedValues,
   handleSelectChange,
@@ -49,9 +50,9 @@ const ItemSpecificFields = ({
                   <Label
                     className="min-w-[200px] text-sm font-medium flex items-center gap-1 text-gray-700">
                     {fieldName}
-                    {/* {["Unit Type", "Scent", "Fragrance Name", "Features", "Size Type"].includes(fieldName) && (
+                    {requiredFields.includes(fieldName.replace(" (Boolean field)", "")) && (
                       <span className="text-red-500">*</span>
-                    )} */}
+                    )}
                   </Label>
 
                   {/* {["Unit Type", "Scent", "Fragrance Name", "Features", "Size Type"].includes(fieldName) && (

@@ -26,6 +26,7 @@ const ItemSpecificsSection = ({
   handleLastCategoryClick,
   itemSpecificFields,
   setItemSpecificFields,
+  requiredFields,
   selectedValues,
   setSelectedValues,
   handleSelectChange,
@@ -99,6 +100,7 @@ const ItemSpecificsSection = ({
             <ItemSpecificFields
               itemSpecificFields={itemSpecificFields}
               setItemSpecificFields={setItemSpecificFields}
+              requiredFields={requiredFields}
               selectedValues={selectedValues}
               setSelectedValues={setSelectedValues}
               handleSelectChange={handleSelectChange}

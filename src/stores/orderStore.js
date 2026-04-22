@@ -18,7 +18,7 @@ export const useOrderStore = create(
       setSortConfig: (config) => set({ sortConfig: config }),
       setProductChange: (value) => set({ productChange: value }),
 
-      resetProduct: () =>
+      resetOrder: () =>
         set({
           selectedOrderPerPage: 20,
           searchQuery: "",

@@ -353,6 +353,17 @@ const Listing = () => {
     setIsDropdownOpen(null);
   };
 
+  const handleMultiToggle = (fieldName, value) => {
+    if (!value) return;
+    setSelectedValues((prev) => {
+      const current = prev[fieldName] ? prev[fieldName].split(", ").filter(Boolean) : [];
+      const next = current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value];
+      return { ...prev, [fieldName]: next.join(", ") };
+    });
+  };
+
   const filteredOptions = (fieldName, options) => {
     const filterValue = filterValues[fieldName]?.toLowerCase() || "";
     return Object.entries(options).filter(([key, label]) =>
@@ -902,6 +913,7 @@ const Listing = () => {
               selectedValues={selectedValues}
               setSelectedValues={setSelectedValues}
               handleSelectChange={handleSelectChange}
+              handleMultiToggle={handleMultiToggle}
               customInputValues={customInputValues}
               setCustomInputValues={setCustomInputValues}
               handleInputChange={handleInputChange}

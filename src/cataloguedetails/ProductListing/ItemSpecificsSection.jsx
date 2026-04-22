@@ -30,6 +30,7 @@ const ItemSpecificsSection = ({
   selectedValues,
   setSelectedValues,
   handleSelectChange,
+  handleMultiToggle,
   customInputValues,
   setCustomInputValues,
   handleInputChange,
@@ -104,6 +105,7 @@ const ItemSpecificsSection = ({
               selectedValues={selectedValues}
               setSelectedValues={setSelectedValues}
               handleSelectChange={handleSelectChange}
+              handleMultiToggle={handleMultiToggle}
               customInputValues={customInputValues}
               setCustomInputValues={setCustomInputValues}
               handleInputChange={handleInputChange}

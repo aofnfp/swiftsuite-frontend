@@ -205,14 +205,6 @@ const Productmodal = ({
 
   const addDetails = async () => {
     setMyLoader(true);
-    console.log("Sending to backend:", {
-      userId,
-      selectedProductId,
-      productChange,
-      selectedProductCatalogue,
-      updatedProduct
-    });
-
     try {
       await productModal(
         userId,
@@ -233,8 +225,8 @@ const Productmodal = ({
       onClose();
     } catch (error) {
       const errorMessage =
-          error.response?.data?.detail || 'An error occurred. Please try again later.';
-          toast.error(errorMessage);
+        error.response?.data?.detail || 'An error occurred. Please try again later.';
+      toast.error(errorMessage);
     } finally {
       setMyLoader(false);
     }

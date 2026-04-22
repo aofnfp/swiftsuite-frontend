@@ -81,7 +81,7 @@ const Navbar = ({ openToggle }) => {
   }, []);
 
   const hiddenRoutes = [
-    '/layout/home', '/layout/catalogue', '/layout/product', '/layout/allapp',
+    '/layout/home', '/success', '/passreg', '/layout/catalogue', '/layout/product', '/layout/allapp',
     '/layout/enrolment', '/layout/inventory', '/layout/market', '/layout/editvendor',
     '/layout/selectedproduct', '/layout/ebay', '/layout/listing', '/layout/order',
     '/layout/editenrollment', '/layout/success', '/layout/orderdetails', '/layout/addnewvendor',

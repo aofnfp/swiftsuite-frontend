@@ -192,8 +192,23 @@ const Product = () => {
         searchQuery,
       ]);
       toast.success("Product deleted successfully");
-    } catch (error) {
-      toast.error(error.response?.data?.message || error.response.data || "An error occurred");
+    } catch (err) {
+      if (err.response) {
+        const { status, data } = err.response;
+        if (status === 400 && data.error) {
+          toast.error(data.error || "Invalid data provided.");
+        } else if (status === 403) {
+          toast.error(err.response.data?.detail || "You are not authorized to perform this action.");
+        } else if (status === 500) {
+          toast.error("An internal server issue has occurred. Please contact support.");
+        } else {
+          toast.error(`Error ${status}: ${data.message || "Something went wrong."}`);
+        }
+      } else if (err.request) {
+        toast.error("Network error: Please check your internet connection.");
+      } else {
+        toast.error("An unexpected error occurred.");
+      }
     }
   };
 
@@ -237,7 +252,7 @@ const Product = () => {
   const handleFirstPage = () => {
     setPage(1);
   };
-  
+
   const handleLastPage = () => {
     const last = Math.max(1, Math.ceil((count || 0) / (selectProductPerPage || 1)));
     setPage(last);
@@ -378,7 +393,7 @@ const Product = () => {
 
   return (
     <div className="bg-[#E7F2ED] md:mx-5 min-h-screen">
-       <SubscriptionModal
+      <SubscriptionModal
         isOpen={showModals}
         onClose={() => setShowModals(false)}
       />
@@ -478,8 +493,8 @@ const Product = () => {
                         <Tooltip title="List View">
                           <button
                             className={`p-2 rounded ${viewMode === "list"
-                                ? "bg-white text-green-600 shadow-sm"
-                                : "text-gray-600 hover:text-gray-800"
+                              ? "bg-white text-green-600 shadow-sm"
+                              : "text-gray-600 hover:text-gray-800"
                               }`}
                             onClick={() => setViewMode("list")}
                             aria-label="Switch to List View"
@@ -494,8 +509,8 @@ const Product = () => {
                         <Tooltip title="Grid View">
                           <button
                             className={`p-2 rounded ${viewMode === "grid"
-                                ? "bg-white text-green-600 shadow-sm"
-                                : "text-gray-600 hover:text-gray-800"
+                              ? "bg-white text-green-600 shadow-sm"
+                              : "text-gray-600 hover:text-gray-800"
                               }`}
                             onClick={() => setViewMode("grid")}
                             aria-label="Switch to Grid View"
@@ -518,8 +533,8 @@ const Product = () => {
                     <button
                       ref={advanceSearchButtonRef}
                       className={`flex items-center gap-2 px-4 py-2 border rounded-lg font-medium w-full sm:w-auto ${isAdvanceSearchDisabled
-                          ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-                          : "capitalize bg-white border-2 border-[#089451] text-[#089451] font-semibold hover:bg-[#089451] hover:text-white transition-colors duration-200 min-w-[120px]"
+                        ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                        : "capitalize bg-white border-2 border-[#089451] text-[#089451] font-semibold hover:bg-[#089451] hover:text-white transition-colors duration-200 min-w-[120px]"
                         }`}
                       onClick={toggleFilter}
                       aria-expanded={filterOpen}

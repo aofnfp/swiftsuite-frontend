@@ -2,8 +2,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import MarketLogos from "../inventory/MarketLogos";
 import VendorLogo from "../inventory/VendorLogos";
-import usps from "../../public/image/usps.png";
-import fedex from "../../public/image/fedex.png";
+import usps from "../Images/usps.png";
+import fedex from "../Images/fedex.png";
 
 const DeliveryDetails = ({ orderItem = {} }) => {
 

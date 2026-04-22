@@ -53,9 +53,22 @@ const Displaycatalogue = ({
       });
       toast.success(`Product added successfully`);
     } catch (err) {
-      toast.error(
-        "Failed to add product. Please select identifier and try again!"
-      );
+      if (err.response) {
+        const { status, data } = err.response;
+        if (status === 400 && data.error) {
+          toast.error(data.error || "Invalid data provided.");
+        } else if (status === 403) {
+          toast.error(err.response.data?.detail || "You are not authorized to perform this action.");
+        }else if (status === 500) {
+          toast.error("An internal server issue has occurred. Please contact support.");
+        } else {
+          toast.error(`Error ${status}: ${data.message || "Something went wrong."}`);
+        }
+      } else if (err.request) {
+        toast.error("Network error: Please check your internet connection.");
+      } else {
+        toast.error("An unexpected error occurred.");
+      }
     }
   };
 
@@ -144,7 +157,6 @@ const Displaycatalogue = ({
     return `Image of ${productName}`;
   };
 
-  // Handle image loading error
   const handleImageError = (productId) => {
     setImageErrors((prev) => ({ ...prev, [productId]: true }));
   };
@@ -153,8 +165,6 @@ const Displaycatalogue = ({
     e.stopPropagation();
   };
 
-  // True during the pre-fetch window (vendor selected, query not yet resolved)
-  // as well as while the query is actively loading or refetching.
   const showSkeleton =
     isLoading ||
     isFetching ||
@@ -364,7 +374,7 @@ const Displaycatalogue = ({
                                   <BsThreeDotsVertical size={20} />
                                 </button>
                               </PopoverTrigger>
-                              <PopoverContent className="px-1 py-2 me-10 -ms-10">
+                              <PopoverContent className="px-1 py-2 me-10 -ms-10 bg-gray-100 rounded-lg shadow-md">
                                 <div className="px-1 py-2">
                                   <div>
                                     <div

@@ -24,7 +24,6 @@ const GetCategory = ({ isModalOpen, handleCloseModal, setIsModalOpen, loader, se
             )}
 
             <div className="grid grid-cols-4 gap-4">
-              {/* First category */}
               {!loader && filteredFirstCategories?.length > 0 && (
                 <div className="w-full">
                   <h3 className="font-bold mb-4">First Category</h3>
@@ -38,7 +37,6 @@ const GetCategory = ({ isModalOpen, handleCloseModal, setIsModalOpen, loader, se
                   ))}
                 </div>
               )}
-              {/* Subcategories Section */}
               {!loader && filteredSubcategories?.length > 0 && (
                 <div className="w-full">
                   <h3 className="font-bold mb-4">Subcategories</h3>
@@ -52,8 +50,6 @@ const GetCategory = ({ isModalOpen, handleCloseModal, setIsModalOpen, loader, se
                   ))}
                 </div>
               )}
-
-              {/* Middle Categories */}
               {!loader && filteredMiddleCategories?.length > 0 && (
                 <div className="w-full">
                   <h3 className="font-bold">Middle Categories</h3>
@@ -67,8 +63,6 @@ const GetCategory = ({ isModalOpen, handleCloseModal, setIsModalOpen, loader, se
                   ))}
                 </div>
               )}
-
-              {/* Last Categories */}
               {!loader && filteredLastCategories?.length > 0 && (
                 <div className="w-full">
                   <h3 className="font-bold">Last Category</h3>

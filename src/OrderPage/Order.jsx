@@ -81,40 +81,54 @@ const Order = () => {
     setVendor_status("all");
   };
 
-  const fetchOrders = async () => {
-    setLoader(true);
-    try {
-      const res = await orderProduct(selectedOrderPerPage, page, debouncedSearch, activeFilters, sortConfig);
-      const rawOrders = res.results || [];
-      const orders = rawOrders.map((order) => {
-        return {
-          ...order,
-          image: fixJSON(order.image),
-          paymentSummary: fixJSON(order.paymentSummary),
-          pricingSummary: fixJSON(order.pricingSummary),
-          cancelStatus: fixJSON(order.cancelStatus),
-          fulfillmentStartInstructions: fixJSON(
-            order.fulfillmentStartInstructions,
-          ),
-          itemLocation: fixJSON(order.itemLocation),
-          lineItemCost: fixJSON(order.lineItemCost),
-          additionalImages: fixJSON(order.additionalImages),
-          buyer: fixJSON(order.buyer),
-          vendor_orders: order?.vendor_orders[0]?.status,
-          quantity: Number(order.quantity) || 0,
-        };
-      });
-      setOrders(orders);
-      setTotalItems(res.count || 0);
-      setTotalPages(Math.ceil(res.count / selectedOrderPerPage));
-      setHasNextPage(page * selectedOrderPerPage < (res.count || 0));
-      setHasPreviousPage(page > 1);
-      setLoader(false);
-    } catch (error) {
-      setLoader(false);
+
+const fetchOrders = async () => {
+  setLoader(true);
+  try {
+    const res = await orderProduct(
+      selectedOrderPerPage,
+      page,
+      debouncedSearch,
+      activeFilters,
+      sortConfig
+    );
+
+    const rawOrders = res.results || [];
+
+    const orders = rawOrders.map((order) => {
+      return {
+        ...order,
+        image: fixJSON(order.image),
+        paymentSummary: fixJSON(order.paymentSummary),
+        pricingSummary: fixJSON(order.pricingSummary),
+        cancelStatus: fixJSON(order.cancelStatus),
+        fulfillmentStartInstructions: fixJSON(
+          order.fulfillmentStartInstructions
+        ),
+        itemLocation: fixJSON(order.itemLocation),
+        lineItemCost: fixJSON(order.lineItemCost),
+        additionalImages: fixJSON(order.additionalImages),
+        buyer: fixJSON(order.buyer),
+        vendor_orders: order?.vendor_orders?.[0]?.status,
+        quantity: Number(order.quantity) || 0,
+      };
+    });
+
+    setOrders(orders);
+    setTotalItems(res.count || 0);
+    setTotalPages(Math.ceil((res.count || 0) / selectedOrderPerPage));
+    setHasNextPage(page * selectedOrderPerPage < (res.count || 0));
+    setHasPreviousPage(page > 1);
+  } catch (error) {
+    if (error?.response?.status === 403) {
+      toast.error(error.response?.data?.detail || "Something went wrong.");
+    } else {
       setError("Something went wrong, please try again later");
     }
-  };
+  } finally {
+    setLoader(false);
+  }
+};
 
   useEffect(() => {
     const timer = setTimeout(() => {

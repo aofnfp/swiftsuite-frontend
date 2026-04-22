@@ -14,40 +14,76 @@ const ManualOrder = ({ orderItem = {} }) => {
   const orderId = orderItem?.orderId;
 
   const handlePlaceOrder = async () => {
-    try {
-      setIsPlaceOrderLoading(true);
-      const res = await placeOrder(marketplacePlatform, orderId);
-      toast.success(res?.data?.message || "Order placed successfully.");
-    } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to place order.");
-    } finally {
-      setIsPlaceOrderLoading(false);
-    }
-  };
+  try {
+    setIsPlaceOrderLoading(true);
 
-  const handleTrackingOrder = async () => {
-    try {
-      setIsTrackingLoading(true);
-      const res = await trackOrder(orderId);
-      toast.success(res?.message || "Tracking info retrieved successfully!");
-    } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to retrieve tracking info.");
-    } finally {
-      setIsTrackingLoading(false);
-    }
-  };
+    const res = await placeOrder(marketplacePlatform, orderId);
 
-  const handleTrackingEbay = async () => {
-    try {
-      setIsTrackingEbayLoading(true);
-      const res = await pushTrackingToEbay(orderId);
-      toast.success(res?.message || "Tracking pushed to eBay successfully!");
-    } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to push tracking to eBay.");
-    } finally {
-      setIsTrackingEbayLoading(false);
+    toast.success(res?.data?.message || "Order placed successfully.");
+  } catch (error) {
+    if (error?.response?.status === 403) {
+      toast.error(
+        error?.response?.data?.detail || "Something went wrong."
+      );
+    } else {
+      toast.error(
+        error?.response?.data?.message || "Failed to place order."
+      );
+      setError("Something went wrong, please try again later");
     }
-  };
+  } finally {
+    setIsPlaceOrderLoading(false);
+  }
+};
+
+const handleTrackingOrder = async () => {
+  try {
+    setIsTrackingLoading(true);
+
+    const res = await trackOrder(orderId);
+
+    toast.success(res?.message || "Tracking info retrieved successfully!");
+  } catch (error) {
+    if (error?.response?.status === 403) {
+      toast.error(
+        error?.response?.data?.detail || "Something went wrong."
+      );
+    } else {
+      toast.error(
+        error?.response?.data?.message ||
+          "Failed to retrieve tracking info."
+      );
+      setError("Something went wrong, please try again later");
+    }
+  } finally {
+    setIsTrackingLoading(false);
+  }
+};
+
+const handleTrackingEbay = async () => {
+  try {
+    setIsTrackingEbayLoading(true);
+
+    const res = await pushTrackingToEbay(orderId);
+
+    toast.success(res?.message || "Tracking pushed to eBay successfully!");
+  } catch (error) {
+    if (error?.response?.status === 403) {
+      toast.error(
+        error?.response?.data?.detail || "Something went wrong."
+      );
+    } else {
+      toast.error(
+        error?.response?.data?.message ||
+          "Failed to push tracking to eBay."
+      );
+      setError("Something went wrong, please try again later");
+    }
+  } finally {
+    setIsTrackingEbayLoading(false);
+  }
+};
+
 
   const actions = [
     {

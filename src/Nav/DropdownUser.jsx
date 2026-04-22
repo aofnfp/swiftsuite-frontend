@@ -142,6 +142,7 @@ const DropdownUser = () => {
 
   const handleSignOut = useCallback(() => {
     localStorage.clear();
+    sessionStorage.clear();
     closeSignOutModal();
     navigate("/signin");
   }, [closeSignOutModal, navigate]);

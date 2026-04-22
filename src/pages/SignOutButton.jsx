@@ -7,10 +7,22 @@ const SignOutButton = ({closeModal, isOpen }) => {
     const navigate = useNavigate();
 
   const handleSignOut = () => {
-    localStorage.clear()
-    closeModal();
-    navigate("/signin"); 
-  }
+  localStorage.clear();
+  sessionStorage.clear();
+
+  useCatalogueStore.persist.clearStorage();
+  useInventoryPrefsStore.persist.clearStorage();
+  useProductStore.persist.clearStorage();
+  useOrderStore.persist.clearStorage();
+  useEditVendorStore.persist.clearStorage();
+  useListingStore.persist.clearStorage();
+  useMarketplaceStore.persist.clearStorage();
+  useVendorStore.persist.clearStorage();
+
+  closeModal();
+
+  window.location.href = "/signin";
+};
 
   return (
     <>

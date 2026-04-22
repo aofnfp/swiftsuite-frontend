@@ -146,8 +146,8 @@ const Fragrancex = () => {
       stock_maximum: data.stock_maximum || null,
       shipping_cost: data.shipping_cost || null,
       adult_signature: adultSignatureChecked,
-      adult_sig_threshold: adultSignatureChecked && data.adult_sig_threshold 
-        ? data.adult_sig_threshold 
+      adult_sig_threshold: adultSignatureChecked && data.adult_sig_threshold
+        ? data.adult_sig_threshold
         : null,
     };
 
@@ -175,7 +175,7 @@ const Fragrancex = () => {
           toast.error(data.error || "Invalid data provided.");
         } else if (status === 403) {
           toast.error(err.response.data?.detail || "You are not authorized to perform this action.");
-        }else if (status === 500) {
+        } else if (status === 500) {
           toast.error("An internal server issue has occurred. Please contact support.");
         } else {
           toast.error(`Error ${status}: ${data.message || "Something went wrong."}`);
@@ -252,8 +252,13 @@ const Fragrancex = () => {
             </div>
 
             <div className="grid grid-cols-12 mt-8 px-5">
-              <label className="mt-2 text-sm font-semibold h-8 md:col-span-6 col-span-5">
-                Brand:
+              <label className="mt-2 text-sm font-semibold h-8 md:col-span-6 col-span-5 flex items-center gap-2">
+                <span>Brand:</span>
+                <ResponsiveTooltip title="this is for brand">
+                  <span className="inline-flex items-center cursor-pointer mt-2">
+                    <MdInfo className="text-gray-600" />
+                  </span>
+                </ResponsiveTooltip>
               </label>
               <div
                 className="relative border border-gray-500 rounded p-1 text-sm h-9 md:col-span-6 col-span-7 lg:w-3/4"
@@ -438,7 +443,7 @@ const Fragrancex = () => {
                   {...register("update_inventory")}
                   checked={inventory}
                   onChange={() => setInventory(!inventory)}
-                 className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
+                  className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
                 />
                 <ResponsiveTooltip title="Swift Suite will start updating inventory on marketplace for synced products.">
                   <MdInfo className="text-gray-600 mt-0.5" />
@@ -454,7 +459,8 @@ const Fragrancex = () => {
                   {...register("send_orders")}
                   checked={order}
                   onChange={() => setOrder(!order)}
-                 className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2" />
+                  className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
+                />
                 <ResponsiveTooltip title="Check to allow order to be sent to supplier for fulfilment.">
                   <MdInfo className="text-gray-600 mt-0.5" />
                 </ResponsiveTooltip>
@@ -469,7 +475,8 @@ const Fragrancex = () => {
                   {...register("update_tracking")}
                   checked={tracking}
                   onChange={() => setTracking(!tracking)}
-                 className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2" />
+                  className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
+                />
                 <ResponsiveTooltip title="Start Updating Order Tracking.">
                   <MdInfo className="text-gray-600 mt-0.5" />
                 </ResponsiveTooltip>

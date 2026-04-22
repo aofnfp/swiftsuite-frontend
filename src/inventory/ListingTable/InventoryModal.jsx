@@ -48,7 +48,6 @@ const InventoryModal = ({ isOpen, onOpenChange, onClose, viewItem }) => {
     >
       <div className="flex flex-col gap-4">
         <div className="flex gap-6">
-          {/* Image */}
           <div className="w-1/3">
             <Image
               src={picture_detail}
@@ -56,11 +55,8 @@ const InventoryModal = ({ isOpen, onOpenChange, onClose, viewItem }) => {
               className="w-full h-80 object-cover rounded"
             />
           </div>
-
-          {/* Details */}
           <div className="w-2/3">
             <h2 className="text-xl font-semibold mb-2">{title}</h2>
-
             <ul className="text-sm text-gray-700 space-y-1">
               {brand && brand !== "Null" && <li><strong>Brand:</strong> {brand}</li>}
               {parsedItemSpecific.Type && parsedItemSpecific.Type !== "Null" && <li><strong>Type:</strong> {parsedItemSpecific.Type}</li>}
@@ -85,8 +81,6 @@ const InventoryModal = ({ isOpen, onOpenChange, onClose, viewItem }) => {
             </ul>
           </div>
         </div>
-
-        {/* Description */}
         <div className="mt-4">
           <h3 className="text-md font-semibold mb-1">Description:</h3>
           <div
@@ -94,13 +88,10 @@ const InventoryModal = ({ isOpen, onOpenChange, onClose, viewItem }) => {
             dangerouslySetInnerHTML={{ __html: description }}
           />
         </div>
-
-        {/* Footer */}
         <div className="flex justify-end gap-2 pt-4">
           <Button onClick={onClose} className="h-10 font-semibold bg-white text-gray-700 border-none hover:!bg-gray-100 hover:!text-gray-700">
             Close
           </Button>
-
           <Button onClick={handleListing} className="h-10 font-semibold bg-[#089451] text-white border-none hover:!bg-[#06703d] hover:!text-white">
             Continue
           </Button>

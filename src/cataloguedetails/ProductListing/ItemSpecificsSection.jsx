@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Tooltip } from "antd";
 import GetCategory from "./GetCategory";
 import ItemSpecificFields from "./ItemSpecificFields";
@@ -41,6 +41,15 @@ const ItemSpecificsSection = ({
   dropdownRef,
   handleListingChange,
 }) => {
+  
+useEffect(() => {
+  if (productListing?.category_id) {
+    setIsEbayOpen(true);
+    handleOpenModal();
+  }
+}, [productListing?.category_id]);
+
+
   if (!isEbay) return null;
 
   return (

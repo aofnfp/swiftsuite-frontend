@@ -37,9 +37,24 @@ export const useInventoryPrefsStore = create(
         }),
       setInventoryDetailActiveTab: (tab) =>
         set({ inventoryDetailActiveTab: tab || "details" }),
+      
+      resetInventoryPrefs: () =>
+        set({
+          inventoryProductPerPage: 20,
+          inventorySavedProductPerPage: 20,
+          inventoryLogSavedProductPerPage: 20,
+          viewMode: "list",
+          multiSelect: false,
+          inventorySearchQuery: "",
+          inventorySavedSearchTerm: "",
+          inventoryLogSearchTerm: "",
+          inventorySortConfig: { key: "", direction: "" },
+          inventoryDetailActiveTab: "details",
+          search_query: "",
+        }),
     }),
     {
-      name: "inventory-prefs",
+      name: "inventory-prefs-store",
       storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
         search_query: state.search_query,

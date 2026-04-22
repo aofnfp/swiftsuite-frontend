@@ -9,6 +9,8 @@ const Foot = () => {
   
   const hiddenRoutes = [
     '/layout/home',
+    '/success',
+    '/passreg',
     '/layout/catalogue',
     '/layout/report',
     '/layout/help',

@@ -62,21 +62,17 @@ const FixedCustomPagination = ({ pageCount, onPageChange, currentPage, handleNex
     <div className="flex flex-wrap items-center gap-2 text-gray-800 bg-[#eef1f0] p-3 rounded-lg border border-gray-200">
       <Button
         size="sm"
-        radius="md"
-        variant="flat"
         className="h-10 font-semibold bg-[#a4b1ab] text-white border-none hover:!bg-[#4c5e55] hover:!text-white"
         disabled={currentPage === 1}
-        onPress={handleFirstPage}
+        onClick={handleFirstPage}
       >
         <FaChevronLeft className="mr-1" /> First
       </Button>
       <Button
         size="sm"
-        radius="md"
-        variant="flat"
         className="h-10 font-semibold bg-[#a4b1ab] text-white border-none hover:!bg-[#4c5e55] hover:!text-white"
         disabled={currentPage === 1}
-        onPress={handlePreviousPage}
+        onClick={handlePreviousPage}
       >
         <FaChevronLeft className="mr-1" /> Previous
       </Button>
@@ -85,21 +81,17 @@ const FixedCustomPagination = ({ pageCount, onPageChange, currentPage, handleNex
 
       <Button
         size="sm"
-        radius="md"
-        variant="flat"
-         className="h-10 font-semibold bg-[#a4b1ab] text-white border-none hover:!bg-[#4c5e55] hover:!text-white"
+        className="h-10 font-semibold bg-[#a4b1ab] text-white border-none hover:!bg-[#4c5e55] hover:!text-white"
         disabled={currentPage === pageCount}
-        onPress={handleNextPage}
+        onClick={handleNextPage}
       >
         Next <FaChevronRight className="ml-1" />
       </Button>
       <Button
         size="sm"
-        radius="md"
-        variant="flat"
-         className="h-10 font-semibold bg-[#a4b1ab] text-white border-none hover:!bg-[#4c5e55] hover:!text-white"
+        className="h-10 font-semibold bg-[#a4b1ab] text-white border-none hover:!bg-[#4c5e55] hover:!text-white"
         disabled={currentPage === pageCount}
-        onPress={handleLastPage}
+        onClick={handleLastPage}
       >
         Last <FaChevronRight className="ml-1" />
       </Button>

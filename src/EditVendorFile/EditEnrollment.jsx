@@ -42,6 +42,7 @@ const EditEnrollment = () => {
   const view = useEditVendorStore((state) => state.view);
   const setView = useEditVendorStore((state) => state.setView);
   const setEditingVendor = useEditVendorStore((state) => state.setEditingVendor);
+  const [fetchError, setFetchError] = useState("");
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [deleteModal, setDeleteModal] = useState({
@@ -97,105 +98,125 @@ const EditEnrollment = () => {
   }, []);
 
   const handleApiError = useCallback(
-    (error, defaultMessage) => {
-      if (!error.response) {
-        toast.error("Network error. Please check your connection.", {
-          toastId: "network-error",
+  (error, defaultMessage) => {
+    if (!error.response) {
+      toast.error("Network error. Please check your connection.", {
+        toastId: "network-error",
+      });
+      return;
+    }
+
+    const { status, data } = error.response;
+
+    switch (status) {
+      case 401:
+        toast.error("Session expired. Please log in again.", {
+          toastId: "unauthorized",
         });
-        return;
-      }
+        navigate("/signin");
+        break;
 
-      const { status, data } = error.response;
-      const message = data?.detail || defaultMessage;
+      case 403:
+        toast.error(data?.detail || "Access denied", {
+          toastId: "forbidden",
+        });
+        break;
 
-      switch (status) {
-        case 401:
-          toast.error("Session expired. Please log in again.", {
-            toastId: "unauthorized",
-          });
-          navigate("/signin");
-          break;
-        case 403:
-          break;
-        case 404:
-          toast.error("Resource not found", { toastId: "not-found" });
-          break;
-        default:
-          toast.error(message, { toastId: `error-${status}` });
-      }
-    },
-    [navigate]
+      case 404:
+        toast.error("Resource not found", { toastId: "not-found" });
+        break;
+
+      default:
+        toast.error(data?.detail || defaultMessage, {
+          toastId: `error-${status}`,
+        });
+    }
+  },
+  [navigate]
   );
 
   const fetchEnrollments = useCallback(
-    async (showLoader = true) => {
-      if (showLoader) setLoader(true);
+  async (showLoader = true) => {
+    if (showLoader) setLoader(true);
 
-      try {
-        const response = await accountEnrollments();
+    try {
+      const response = await accountEnrollments();
 
-        if (!isMounted.current) return;
+      if (!isMounted.current) return;
 
-        if (!Array.isArray(response) || response.length === 0) {
-          toast.error("No enrollments found", { toastId: "no-enrollments" });
-          setData([]);
-          return;
-        }
+      setFetchError("");
 
-        const groupedData = Object.values(
-          response.reduce((acc, item) => {
-            const vendorId = item.vendor?.id;
-            if (!vendorId) return acc;
+      if (!Array.isArray(response) || response.length === 0) {
+        setData([]);
+        return;
+      }
 
-            const validEnrollments = Array.isArray(item.enrollments)
-              ? item.enrollments.filter(
-                  (enrollment) =>
-                    enrollment &&
-                    typeof enrollment.identifier === "string" &&
-                    enrollment.identifier.trim() !== ""
-                )
-              : [];
+      const groupedData = Object.values(
+        response.reduce((acc, item) => {
+          const vendorId = item.vendor?.id;
 
-            if (!validEnrollments.length) return acc;
+          if (!vendorId) return acc;
 
-            acc[vendorId] = acc[vendorId] || {
+          const validEnrollments = Array.isArray(item.enrollments)
+            ? item.enrollments.filter(
+                (enrollment) =>
+                  enrollment &&
+                  typeof enrollment.identifier === "string" &&
+                  enrollment.identifier.trim() !== ""
+              )
+            : [];
+
+          if (!validEnrollments.length) return acc;
+
+          if (!acc[vendorId]) {
+            acc[vendorId] = {
               vendor: item.vendor,
               accounts: [],
             };
+          }
 
-            acc[vendorId].accounts.push({
-              id: item.id,
-              name: item.name || "N/A",
-              enrollments: validEnrollments,
-            });
+          acc[vendorId].accounts.push({
+            id: item.id,
+            name: item.name || "N/A",
+            enrollments: validEnrollments,
+          });
 
-            return acc;
-          }, {})
-        )
-          .map((vendorGroup) => ({
-            ...vendorGroup,
-            accounts: vendorGroup.accounts.filter(
-              (account) =>
-                Array.isArray(account.enrollments) && account.enrollments.length > 0
-            ),
-          }))
-          .filter(
-            (vendorGroup) =>
-              Array.isArray(vendorGroup.accounts) && vendorGroup.accounts.length > 0
-          );
+          return acc;
+        }, {})
+      )
+        .map((vendorGroup) => ({
+          ...vendorGroup,
+          accounts: vendorGroup.accounts.filter(
+            (account) =>
+              Array.isArray(account.enrollments) && account.enrollments.length > 0
+          ),
+        }))
+        .filter(
+          (vendorGroup) =>
+            Array.isArray(vendorGroup.accounts) && vendorGroup.accounts.length > 0
+        );
 
-        setData(groupedData);
-      } catch (error) {
-        if (!isMounted.current) return;
+      setData(groupedData);
+    } catch (error) {
+      if (!isMounted.current) return;
+
+      if (error?.response?.status === 403) {
+        setFetchError(error?.response?.data?.detail || "Access denied");
+        setData([]);
+      } else {
+        setFetchError("");
         handleApiError(error, "Failed to fetch enrollments");
-      } finally {
-        if (isMounted.current && showLoader) {
-          setLoader(false);
-          setDataLoaded(true);
-        }
       }
-    },
-    [handleApiError, setData, setLoader, setDataLoaded]
+    } finally {
+      if (isMounted.current) {
+        if (showLoader) {
+          setLoader(false);
+        }
+        setDataLoaded(true);
+      }
+    }
+  },
+  [handleApiError, setData, setLoader, setDataLoaded]
   );
 
   useEffect(() => {
@@ -803,7 +824,7 @@ const EditEnrollment = () => {
                   );
                 })
               ) : (
-                <p className="text-center text-gray-700 py-10">No vendors found.</p>
+                <p className={`text-center py-10 ${fetchError ? "text-red-500" : "text-gray-700"}`}> {fetchError || "No vendors found."} </p>
               )}
             </div>
           )}

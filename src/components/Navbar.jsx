@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
-import logo from '../Images/mainlogo.svg';
-import { FaBars } from 'react-icons/fa';
-import { IoMdClose } from 'react-icons/io';
-import { Link, useLocation } from 'react-router-dom';
-import { fetchAllVendors } from '../api/authApi';
+import React, { useEffect, useRef, useState } from "react";
+import logo from "../Images/mainlogo.svg";
+import { FaBars } from "react-icons/fa";
+import { IoMdClose } from "react-icons/io";
+import { Link, useLocation } from "react-router-dom";
+import { fetchAllVendors } from "../api/authApi";
 
 const Navbar = ({ openToggle }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -13,10 +13,79 @@ const Navbar = ({ openToggle }) => {
   const resourcesRef = useRef(null);
   const location = useLocation();
 
+  const hiddenRoutes = [
+    "/layout/home",
+    "/success",
+    "/passreg",
+    "/layout/catalogue",
+    "/layout/product",
+    "/layout/allapp",
+    "/layout/enrolment",
+    "/layout/inventory",
+    "/layout/market",
+    "/layout/editvendor",
+    "/layout/selectedproduct",
+    "/layout/ebay",
+    "/layout/listing",
+    "/layout/order",
+    "/layout/editenrollment",
+    "/layout/success",
+    "/layout/orderdetails",
+    "/layout/addnewvendor",
+    "/layout/newvendordetails",
+    "/layout/mymarket",
+    "/layout/myaccount",
+    "/chooseplan/paymentsuccessful",
+    "/chooseplan/paymentfailed",
+    "/layout/invite-success",
+    "/layout/payment-history",
+    "/layout/settings",
+    "/layout/members-activities",
+    "/layout/teams",
+    "/layout/teamorders",
+    "/layout/teaminventory",
+    "/layout/teamsaccounts",
+    "/layout/custom_vendor_integration",
+    "/layout/custom_vendor",
+    "/layout/custom_vendors",
+    "/layout/support-ticket",
+    "/layout/faqs",
+    "/layout/report",
+    "/layout/help",
+    "/vendors/payment-success",
+    "/marketplace/success",
+    "/vendor/success-file",
+    "/invite-success",
+    "/vendor/success-enrolment",
+    "/admin_layout",
+    "/layout/log",
+    "/layout/held_sku",
+  ];
+
+  const publicRoutes = [
+    "/",
+    "/pricing",
+    "/aboutus",
+    "/blog",
+    "/faqs",
+    "/contact-us",
+    "/signin",
+    "/signup",
+  ];
+
+  const isHidden = hiddenRoutes.some((route) =>
+    location.pathname.startsWith(route)
+  );
+
+  const isPublicRoute = publicRoutes.some((route) => {
+    if (route === "/") return location.pathname === "/";
+    return location.pathname === route || location.pathname.startsWith(route);
+  });
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
@@ -25,77 +94,79 @@ const Navbar = ({ openToggle }) => {
         setResourcesOpen(false);
       }
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   useEffect(() => {
     const handler = ({ key }) => {
-      if (key === 'Escape') {
+      if (key === "Escape") {
         setMobileOpen(false);
         setResourcesOpen(false);
       }
     };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
+
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow = mobileOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [mobileOpen]);
 
-  
   useEffect(() => {
+    let isMounted = true;
+
     const checkAuth = async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
 
       if (!token) {
-        setIsAuthenticated(false);
+        if (isMounted) setIsAuthenticated(false);
+        return;
+      }
+
+      if (!isPublicRoute) {
+        if (isMounted) setIsAuthenticated(true);
         return;
       }
 
       try {
         await fetchAllVendors({ skipAuthRedirect: true });
-        setIsAuthenticated(true);
+        if (isMounted) setIsAuthenticated(true);
       } catch (error) {
         if (error?.response?.status === 401) {
-          setIsAuthenticated(false);
+          localStorage.removeItem("token");
+          localStorage.removeItem("permissions");
+          localStorage.removeItem("fullName");
+          localStorage.removeItem("userId");
+          if (isMounted) setIsAuthenticated(false);
         } else {
-          setIsAuthenticated(true);
+          if (isMounted) setIsAuthenticated(true);
         }
       }
     };
 
     checkAuth();
-  }, [location.pathname]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [location.pathname, isPublicRoute]);
 
   useEffect(() => {
     const handleStorage = () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       setIsAuthenticated(!!token);
     };
 
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
-  const hiddenRoutes = [
-    '/layout/home', '/success', '/passreg', '/layout/catalogue', '/layout/product', '/layout/allapp',
-    '/layout/enrolment', '/layout/inventory', '/layout/market', '/layout/editvendor',
-    '/layout/selectedproduct', '/layout/ebay', '/layout/listing', '/layout/order',
-    '/layout/editenrollment', '/layout/success', '/layout/orderdetails', '/layout/addnewvendor',
-    '/layout/newvendordetails', '/layout/mymarket', '/layout/myaccount',
-    '/chooseplan/paymentsuccessful', '/chooseplan/paymentfailed',
-    '/layout/invite-success', '/layout/payment-history', '/layout/settings',
-    '/layout/members-activities', '/layout/teams', '/layout/teamorders',
-    '/layout/teaminventory', '/layout/teamsaccounts', '/layout/custom_vendor_integration',
-    '/layout/custom_vendor', '/layout/custom_vendors', '/layout/support-ticket', '/layout/faqs',
-    '/layout/report', '/layout/help', '/vendors/payment-success', '/marketplace/success',
-    '/vendor/success-file', '/invite-success', '/vendor/success-enrolment', '/admin_layout', '/layout/log', '/layout/held_sku',
-  ];
-
-  const isHidden = hiddenRoutes.some(route => location.pathname.startsWith(route));
   if (isHidden) return null;
 
   const closeMobile = () => setMobileOpen(false);
@@ -105,26 +176,35 @@ const Navbar = ({ openToggle }) => {
       <nav
         className={`sticky top-0 z-[1000] w-full md:px-5 transition-all duration-300 ${
           scrolled
-            ? 'bg-white/90 backdrop-blur-xl shadow-lg shadow-black/5 border-b border-[#027840]/10'
-            : 'bg-white border-b border-gray-100 shadow-sm'
+            ? "bg-white/90 backdrop-blur-xl shadow-lg shadow-black/5 border-b border-[#027840]/10"
+            : "bg-white border-b border-gray-100 shadow-sm"
         }`}
       >
         <div className="w-full px-4 sm:px-6 flex items-center justify-between h-[72px] gap-4">
-
           <Link to="/" className="flex-shrink-0">
-            <img src={logo} alt="Logo" className="w-[160px] h-[72px] object-contain" />
+            <img
+              src={logo}
+              alt="Logo"
+              className="w-[160px] h-[72px] object-contain"
+            />
           </Link>
 
           <ul className="hidden lg:flex items-center gap-1 list-none m-0 p-0">
             <li>
-              <Link to="/" className="relative inline-flex items-center px-4 py-2 rounded-lg text-[14.5px] font-medium text-gray-700 hover:text-[#027840] hover:bg-[#027840]/5 transition-all duration-200 group">
+              <Link
+                to="/"
+                className="relative inline-flex items-center px-4 py-2 rounded-lg text-[14.5px] font-medium text-gray-700 hover:text-[#027840] hover:bg-[#027840]/5 transition-all duration-200 group"
+              >
                 Home
                 <span className="absolute bottom-[5px] left-4 right-4 h-0.5 bg-[#027840] rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
               </Link>
             </li>
 
             <li>
-              <Link to="/pricing" className="relative inline-flex items-center px-4 py-2 rounded-lg text-[14.5px] font-medium text-gray-700 hover:text-[#027840] hover:bg-[#027840]/5 transition-all duration-200 group">
+              <Link
+                to="/pricing"
+                className="relative inline-flex items-center px-4 py-2 rounded-lg text-[14.5px] font-medium text-gray-700 hover:text-[#027840] hover:bg-[#027840]/5 transition-all duration-200 group"
+              >
                 Pricing
                 <span className="absolute bottom-[5px] left-4 right-4 h-0.5 bg-[#027840] rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
               </Link>
@@ -132,36 +212,42 @@ const Navbar = ({ openToggle }) => {
 
             <li ref={resourcesRef} className="relative">
               <button
-                onClick={() => setResourcesOpen(p => !p)}
+                onClick={() => setResourcesOpen((p) => !p)}
                 className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-[14.5px] font-medium transition-all duration-200 ${
                   resourcesOpen
-                    ? 'text-[#027840] bg-[#027840]/5'
-                    : 'text-gray-700 hover:text-[#027840] hover:bg-[#027840]/5'
+                    ? "text-[#027840] bg-[#027840]/5"
+                    : "text-gray-700 hover:text-[#027840] hover:bg-[#027840]/5"
                 }`}
               >
                 Resources
                 <svg
                   className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                    resourcesOpen ? 'rotate-180 text-[#027840]' : 'text-gray-400'
+                    resourcesOpen ? "rotate-180 text-[#027840]" : "text-gray-400"
                   }`}
-                  viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-                  strokeLinecap="round" strokeLinejoin="round"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
                   <path d="M6 9l6 6 6-6" />
                 </svg>
               </button>
 
-              <div className={`absolute top-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-52 bg-white rounded-2xl shadow-xl shadow-black/10 border border-gray-100 p-1.5 origin-top transition-all duration-200 ${
-                resourcesOpen
-                  ? 'opacity-100 visible scale-100 translate-y-0'
-                  : 'opacity-0 invisible scale-95 -translate-y-1 pointer-events-none'
-              }`}>
+              <div
+                className={`absolute top-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-52 bg-white rounded-2xl shadow-xl shadow-black/10 border border-gray-100 p-1.5 origin-top transition-all duration-200 ${
+                  resourcesOpen
+                    ? "opacity-100 visible scale-100 translate-y-0"
+                    : "opacity-0 invisible scale-95 -translate-y-1 pointer-events-none"
+                }`}
+              >
                 <div className="absolute -top-[5px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-white border-l border-t border-gray-100 rotate-45 rounded-sm" />
 
                 {[
-                  { to: '/blog', emoji: '✍️', label: 'Blog' },
-                  { to: '/faqs', emoji: '💡', label: 'FAQs' },
-                  { to: '/contact-us', emoji: '💬', label: 'Contact Us' },
+                  { to: "/blog", emoji: "✍️", label: "Blog" },
+                  { to: "/faqs", emoji: "💡", label: "FAQs" },
+                  { to: "/contact-us", emoji: "💬", label: "Contact Us" },
                 ].map(({ to, emoji, label }) => (
                   <Link
                     key={to}
@@ -179,7 +265,10 @@ const Navbar = ({ openToggle }) => {
             </li>
 
             <li>
-              <Link to="/aboutus" className="relative inline-flex items-center px-4 py-2 rounded-lg text-[14.5px] font-medium text-gray-700 hover:text-[#027840] hover:bg-[#027840]/5 transition-all duration-200 group">
+              <Link
+                to="/aboutus"
+                className="relative inline-flex items-center px-4 py-2 rounded-lg text-[14.5px] font-medium text-gray-700 hover:text-[#027840] hover:bg-[#027840]/5 transition-all duration-200 group"
+              >
                 About Us
                 <span className="absolute bottom-[5px] left-4 right-4 h-0.5 bg-[#027840] rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
               </Link>
@@ -225,22 +314,27 @@ const Navbar = ({ openToggle }) => {
         onClick={closeMobile}
         aria-hidden="true"
         className={`fixed inset-0 z-[998] bg-black/40 backdrop-blur-sm lg:hidden transition-all duration-300 ${
-          mobileOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'
+          mobileOpen
+            ? "opacity-100 visible"
+            : "opacity-0 invisible pointer-events-none"
         }`}
       />
 
-      {/* ✅ MOBILE SECTION COMPLETELY UNTOUCHED */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Navigation menu"
         className={`fixed top-0 right-0 bottom-0 z-[999] w-[min(320px,88vw)] bg-white flex flex-col shadow-2xl lg:hidden transition-transform duration-[350ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          mobileOpen ? 'translate-x-0' : 'translate-x-full'
+          mobileOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 flex-shrink-0">
           <Link to="/" onClick={closeMobile}>
-            <img src={logo} alt="Logo" className="w-[140px] h-[58px] object-contain" />
+            <img
+              src={logo}
+              alt="Logo"
+              className="w-[140px] h-[58px] object-contain"
+            />
           </Link>
 
           <button
@@ -257,7 +351,11 @@ const Navbar = ({ openToggle }) => {
             Navigation
           </p>
 
-          {[{ to: '/', label: 'Home' }, { to: '/pricing', label: 'Pricing' }, { to: '/aboutus', label: 'About Us' }].map(({ to, label }) => (
+          {[
+            { to: "/", label: "Home" },
+            { to: "/pricing", label: "Pricing" },
+            { to: "/aboutus", label: "About Us" },
+          ].map(({ to, label }) => (
             <Link
               key={to}
               to={to}
@@ -275,7 +373,11 @@ const Navbar = ({ openToggle }) => {
             Resources
           </p>
 
-          {[{ to: '/blog', emoji: '✍️', label: 'Blog' }, { to: '/faqs', emoji: '💡', label: 'FAQs' }, { to: '/contact-us', emoji: '💬', label: 'Contact Us' }].map(({ to, emoji, label }) => (
+          {[
+            { to: "/blog", emoji: "✍️", label: "Blog" },
+            { to: "/faqs", emoji: "💡", label: "FAQs" },
+            { to: "/contact-us", emoji: "💬", label: "Contact Us" },
+          ].map(({ to, emoji, label }) => (
             <Link
               key={to}
               to={to}

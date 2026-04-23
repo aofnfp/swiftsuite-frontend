@@ -50,6 +50,7 @@ const Listing = () => {
   const [loader, setLoader] = useState(false);
   const [loading, setLoading] = useState(false);
   const [itemSpecificFields, setItemSpecificFields] = useState({});
+  const [requiredFields, setRequiredFields] = useState([]);
   const [selectedValues, setSelectedValues] = useState({});
   const [isLoadingCategory, setIsLoadingCategory] = useState(false);
   const [firstCategory, setFirstCategory] = useState([]) || [];
@@ -385,6 +386,7 @@ const Listing = () => {
           formattedFields[key] = Array.isArray(options) ? options : "";
         });
         setItemSpecificFields(formattedFields);
+        setRequiredFields(response?.required_fields || []);
         toast.success("Fetched successfully");
         setIsModalOpen(false);
       } else {
@@ -433,6 +435,7 @@ const Listing = () => {
         formattedFields[key] = Array.isArray(options) ? options : "";
       });
       setItemSpecificFields(formattedFields);
+      setRequiredFields(specificFieldsResponse?.required_fields || []);
       toast.success("Fetched successfully");
       setLoader(false);
       setIsModalOpen(false);
@@ -464,6 +467,7 @@ const Listing = () => {
         formattedFields[key] = Array.isArray(options) ? options : "";
       });
       setItemSpecificFields(formattedFields);
+      setRequiredFields(specificFieldsResponse?.required_fields || []);
       toast.success("Fetched successfully");
       setLoader(false);
       setIsModalOpen(false);
@@ -499,6 +503,7 @@ const Listing = () => {
         formattedFields[key] = Array.isArray(options) ? options : "";
       });
       setItemSpecificFields(formattedFields);
+      setRequiredFields(specificFieldsResponse?.required_fields || []);
       toast.success("Fetched successfully");
       setLoader(false);
       setIsModalOpen(false);
@@ -525,6 +530,7 @@ const Listing = () => {
         formattedFields[key] = Array.isArray(options) ? options : "";
       });
       setItemSpecificFields(formattedFields);
+      setRequiredFields(specificFieldsResponse?.required_fields || []);
       toast.success("Fetched successfully");
       setIsModalOpen(false);
       setLoader(false);
@@ -892,6 +898,7 @@ const Listing = () => {
               handleLastCategoryClick={handleLastCategoryClick}
               itemSpecificFields={itemSpecificFields}
               setItemSpecificFields={setItemSpecificFields}
+              requiredFields={requiredFields}
               selectedValues={selectedValues}
               setSelectedValues={setSelectedValues}
               handleSelectChange={handleSelectChange}

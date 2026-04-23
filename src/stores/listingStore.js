@@ -50,6 +50,21 @@ export const useListingStore = create(
               : {},
         })),
       setThumbnailImage: (value) => set({ thumbnailImage: value || "" }),
+      
+      resetListing: () =>
+        set({
+          productListing: "",
+          title: "",
+          bestOfferEnabled: false,
+          enableCharity: false,
+          isMappingChecked: false,
+          isGiftChecked: false,
+          description: "",
+          selectedWooCategories: [],
+          wcAttributes: [],
+          selectedValues: {},
+          thumbnailImage: "",
+        }),
     }),
     {
       name: "listing-store",

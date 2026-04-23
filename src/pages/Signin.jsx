@@ -10,6 +10,14 @@ import { useDispatch } from "react-redux";
 import { sendOtpEndpoint, signin } from "../api/authApi";
 import { setPermissions } from "../redux/permissionSlice";
 import signImage1 from "../Images/signup1.png";
+import { useCatalogueStore } from "../stores/catalogueStore";
+import { useInventoryPrefsStore } from "../stores/inventoryPrefs";
+import { useProductStore } from "../stores/productStore";
+import { useOrderStore } from "../stores/orderStore";
+import { useEditVendorStore } from "../stores/editVendorStore";
+import { useListingStore } from "../stores/listingStore";
+import { useMarketplaceStore } from "../stores/marketplaceStore";
+import { useVendorStore } from "../stores/VendorStore";
 
 const SignIn = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -17,24 +25,53 @@ const SignIn = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const validationSchema = useMemo(() => yup.object({
-    email: yup
-      .string()
-      .email("Invalid email format")
-      .required("Email is required"),
-    password: yup.string().required("Password is required"),
-  }), []);
+  const validationSchema = useMemo(
+    () =>
+      yup.object({
+        email: yup
+          .string()
+          .email("Invalid email format")
+          .required("Email is required"),
+        password: yup.string().required("Password is required"),
+      }),
+    [],
+  );
 
   const formik = useFormik({
-    initialValues: { email: "", password: "" }, validationSchema, onSubmit: async (values) => {
+    initialValues: { email: "", password: "" },
+    validationSchema,
+    onSubmit: async (values) => {
       setMyLoader(true);
       try {
         const res = await signin(values, { timeout: 15000 });
+        localStorage.clear();
+        sessionStorage.clear();
+
+        useCatalogueStore.persist.clearStorage();
+        useInventoryPrefsStore.persist.clearStorage();
+        useProductStore.persist.clearStorage();
+        useOrderStore.persist.clearStorage();
+        useEditVendorStore.persist.clearStorage();
+        useListingStore.persist.clearStorage();
+        useMarketplaceStore.persist.clearStorage();
+        useVendorStore.persist.clearStorage();
+
+        useCatalogueStore.getState().resetCatalogue();
+        useInventoryPrefsStore.getState().resetInventoryPrefs();
+        useProductStore.getState().resetProduct();
+        useOrderStore.getState().resetOrder();
+        useEditVendorStore.getState().resetEditVendorStore();
+        useListingStore.getState().resetListing();
+        useMarketplaceStore.getState().resetEbayStore();
+        useMarketplaceStore.getState().resetWcStore();
+        useVendorStore.getState().resetVendor();
+
         localStorage.setItem("token", res.access_token);
         localStorage.setItem("fullName", res.full_name);
         localStorage.setItem("userId", res.id);
+
         dispatch(
-          setPermissions({ subscribed: res.subscribed, isAdmin: res.isAdmin })
+          setPermissions({ subscribed: res.subscribed, isAdmin: res.isAdmin }),
         );
         toast.success("✅ Sign in successful!");
         const redirect = localStorage.getItem("redirectAfterLogin");
@@ -47,7 +84,6 @@ const SignIn = () => {
           }
         }, 1000);
       } catch (error) {
-        console.log("Login error:", error);
         setMyLoader(false);
         if (error.code === "ECONNABORTED") {
           toast.error("⚠️ Request timed out. Please try again.");
@@ -55,25 +91,26 @@ const SignIn = () => {
           toast.error("⚠️ Network error. Please check your connection.");
         } else if (error.response.status === 403) {
           const msg = error.response.data?.detail;
-          if (msg === "Account not verified, check your email for verification code") {
+          if (
+            msg ===
+            "Account not verified, check your email for verification code"
+          ) {
             try {
-            const res = await axios.post(sendOtpEndpoint, { email: values.email });
-            console.log("OTP response:", res);
-            toast.success("✅ OTP sent to your email!");
-            localStorage.setItem("emailForAuth", values.email);
-            navigate("/auth");
-          } catch (error) {
-            console.log("OTP error:", error?.response || error);
-
-            if (error?.response?.status === 404) {
+              const res = await axios.post(sendOtpEndpoint, {
+                email: values.email,
+              });
               toast.success("✅ OTP sent to your email!");
               localStorage.setItem("emailForAuth", values.email);
               navigate("/auth");
-              return;
+            } catch (error) {
+              if (error?.response?.status === 404) {
+                toast.success("✅ OTP sent to your email!");
+                localStorage.setItem("emailForAuth", values.email);
+                navigate("/auth");
+                return;
+              }
+              toast.error("⚠️ Failed to send OTP. Please try again.");
             }
-
-            toast.error("⚠️ Failed to send OTP. Please try again.");
-          }
           } else {
             toast.error("❌ Invalid credentials.");
           }
@@ -81,7 +118,7 @@ const SignIn = () => {
           error.response.data.email.forEach((msg) => toast.error(`⚠️ ${msg}`));
         } else {
           toast.error(
-            error.response.data?.detail || "⚠️ Server error. Try again."
+            error.response.data?.detail || "⚠️ Server error. Try again.",
           );
         }
       }

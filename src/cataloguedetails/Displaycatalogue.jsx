@@ -157,7 +157,6 @@ const Displaycatalogue = ({
     return `Image of ${productName}`;
   };
 
-  // Handle image loading error
   const handleImageError = (productId) => {
     setImageErrors((prev) => ({ ...prev, [productId]: true }));
   };
@@ -166,8 +165,6 @@ const Displaycatalogue = ({
     e.stopPropagation();
   };
 
-  // True during the pre-fetch window (vendor selected, query not yet resolved)
-  // as well as while the query is actively loading or refetching.
   const showSkeleton =
     isLoading ||
     isFetching ||

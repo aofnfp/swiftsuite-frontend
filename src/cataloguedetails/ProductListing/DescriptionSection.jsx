@@ -1,3 +1,50 @@
+/**
+ * DescriptionSection — product description editor.
+ *
+ * Why we built this custom instead of using a library (Quill, CKEditor, TinyMCE,
+ * SunEditor, etc.):
+ *
+ * Legacy eBay descriptions imported from inkFrog / Sozo-style templates contain
+ * arbitrary HTML — full `<style>` blocks, external `<link rel="stylesheet">`,
+ * Bootstrap-classed `<div>` grids, schema.org microdata, and `data-*` attributes.
+ * The user needs to (a) view them rendered like eBay does, (b) edit them
+ * without stripping anything, and (c) re-list the exact HTML back to eBay.
+ *
+ * Every third-party rich-text editor we tried failed one of those requirements:
+ *   - Quill normalizes HTML into its own Delta model → strips divs/styles/classes.
+ *   - CKEditor 5 + GeneralHtmlSupport preserves HTML in state but its Classic
+ *     editor is contenteditable-on-a-div, so content `<link>`s don't load in
+ *     the editor view. Also requires a cloud license key as of v44+.
+ *   - SunEditor has iframe mode, but its `fullPage: true` parser fails on
+ *     eBay's mixed head/body HTML with consistencyCheck errors.
+ *   - CKEditor 4 matches the architecture perfectly (eBay/inkFrog use it) but
+ *     is EOL since 2023 — not safe for new work.
+ *
+ * The solution: an iframe with `contenteditable="true"` body and a toolbar
+ * that calls `document.execCommand` on the iframe's document. Same architecture
+ * eBay's own Seller Hub uses. The browser handles HTML byte-for-byte — no
+ * third-party parser or sanitizer in the loop.
+ *
+ * Key invariants (changing any of these will break something):
+ *   - `sandbox="allow-same-origin"` (NO allow-scripts) — parent accesses the
+ *     iframe's document for execCommand; arbitrary <script> in user content
+ *     cannot execute. Do not loosen this without a security review.
+ *   - `iframeNode` is tracked via useState + callback ref, not a plain useRef.
+ *     State triggers effects on mount/unmount, which is how fresh-mount
+ *     detection works (critical for the Edit→HTML→Edit round-trip).
+ *   - The content-sync useEffect is keyed on [iframeNode, value] and
+ *     intentionally NOT on mode. Edit↔Preview toggling must not reload the
+ *     iframe, or unsaved edits get wiped.
+ *
+ * execCommand is deprecated but universally supported and still the cleanest
+ * way to drive a contenteditable from outside. Every browser vendor commits to
+ * keeping it for the foreseeable future because there's no standards
+ * replacement yet.
+ *
+ * See also: memory/description_editor_architecture.md in the Claude memory
+ * dir for the full decision history.
+ */
+
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 const DEFAULT_PLACEHOLDER =
@@ -29,11 +76,19 @@ const DescriptionSection = ({ value, onChange }) => {
   // "html"    = textarea with raw HTML source; return-to-editor chip on top
   // "preview" = iframe, contenteditable=false; return-to-editor chip on top
   const [mode, setMode] = useState("edit");
+  // Iframe element in state (not a plain useRef) so effects re-run when it
+  // mounts/unmounts — how we detect a fresh mount that needs a content reseed.
   const [iframeNode, setIframeNode] = useState(null);
   const refCallback = useCallback((node) => setIframeNode(node), []);
 
+  // What's currently inside the iframe DOM — compared against `value` prop to
+  // tell external updates apart from our own typing.
   const iframeContentRef = useRef("");
+  // True when the last onChange we fired came from typing inside this iframe.
+  // Prevents the reload-on-value-prop-change that would wipe the user's cursor.
   const ownChangeRef = useRef(false);
+  // Which iframe DOM node we last wrote srcdoc into. Changing identity means
+  // the iframe unmounted/remounted (e.g. Edit→HTML→Edit) and needs reseeding.
   const syncedNodeRef = useRef(null);
 
   // Legacy eBay-imported descriptions were stored JSON-encoded (json.dumps) in
@@ -113,7 +168,11 @@ const DescriptionSection = ({ value, onChange }) => {
     setMode(newMode);
   };
 
-  // Toolbar exec helper.
+  // Runs a browser execCommand on the iframe's document and propagates the
+  // resulting HTML to parent state. We focus the iframe first because some
+  // commands (bold, italic, list) silently no-op without an active selection
+  // in the target document. We also read and emit outerHTML manually because
+  // execCommand doesn't reliably fire the body's `input` event across browsers.
   const exec = useCallback(
     (cmd, arg) => {
       if (!iframeNode?.contentDocument) return;
@@ -133,7 +192,10 @@ const DescriptionSection = ({ value, onChange }) => {
     if (v) exec(cmd, v);
   };
 
-  // Toolbar button (used by formatting buttons — preserves iframe focus).
+  // Toolbar button for formatting commands. `onMouseDown preventDefault` stops
+  // the button from stealing focus from the iframe, which would collapse the
+  // user's text selection before the onClick handler can run execCommand.
+  // Without it, "select text → click Bold" bolds nothing.
   const tbBtn = (label, onClick, title, extraClass = "") => (
     <button
       type="button"

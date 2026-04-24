@@ -76,7 +76,7 @@ const MarketplaceSelector = ({
               <img
                 src={market.image}
                 alt={market.alt}
-                className="h-14 w-auto object-contain p-2"
+                className="h-8 max-h-full w-auto object-contain"
               />
             </label>
           ))}

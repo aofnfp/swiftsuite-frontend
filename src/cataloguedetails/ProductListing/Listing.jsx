@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from "react";
 import { useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import gif from "../../Images/gif.gif";
-import "react-quill/dist/quill.snow.css";
 import ProductImageUpload from "./ProductImageUpload";
 import PricingSku from "./PricingSku";
 import { Toaster, toast } from "sonner";
@@ -191,20 +190,6 @@ const Listing = () => {
   const handleDescriptionChange = (value) => {
     setDescription(value);
     setProductListing((prev) => ({ ...prev, detailed_description: value }));
-  };
-
-  const modules = {
-    toolbar: [
-      [{ header: [1, 2, 3, 4, 5, 6, false] }],
-      [{ font: [] }],
-      [{ size: ["small", false, "large", "huge"] }],
-      ["bold", "italic", "underline"],
-      [{ color: [] }, { background: [] }],
-      ["blockquote", "code-block"],
-      [{ list: "ordered" }, { list: "bullet" }],
-      ["link", "image"],
-      ["clean"],
-    ],
   };
 
   useEffect(() => {
@@ -844,7 +829,7 @@ const Listing = () => {
             </div>
 
             <div>
-              <DescriptionSection value={productListing?.detailed_description || productListing?.description || ""} onChange={handleDescriptionChange} modules={modules} />
+              <DescriptionSection value={productListing?.detailed_description || productListing?.description || ""} onChange={handleDescriptionChange} />
             </div>
 
             <DynamicProductInputs handleListingChange={handleListingChange} productListing={productListing} />

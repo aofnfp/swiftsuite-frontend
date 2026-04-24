@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { MdOutlineKey } from "react-icons/md";
+import { MdOutlineKey, MdClose } from "react-icons/md";
 import { IoChevronDown, IoChevronUp } from "react-icons/io5";
 import { RiDeleteBin6Fill } from "react-icons/ri";
 import { motion, AnimatePresence } from "framer-motion";
 import { Toaster, toast } from "sonner";
-import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
-import { MdClose } from "react-icons/md";
 import { FiEdit } from "react-icons/fi";
+import { UserCog } from "lucide-react";
 import SuspendMemberModal from "./SuspendMemberModal";
 import UnsuspendMemberModal from "./UnsuspendMemberModal";
 import DeleteMemberModal from "./DeleteMemberModal";
@@ -41,7 +40,6 @@ const TeamMemberDrawer = ({ member, onClose, onUpdate, onDelete }) => {
         return acc;
       }, {});
       setPermissions(mapped);
-
       setFormData({
         first_name: member.first_name || "",
         last_name: member.last_name || "",
@@ -339,7 +337,7 @@ const TeamMemberDrawer = ({ member, onClose, onUpdate, onDelete }) => {
             <p className="font-bold text-[#000000CC] text-[18px]">
               Manage member
             </p>
-            <ManageAccountsIcon fontSize="medium" />
+            <UserCog size={22} />
           </div>
 
           <button
@@ -348,7 +346,7 @@ const TeamMemberDrawer = ({ member, onClose, onUpdate, onDelete }) => {
             }
             className={`block w-full text-left text-[15px] flex items-center gap-2 py-3 hover:bg-gray-100 ${actionColor}`}
           >
-            <ManageAccountsIcon size={18} />
+            <UserCog size={18} />
             {actionText}
           </button>
 

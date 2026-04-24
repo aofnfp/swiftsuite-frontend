@@ -8,33 +8,48 @@ const DeleteMemberModal = ({ isOpen, onClose, memberName, memberId, onDeleteSucc
   const [loading, setLoading] = useState(false);
   if (!isOpen) return null;
 
+  
   const handleDelete = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("token");
-      if (!token) {
-        toast.error("No token found. Please log in again.");
-        return;
-      }
+  try {
+    setLoading(true);
 
-      await axios.delete(
-        `https://service.swiftsuite.app/accounts/delete-subaccount/${memberId}/`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+    const token = localStorage.getItem("token");
 
-      toast.success(`${memberName}'s account was deleted successfully.`);
-
-      if (onDeleteSuccess) onDeleteSuccess();
-
-      setTimeout(onClose, 1200);
-    } catch (error) {
-      toast.error("Failed to delete member. Please try again.");
-    } finally {
-      setLoading(false);
+    if (!token) {
+      toast.error("No token found. Please log in again.");
+      return;
     }
-  };
+
+    await axios.delete(
+      `https://service.swiftsuite.app/accounts/delete-subaccount/${memberId}/`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    toast.success(`${memberName}'s account was deleted successfully.`);
+
+    if (onDeleteSuccess) onDeleteSuccess();
+
+    setTimeout(onClose, 1200);
+  } catch (error) {
+    console.error("Delete member error:", error);
+
+    if (error?.response?.status === 403) {
+      toast.error(error?.response?.data?.detail || "Access denied");
+    } else {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.response?.data?.detail ||
+          "Failed to delete member. Please try again."
+      );
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   return (
     <AnimatePresence>

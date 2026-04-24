@@ -10,37 +10,45 @@ const SuspendMemberModal = ({ isOpen, onClose, memberName, memberId, onSuspendSu
   if (!isOpen) return null;
 
   const handleSuspend = async () => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      if (!token) {
-        toast.error("No token found. Please log in again.");
-        return;
-      }
-
-      const res = await axios.post(
-        `https://service.swiftsuite.app/accounts/subaccount-activation/${memberId}/`,
-        { option: "deactivate" },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      console.log("Suspend member response:", res.data); // ✅ Log API response
-
-      toast.success(`${memberName} has been suspended.`);
-
-      if (onSuspendSuccess) onSuspendSuccess(res.data); // Pass entire response
-      onClose();
-    } catch (error) {
-      console.error("Failed to suspend member:", error);
-      toast.error(
-        error.response?.data?.message || "Failed to suspend member. Try again."
-      );
-    } finally {
-      setLoading(false);
+    if (!token) {
+      toast.error("No token found. Please log in again.");
+      return;
     }
-  };
+
+    const res = await axios.post(
+      `https://service.swiftsuite.app/accounts/subaccount-activation/${memberId}/`,
+      { option: "deactivate" },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    console.log("Suspend member response:", res.data);
+
+    toast.success(`${memberName} has been suspended.`);
+
+    if (onSuspendSuccess) onSuspendSuccess(res.data);
+    onClose();
+  } catch (error) {
+    console.error("Failed to suspend member:", error);
+
+    if (error?.response?.status === 403) {
+      toast.error(error?.response?.data?.detail || "Access denied");
+    } else {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.response?.data?.detail ||
+          "Failed to suspend member. Try again."
+      );
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <AnimatePresence>

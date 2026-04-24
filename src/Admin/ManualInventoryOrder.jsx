@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { showSuccess, showApiError, showInfo } from "../utils/toast";
-import { Inventory, ShoppingCart, CloudDownload } from "@mui/icons-material";
+import { Download, Package, ShoppingCart } from "lucide-react";
 
 const ManualInventoryOrder = () => {
   const [inventoryLoading, setInventoryLoading] = useState(false);
@@ -66,10 +66,9 @@ const ManualInventoryOrder = () => {
 
   return (
     <div className="p-6 mb-8 bg-white rounded-2xl border border-gray-100 shadow-sm">
-      {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <div className="w-9 h-9 bg-[#027840] text-white rounded-xl flex items-center justify-center">
-          <CloudDownload className="text-xl" />
+          <Download className="w-5 h-5" />
         </div>
         <div>
           <h2 className="text-2xl font-semibold text-gray-900">Manual Sync</h2>
@@ -78,11 +77,10 @@ const ManualInventoryOrder = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Inventory Card */}
         <div className="group bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-md transition-all duration-300 hover:border-[#027840]/30">
           <div className="flex items-center gap-3 mb-5">
             <div className="w-10 h-10 bg-[#027840] text-white rounded-xl flex items-center justify-center flex-shrink-0">
-              <Inventory className="text-2xl" />
+              <Package className="w-6 h-6" />
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900">Inventory</h3>
@@ -109,18 +107,17 @@ const ManualInventoryOrder = () => {
               </>
             ) : (
               <>
-                <CloudDownload className="text-lg" />
+                <Download className="w-4 h-4" />
                 Download Inventory
               </>
             )}
           </button>
         </div>
 
-        {/* Orders Card */}
         <div className="group bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-md transition-all duration-300 hover:border-[#027840]/30">
           <div className="flex items-center gap-3 mb-5">
             <div className="w-10 h-10 bg-[#027840] text-white rounded-xl flex items-center justify-center flex-shrink-0">
-              <ShoppingCart className="text-2xl" />
+              <ShoppingCart className="w-6 h-6" />
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900">Orders</h3>
@@ -147,7 +144,7 @@ const ManualInventoryOrder = () => {
               </>
             ) : (
               <>
-                <CloudDownload className="text-lg" />
+                <Download className="w-4 h-4" />
                 Download Orders
               </>
             )}

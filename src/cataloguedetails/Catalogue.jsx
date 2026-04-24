@@ -70,8 +70,6 @@ const Catalogue = () => {
   const advanceSearchButtonRef = useRef(null);
 
   const [endpoint, setEndpoint] = useState("");
-  // selectedVendor and selectedVendorIdentifier are derived at runtime —
-  // never persisted as full objects.
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [selectedVendorIdentifier, setSelectedVendorIdentifier] = useState(null);
   const [filter, setFilter] = useState(false);
@@ -233,7 +231,7 @@ const Catalogue = () => {
     selectedIdentifier: selectedProductCatalogue,
     filter,
   });
-
+  
   const catalogueProduct = data?.products || [];
   const catalogueIdentifiers = data?.identifiers || [];
   const count = data?.count || 0;

@@ -16,8 +16,9 @@ function ProductImageUpload({ productListing, thumbnailImage, setThumbnailImage,
   const fileInputRef = useRef(null);
 
   useEffect(() => {
+    if (!productId || !userId) return;
     handleGetImage();
-  }, []);
+  }, [productId, userId]);
 
   // Simulate upload progress (replace with actual progress tracking if your API supports it)
   const simulateUploadProgress = () => {

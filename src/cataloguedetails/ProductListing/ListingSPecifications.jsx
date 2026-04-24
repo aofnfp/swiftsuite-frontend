@@ -49,8 +49,8 @@ const ListingSPecifications = ({ productListing }) => {
       </div>
       <div>
         <h4 className="font-bold mb-2">Specifications</h4>
-        <p>Variation: Color: Nude</p>
-        <p>Parent SKU:</p>
+        <p>Variation: {productListing?.variation && productListing?.variation !== "Null" ? productListing?.variation : ""}</p>
+        <p>Parent SKU: {productListing?.parent_sku && productListing?.parent_sku !== "Null" ? productListing?.parent_sku : ""}</p>
         <p>SKU: {productListing?.sku && productListing?.sku !== "Null" ? productListing?.sku : ""}</p>
         <p>UPC: {productListing?.upc && productListing?.upc !== "Null" ? productListing?.upc : ""}</p>
         <p>

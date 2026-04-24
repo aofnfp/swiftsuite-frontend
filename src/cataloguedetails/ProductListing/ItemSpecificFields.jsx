@@ -29,9 +29,6 @@ const ItemSpecificFields = ({
   const close = (fieldName) => {
     setFilterValues((prev) => ({ ...prev, [fieldName]: "" }));
     setSelectedValues((prev) => ({ ...prev, [fieldName]: "" }));
-    // Autofill fields fall back to productListing[lowercased field] when
-    // selectedValues is empty, which visually hides a cleared selection.
-    // Clear that source too so the trigger shows "Select <field>" again.
     if (autofillFields.includes(fieldName)) {
       handleListingChange({ target: { name: fieldName.toLowerCase(), value: "" } });
     }

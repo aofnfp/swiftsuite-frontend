@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from "react";
 import { useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import gif from "../../Images/gif.gif";
-import "react-quill/dist/quill.snow.css";
 import ProductImageUpload from "./ProductImageUpload";
 import PricingSku from "./PricingSku";
 import { Toaster, toast } from "sonner";
@@ -193,20 +192,6 @@ const Listing = () => {
     setProductListing((prev) => ({ ...prev, detailed_description: value }));
   };
 
-  const modules = {
-    toolbar: [
-      [{ header: [1, 2, 3, 4, 5, 6, false] }],
-      [{ font: [] }],
-      [{ size: ["small", false, "large", "huge"] }],
-      ["bold", "italic", "underline"],
-      [{ color: [] }, { background: [] }],
-      ["blockquote", "code-block"],
-      [{ list: "ordered" }, { list: "bullet" }],
-      ["link", "image"],
-      ["clean"],
-    ],
-  };
-
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -351,6 +336,17 @@ const Listing = () => {
     setCustomInputValues((prev) => ({ ...prev, [fieldName]: "" }));
     setFilterValues((prev) => ({ ...prev, [fieldName]: "" }));
     setIsDropdownOpen(null);
+  };
+
+  const handleMultiToggle = (fieldName, value) => {
+    if (!value) return;
+    setSelectedValues((prev) => {
+      const current = prev[fieldName] ? prev[fieldName].split(", ").filter(Boolean) : [];
+      const next = current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value];
+      return { ...prev, [fieldName]: next.join(", ") };
+    });
   };
 
   const filteredOptions = (fieldName, options) => {
@@ -833,7 +829,7 @@ const Listing = () => {
             </div>
 
             <div>
-              <DescriptionSection value={productListing?.detailed_description || productListing?.description || ""} onChange={handleDescriptionChange} modules={modules} />
+              <DescriptionSection value={productListing?.detailed_description || productListing?.description || ""} onChange={handleDescriptionChange} />
             </div>
 
             <DynamicProductInputs handleListingChange={handleListingChange} productListing={productListing} />
@@ -902,6 +898,7 @@ const Listing = () => {
               selectedValues={selectedValues}
               setSelectedValues={setSelectedValues}
               handleSelectChange={handleSelectChange}
+              handleMultiToggle={handleMultiToggle}
               customInputValues={customInputValues}
               setCustomInputValues={setCustomInputValues}
               handleInputChange={handleInputChange}

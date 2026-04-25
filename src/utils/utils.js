@@ -201,17 +201,25 @@ export const parseItemSpecificFields = (product = {}) => {
 };
 
 
+// Merge saved (DB-loaded) and selected (user-touched) item-specific values.
+// If the user has explicitly set a key in `selected` — including to "" to
+// clear it — that wins over the saved value. We use hasOwnProperty rather
+// than truthy `||` so a deliberate clear isn't silently undone by the saved
+// fallback.
 export const mergeSavedAndSelected = (saved, selected) => {
+  const safeSaved = saved && typeof saved === "object" ? saved : {};
+  const safeSelected = selected && typeof selected === "object" ? selected : {};
   const result = {};
-  Object.keys(saved).forEach(fieldName => {
-    result[fieldName] = selected[fieldName] || saved[fieldName] || "";
+  Object.keys(safeSaved).forEach((fieldName) => {
+    result[fieldName] = Object.prototype.hasOwnProperty.call(safeSelected, fieldName)
+      ? safeSelected[fieldName]
+      : safeSaved[fieldName];
   });
-  Object.keys(selected).forEach(fieldName => {
-    if (!result[fieldName]) {
-      result[fieldName] = selected[fieldName];
+  Object.keys(safeSelected).forEach((fieldName) => {
+    if (!Object.prototype.hasOwnProperty.call(result, fieldName)) {
+      result[fieldName] = safeSelected[fieldName];
     }
   });
-
   return result;
 };
 
@@ -229,12 +237,12 @@ export const overlayEnrollmentMarkup = (items, enrollmentDetail) => {
   if (!Array.isArray(items)) return items;
   const byMarket = (Array.isArray(enrollmentDetail) ? enrollmentDetail : [])
     .reduce((acc, e) => {
-      const key = (e?.marketplace_name || "").toLowerCase();
+      const key = (e?.marketplace_name || "").trim().toLowerCase();
       if (key) acc[key] = e;
       return acc;
     }, {});
   return items.map((item) => {
-    const market = (item?.market_name || "").toLowerCase();
+    const market = (item?.market_name || "").trim().toLowerCase();
     const e = byMarket[market];
     if (!e) return item;
     return {

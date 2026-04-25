@@ -324,10 +324,10 @@ export const getMarketplaceEnrolmentDetail = async (userId, marketName) => {
 // Subsequent calls: backend returns the cached row value, `source: "cache"`.
 // Pass refresh=true to force a fresh eBay fetch (e.g. user clicked Refresh).
 export const getLiveItemSpecifics = async (userId, inventoryId, refresh = false) => {
-  const url = `/inventoryApp/get_live_item_specifics/${userId}/${inventoryId}/${
-    refresh ? "?refresh=1" : ""
-  }`;
-  const response = await axiosInstance.get(url);
+  const response = await axiosInstance.get(
+    `/inventoryApp/get_live_item_specifics/${userId}/${inventoryId}/`,
+    refresh ? { params: { refresh: 1 } } : undefined
+  );
   return response.data;
 };
 

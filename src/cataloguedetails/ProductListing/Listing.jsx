@@ -67,6 +67,10 @@ const Listing = () => {
   const [handleSaveListingLoader, setHandleSaveListingLoader] = useState(false);
   const [handleUpdateLoader, setHandleUpdateLoader] = useState(false);
   const [useSavedItem, setUseSavedItem] = useState(false);
+  // Aspect names the user has explicitly touched in this session. The live-
+  // eBay hydrate must never clobber these — otherwise an in-flight network
+  // response can overwrite typing that happened in the ~hundreds-of-ms gap.
+  const userTouchedRef = useRef(new Set());
   const thumbnailImage = useListingStore((state) => state.thumbnailImage);
   const setThumbnailImage = useListingStore((state) => state.setThumbnailImage);
   const wcAttributes = useListingStore((state) => state.wcAttributes);
@@ -302,7 +306,17 @@ const Listing = () => {
       const data = await getLiveItemSpecifics(userId, inventoryId, force);
       const live = data?.item_specifics || {};
       if (Object.keys(live).length === 0) return;
-      setSelectedValues((prev) => ({ ...prev, ...live }));
+      // Don't clobber aspects the user has typed/picked while we were waiting
+      // on the network. Force-refresh (the explicit Refresh button) bypasses
+      // this guard since the user asked to overwrite.
+      const touched = userTouchedRef.current;
+      setSelectedValues((prev) => {
+        const next = { ...prev };
+        Object.entries(live).forEach(([k, v]) => {
+          if (force || !touched.has(k)) next[k] = v;
+        });
+        return next;
+      });
     } catch (error) {
       // Live fetch failed — keep whatever was seeded from the DB row.
     }
@@ -367,6 +381,7 @@ const Listing = () => {
   };
 
   const handleSelectChange = (fieldName, label) => {
+    userTouchedRef.current.add(fieldName);
     setSelectedValues((prev) => ({ ...prev, [fieldName]: label }));
     setCustomInputValues((prev) => ({ ...prev, [fieldName]: "" }));
     setFilterValues((prev) => ({ ...prev, [fieldName]: "" }));
@@ -375,6 +390,7 @@ const Listing = () => {
 
   const handleMultiToggle = (fieldName, value) => {
     if (!value) return;
+    userTouchedRef.current.add(fieldName);
     setSelectedValues((prev) => {
       const current = prev[fieldName] ? prev[fieldName].split(", ").filter(Boolean) : [];
       const next = current.includes(value)
@@ -550,8 +566,12 @@ const Listing = () => {
       handleListingChange({
         target: { name: "category_id", value: categoryId },
       });
+      // Backend returns `item_specifics` (plural, no _fields suffix). The other
+      // four category-click handlers read this key correctly; this one used to
+      // read `item_specific_fields` and silently dropped every free-text aspect
+      // for leaf categories.
       const itemSpecificFields =
-        specificFieldsResponse?.item_specific_fields || [];
+        specificFieldsResponse?.item_specifics || [];
       const validChoices = specificFieldsResponse?.valid_choices || {};
       let formattedFields = {};
       itemSpecificFields.forEach((field) => {
@@ -573,6 +593,7 @@ const Listing = () => {
   };
 
   const handleInputChange = (fieldName, value) => {
+    userTouchedRef.current.add(fieldName);
     setSelectedValues((prevValues) => ({
       ...prevValues,
       [fieldName]: value,

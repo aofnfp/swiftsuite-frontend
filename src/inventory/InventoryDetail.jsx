@@ -72,12 +72,14 @@ const InventoryDetail = () => {
   const fetchInventoryDetail = async (id) => {
     try {
       setLoading(true);
+      // The detail endpoint doesn't include enrollment_detail, so we have to
+      // fetch enrollment separately. The two calls have to be sequential
+      // (enrollment lookup needs item.market_name from the first response),
+      // but enrollment fetches are fast so the extra round-trip is acceptable
+      // versus the alternative of showing stale per-row markup values.
       const response = await getInventoryProductDetails(userId, id);
       const item = response?.item_details?.[0];
       if (!item) return;
-      // The detail endpoint doesn't include enrollment_detail (unlike the list
-      // endpoints), so the per-row markup fields are stale. Pull the live
-      // enrollment for this item's marketplace and overlay before display.
       let enriched = item;
       if (item?.market_name) {
         try {

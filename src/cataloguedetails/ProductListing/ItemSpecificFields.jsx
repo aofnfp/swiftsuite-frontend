@@ -4,6 +4,12 @@ import { BiChevronDown, BiChevronUp } from "react-icons/bi";
 import { IoMdCheckmark } from "react-icons/io";
 import { Label } from "reactstrap";
 
+// Aspect names whose value can be auto-derived from the matching lowercased
+// inventory column on productListing (e.g. "Brand" → productListing.brand).
+// Used by close() to also clear the product field, and by currentValue() to
+// fall back to the product value when no aspect is explicitly selected.
+const autofillFields = ["Brand", "Color", "MPN", "UPC", "Model", "Size", "Type"];
+
 const ItemSpecificFields = ({
   itemSpecificFields,
   setItemSpecificFields,
@@ -12,7 +18,6 @@ const ItemSpecificFields = ({
   setSelectedValues,
   handleSelectChange,
   handleMultiToggle,
-  onRefreshLiveSpecifics,
   handleInputChange,
   filteredOptions,
   filterValues,
@@ -63,20 +68,7 @@ const ItemSpecificFields = ({
       <div>
         {itemSpecificFields && Object.entries(itemSpecificFields).length > 0 && (
           <div className="gap-4 w-full p-5 rounded-lg py-5 bg-white">
-            <div className="flex items-center justify-between">
-              <h1 className="font-bold text-xl">ITEM SPECIFICS</h1>
-              {productListing?.market_name === "Ebay" && productListing?.market_item_id && onRefreshLiveSpecifics && (
-                <button
-                  type="button"
-                  onClick={onRefreshLiveSpecifics}
-                  title="Re-fetch the latest item specifics directly from eBay (overrides the cached values)"
-                  className="text-xs px-3 py-1 border border-gray-300 rounded bg-white hover:bg-gray-50 text-gray-700 flex items-center gap-1"
-                >
-                  <span>↻</span>
-                  <span>Refresh from eBay</span>
-                </button>
-              )}
-            </div>
+            <h1 className="font-bold text-xl">ITEM SPECIFICS</h1>
             <p className="text-gray-500">Buyers also search for these details</p>
             {Object.entries(itemSpecificFields).map(([fieldName, options]) => (
               <div key={fieldName} className="flex flex-col lg:flex-row lg:items-center gap-4">
@@ -98,7 +90,7 @@ const ItemSpecificFields = ({
                     </div>
                   )} */}
                 </div>
-                <div className="flex-1 relative">
+                <div className="flex-1 relative min-w-0">
                   {Array.isArray(options) ? (
                     <>
                       {isMultiField(fieldName) && getMultiValues(fieldName).length > 0 && (
@@ -118,14 +110,14 @@ const ItemSpecificFields = ({
                           ))}
                         </div>
                       )}
-                      <div className="flex items-center justify-between px-4 py-2 my-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors cursor-pointer relative dropdown-trigger"
+                      <div className="flex items-center justify-between gap-2 px-4 py-2 my-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors cursor-pointer relative dropdown-trigger"
                         onClick={(e) => toggleDropdown(fieldName, e)}>
-                        <span className="text-sm text-gray-700 truncate">
+                        <span className="text-sm text-gray-700 truncate min-w-0 flex-1">
                           {selectedValues[fieldName] || `Select ${fieldName}`}
                         </span>
                         {isDropdownOpen === fieldName ?
-                          <BiChevronUp className="h-5 w-5 text-gray-500" /> :
-                          <BiChevronDown className="h-5 w-5 text-gray-500" />
+                          <BiChevronUp className="h-5 w-5 text-gray-500 flex-shrink-0" /> :
+                          <BiChevronDown className="h-5 w-5 text-gray-500 flex-shrink-0" />
                         }
                       </div>
                       {isDropdownOpen === fieldName && (
@@ -155,16 +147,42 @@ const ItemSpecificFields = ({
                             </button>
                           </div>
                           <div className="max-h-[300px] overflow-y-auto" id="folder">
-                              {filteredOptions(fieldName, options).map(([index, value]) => (
-                              <div
-                                key={index}
-                                className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm flex items-center justify-between"
-                                onClick={() => isMultiField(fieldName) ? handleMultiToggle(fieldName, value) : handleSelectChange(fieldName, value)}
-                              >
-                                <p>{value}</p>
-                                <p>{(isMultiField(fieldName) ? getMultiValues(fieldName).includes(value) : currentValue(fieldName) === value) && <IoMdCheckmark size={20} className="text-black" />}</p>
-                              </div>
-                            ))}
+                            {(() => {
+                              const selectedList = isMultiField(fieldName)
+                                ? getMultiValues(fieldName).filter(Boolean)
+                                : (currentValue(fieldName) ? [currentValue(fieldName)] : []);
+                              return selectedList.map((sv) => {
+                                const inEbayList = options.includes(sv);
+                                return (
+                                  <div
+                                    key={`pinned-${sv}`}
+                                    className="px-4 py-2 bg-gray-50 hover:bg-gray-100 cursor-pointer text-sm flex items-center justify-between border-b border-gray-200"
+                                    onClick={() => isMultiField(fieldName) ? handleMultiToggle(fieldName, sv) : handleSelectChange(fieldName, sv)}
+                                  >
+                                    <p>
+                                      {sv}
+                                      {!inEbayList && <span className="ml-2 text-xs text-gray-500">(saved)</span>}
+                                    </p>
+                                    <IoMdCheckmark size={20} className="text-black" />
+                                  </div>
+                                );
+                              });
+                            })()}
+                            {filteredOptions(fieldName, options).map(([index, value]) => {
+                              const selectedList = isMultiField(fieldName)
+                                ? getMultiValues(fieldName)
+                                : (currentValue(fieldName) ? [currentValue(fieldName)] : []);
+                              if (selectedList.includes(value)) return null;
+                              return (
+                                <div
+                                  key={index}
+                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm flex items-center justify-between"
+                                  onClick={() => isMultiField(fieldName) ? handleMultiToggle(fieldName, value) : handleSelectChange(fieldName, value)}
+                                >
+                                  <p>{value}</p>
+                                </div>
+                              );
+                            })}
                             {/* Custom Input Field */}
                             {customInputValues[fieldName] && !options.includes(customInputValues[fieldName]) && (
                               <div

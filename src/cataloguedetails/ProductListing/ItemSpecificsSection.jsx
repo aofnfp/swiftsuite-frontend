@@ -10,7 +10,6 @@ const ItemSpecificsSection = ({
   setIsEbayOpen,
   productListing,
   isLoadingCategory,
-  onRefreshLiveSpecifics,
   handleOpenModal,
   isModalOpen,
   handleCloseModal,
@@ -131,7 +130,6 @@ useEffect(() => {
               productListing={productListing}
               handleListingChange={handleListingChange}
               dropdownRef={dropdownRef}
-              onRefreshLiveSpecifics={onRefreshLiveSpecifics}
             />
           </div>
         </div>

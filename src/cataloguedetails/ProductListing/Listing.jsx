@@ -7,7 +7,7 @@ import PricingSku from "./PricingSku";
 import { Toaster, toast } from "sonner";
 import DynamicProductInputs from "./DynamicProductsInput";
 import { buildListingData, buildWoocommerceData, buildUpdateData, buildWoocommerceUpdate } from "./listingDataBuilder";
-import { enrolledMarketplaces, fetchItemLeafCategory, fetchProductListing, fetchProductUpdate, fetchUserCategoryId, getLiveItemSpecifics, getWooCommerecCategoryName, marketplaceProductListing, marketplaceProductSaving, marketPlaceProductUpdate, userCategoriesId } from "../../api/authApi";
+import { enrolledMarketplaces, fetchItemLeafCategory, fetchProductListing, fetchProductUpdate, fetchUserCategoryId, getWooCommerecCategoryName, marketplaceProductListing, marketplaceProductSaving, marketPlaceProductUpdate, userCategoriesId } from "../../api/authApi";
 import { handleApiError } from "../../utils/handleError";
 import { mergeSavedAndSelected, normalizeKeys, safeJSONParse, safeParseItemSpecific } from "../../utils/utils";
 import SubscriptionModal from "../../pages/SubscriptionModal";
@@ -329,11 +329,6 @@ const Listing = () => {
     } catch (error) {
       // Live fetch failed — keep whatever was seeded from the DB row.
     }
-  };
-
-  const refreshLiveEbaySpecifics = () => {
-    const id = productListing?.product_id || productListing?.id;
-    hydrateFromLiveEbaySpecifics(id, productListing?.market_name, productListing?.market_item_id, true);
   };
 
   const fetchProductDetails = async () => {
@@ -1066,7 +1061,6 @@ const Listing = () => {
               setIsEbayOpen={setIsEbayOpen}
               productListing={productListing}
               isLoadingCategory={isLoadingCategory}
-              onRefreshLiveSpecifics={refreshLiveEbaySpecifics}
               handleOpenModal={handleOpenModal}
               isModalOpen={isModalOpen}
               handleCloseModal={handleCloseModal}

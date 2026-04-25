@@ -317,21 +317,7 @@ export const getMarketplaceEnrolmentDetail = async (userId, marketName) => {
   return response.data;
 };
 
-// Cache-first live ItemSpecifics for an existing eBay listing.
-//
-// First call for an item: backend hits eBay's GetItem and saves to the row,
-// returns `{ item_specifics, source: "ebay_live" }`.
-// Subsequent calls: backend returns the cached row value, `source: "cache"`.
-// Pass refresh=true to force a fresh eBay fetch (e.g. user clicked Refresh).
-export const getLiveItemSpecifics = async (userId, inventoryId, refresh = false) => {
-  const response = await axiosInstance.get(
-    `/inventoryApp/get_live_item_specifics/${userId}/${inventoryId}/`,
-    refresh ? { params: { refresh: 1 } } : undefined
-  );
-  return response.data;
-};
-
-// Product Listing 
+// Product Listing
 export const marketplaceProductListing = async (userId, marketplacePlatform, category_id, listingData) => {
   const response = await axiosInstance.post(`/marketplaceApp/marketplace_product_listing/${userId}/${marketplacePlatform}/${category_id}/`, listingData);
   console.log(response);

@@ -240,7 +240,11 @@ const Listing = () => {
         } catch (parseError) { }
       }
       const { item_specific_fields, ...rest } = savedItem;
-      const mergedProduct = { ...normalizeKeys(rest), ...item_specific };
+      // Drop "description" so an eBay item-specific aspect named "Description"
+      // (a short label like "Touch Up") doesn't overwrite the row's real
+      // description column (full HTML body) when spread into the product.
+      const { description: _ignoredDescriptionAspect, ...itemSpecificSafe } = item_specific;
+      const mergedProduct = { ...normalizeKeys(rest), ...itemSpecificSafe };
       setProductListing(mergedProduct);
     } catch (error) {
       toast.error("Failed to load products details");
@@ -272,7 +276,11 @@ const Listing = () => {
         } catch (parseError) { }
       }
       const { item_specific_fields, ...rest } = savedItem;
-      const mergedProduct = { ...normalizeKeys(rest), ...item_specific };
+      // Drop "description" so an eBay item-specific aspect named "Description"
+      // (a short label like "Touch Up") doesn't overwrite the row's real
+      // description column (full HTML body) when spread into the product.
+      const { description: _ignoredDescriptionAspect, ...itemSpecificSafe } = item_specific;
+      const mergedProduct = { ...normalizeKeys(rest), ...itemSpecificSafe };
       setProductListing(mergedProduct);
     } catch (error) {
       toast.error("Failed to load product details");

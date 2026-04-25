@@ -334,6 +334,7 @@ export const getLiveItemSpecifics = async (userId, inventoryId, refresh = false)
 // Product Listing 
 export const marketplaceProductListing = async (userId, marketplacePlatform, category_id, listingData) => {
   const response = await axiosInstance.post(`/marketplaceApp/marketplace_product_listing/${userId}/${marketplacePlatform}/${category_id}/`, listingData);
+  console.log(response);
   return response.data;
 }
 

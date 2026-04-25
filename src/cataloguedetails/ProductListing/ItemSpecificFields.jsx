@@ -30,9 +30,6 @@ const ItemSpecificFields = ({
   const close = (fieldName) => {
     setFilterValues((prev) => ({ ...prev, [fieldName]: "" }));
     setSelectedValues((prev) => ({ ...prev, [fieldName]: "" }));
-    // Autofill fields fall back to productListing[lowercased field] when
-    // selectedValues is empty, which visually hides a cleared selection.
-    // Clear that source too so the trigger shows "Select <field>" again.
     if (autofillFields.includes(fieldName)) {
       handleListingChange({ target: { name: fieldName.toLowerCase(), value: "" } });
     }
@@ -57,11 +54,9 @@ const ItemSpecificFields = ({
   };
 
   const cleanValue = (val) => {
-  if (val === null || val === "Null" || val === "null") return "";
-  return val;
-};
-
-  const autofillFields = ["Brand", "Location", "Type", "MPN", "Map", "volume", "expiration date", "UPC", "Title", "Quantity", "Model", "Manufacturer", "MSRP", "Price", "SKU", "Product type", "Fragrance Name", "formulation", "Color", "Size", "Depth", "Length", "Weight", "Material", "Country/Region of Manufacture", "California Prop 65 Warning", "Unit Quantity", "Unit Type", "Volume", "Formulation", "Size Type", "US Size", "MSRP", "Shipping Weight", "Shipping Length", "Shipping Width", "Shipping Height", "Best Offer Enabled", "Gift", "Category Mapping", "Availability", "Product", "Description", "Image", "Category", "Brand Name", "UPC Code", "MPN Code", "SKU Code", "Quantity Code", "Product Type Code", "Fragrance Code", "Color Code", "Size Code", "Depth Code", "Length Code", "Weight Code", "Material Code", "Country Code", "Region Code", "Warning Code", "Unit Quantity Code", "Unit Type Code", "Volume Code", "Formulation Code", "Size Type Code", "US Size Code", "MSRP Code", "Shipping Weight Code", "Shipping Length Code", "Shipping Width Code", "Shipping Height Code", "Best Offer Enabled Code", "Gift Code", "Category Mapping Code", "category", "country", "Country of Origin"];
+    if (val === null || val === "Null" || val === "null") return "";
+    return val;
+  };
 
   return (
     <section className="item-specific-fields">
@@ -126,10 +121,7 @@ const ItemSpecificFields = ({
                       <div className="flex items-center justify-between px-4 py-2 my-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors cursor-pointer relative dropdown-trigger"
                         onClick={(e) => toggleDropdown(fieldName, e)}>
                         <span className="text-sm text-gray-700 truncate">
-                          {isMultiField(fieldName)
-                            ? (getMultiValues(fieldName).length > 0 ? `${getMultiValues(fieldName).length} selected` : `Select ${fieldName}`)
-                            : (autofillFields.includes(fieldName) ? selectedValues[fieldName] || cleanValue(productListing[fieldName?.toLowerCase()] ?? '') || `Select ${fieldName}`
-                              : selectedValues[fieldName] || `Select ${fieldName}`)}
+                          {selectedValues[fieldName] || `Select ${fieldName}`}
                         </span>
                         {isDropdownOpen === fieldName ?
                           <BiChevronUp className="h-5 w-5 text-gray-500" /> :
@@ -163,21 +155,7 @@ const ItemSpecificFields = ({
                             </button>
                           </div>
                           <div className="max-h-[300px] overflow-y-auto" id="folder">
-                            {autofillFields.includes(fieldName) &&
-                              productListing[fieldName?.toLowerCase()] && (
-                                <div
-                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm flex items-center justify-between"
-                                  onClick={(e) => isMultiField(fieldName)
-                                    ? handleMultiToggle(fieldName, productListing[fieldName.toLowerCase()])
-                                    : handleSelectChange(fieldName, productListing[fieldName.toLowerCase()])}
-                                >
-                                  <p>{productListing[fieldName.toLowerCase()]}</p>
-                                  <p>{(isMultiField(fieldName)
-                                      ? getMultiValues(fieldName).includes(productListing[fieldName.toLowerCase()])
-                                      : currentValue(fieldName) === productListing[fieldName.toLowerCase()]) && <IoMdCheckmark size={20} className="text-black" />}</p>
-                                </div>
-                              )}
-                            {filteredOptions(fieldName, options).map(([index, value]) => (
+                              {filteredOptions(fieldName, options).map(([index, value]) => (
                               <div
                                 key={index}
                                 className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm flex items-center justify-between"
@@ -204,9 +182,7 @@ const ItemSpecificFields = ({
                     <Input
                       type="text"
                       className="w-full bg-white rounded-lg focus:outline-none my-3"
-                      value={selectedValues[fieldName] ||
-                        (autofillFields.includes(fieldName) ? cleanValue(productListing[fieldName?.toLowerCase()] ?? '') : '') ||
-                        ""}
+                      value={selectedValues[fieldName] || ""}
                       onChange={(e) => handleInputChange(fieldName, e.target.value)}
                       placeholder={`Enter ${fieldName}`}
                     />

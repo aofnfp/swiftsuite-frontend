@@ -12,6 +12,7 @@ const ItemSpecificFields = ({
   setSelectedValues,
   handleSelectChange,
   handleMultiToggle,
+  onRefreshLiveSpecifics,
   handleInputChange,
   filteredOptions,
   filterValues,
@@ -67,7 +68,20 @@ const ItemSpecificFields = ({
       <div>
         {itemSpecificFields && Object.entries(itemSpecificFields).length > 0 && (
           <div className="gap-4 w-full p-5 rounded-lg py-5 bg-white">
-            <h1 className="font-bold text-xl">ITEM SPECIFICS</h1>
+            <div className="flex items-center justify-between">
+              <h1 className="font-bold text-xl">ITEM SPECIFICS</h1>
+              {productListing?.market_name === "Ebay" && productListing?.market_item_id && onRefreshLiveSpecifics && (
+                <button
+                  type="button"
+                  onClick={onRefreshLiveSpecifics}
+                  title="Re-fetch the latest item specifics directly from eBay (overrides the cached values)"
+                  className="text-xs px-3 py-1 border border-gray-300 rounded bg-white hover:bg-gray-50 text-gray-700 flex items-center gap-1"
+                >
+                  <span>↻</span>
+                  <span>Refresh from eBay</span>
+                </button>
+              )}
+            </div>
             <p className="text-gray-500">Buyers also search for these details</p>
             {Object.entries(itemSpecificFields).map(([fieldName, options]) => (
               <div key={fieldName} className="flex flex-col lg:flex-row lg:items-center gap-4">

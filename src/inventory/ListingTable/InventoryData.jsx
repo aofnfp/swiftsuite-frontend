@@ -10,6 +10,7 @@ import InventoryTable from "./SavedListingData.jsx/InventoryTable";
 import EmptyState from "./SavedListingData.jsx/EmptyState";
 import InventoryDataPagination from "./SavedListingData.jsx/InventoryDataPagination";
 import { useInventoryPrefsStore } from "../../stores/inventoryPrefs";
+import { overlayEnrollmentMarkup } from "../../utils/utils";
 
 const InventoryData = () => {
   const userId = localStorage.getItem("userId");
@@ -55,7 +56,8 @@ const InventoryData = () => {
     setLoader(true);
     try {
       const response = await getSavedInventoryProducts(userId, currentPage, entriesPerPage);
-      const items = response?.saved_items || [];
+      const rawItems = response?.saved_items || [];
+      const items = overlayEnrollmentMarkup(rawItems, response?.enrollment_detail);
       const parsedItems = items.map((item) => {
         if (item) {
           try {

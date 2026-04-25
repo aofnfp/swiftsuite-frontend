@@ -10,6 +10,7 @@ const ItemSpecificsSection = ({
   setIsEbayOpen,
   productListing,
   isLoadingCategory,
+  onRefreshLiveSpecifics,
   handleOpenModal,
   isModalOpen,
   handleCloseModal,
@@ -44,12 +45,15 @@ const ItemSpecificsSection = ({
   handleListingChange,
 }) => {
   
-// useEffect(() => {
-//   if (productListing?.category_id) {
-//     setIsEbayOpen(true);
-//     handleOpenModal();
-//   }
-// }, [productListing?.category_id]);
+// Auto-fetch eBay item-specifics when the product already has a category
+// (re-listing / editing flow). handleOpenModal short-circuits to a silent
+// fetch when category_id is set — no picker modal pops up.
+useEffect(() => {
+  if (productListing?.category_id) {
+    setIsEbayOpen(true);
+    handleOpenModal();
+  }
+}, [productListing?.category_id]);
 
 
   if (!isEbay) return null;
@@ -127,6 +131,7 @@ const ItemSpecificsSection = ({
               productListing={productListing}
               handleListingChange={handleListingChange}
               dropdownRef={dropdownRef}
+              onRefreshLiveSpecifics={onRefreshLiveSpecifics}
             />
           </div>
         </div>

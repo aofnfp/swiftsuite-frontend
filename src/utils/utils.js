@@ -215,6 +215,53 @@ export const mergeSavedAndSelected = (saved, selected) => {
   return result;
 };
 
+// Inventory rows store fixed_markup / fixed_percentage_markup / profit_margin /
+// min_profit_mergin as a frozen copy of the user's MarketplaceEnronment values
+// at write-time. Because not every backend write path covers all four fields
+// (e.g. inventoryApp/views.py:155 misses min_profit_mergin), rows drift out of
+// sync with the user's current enrollment settings.
+//
+// The list endpoint already returns the live enrollment data alongside items,
+// so we override the four markup fields with the matching enrollment's values
+// for display. The original per-item value is preserved as
+// `<field>_item_value` for any consumer that needs it.
+export const overlayEnrollmentMarkup = (items, enrollmentDetail) => {
+  if (!Array.isArray(items)) return items;
+  const byMarket = (Array.isArray(enrollmentDetail) ? enrollmentDetail : [])
+    .reduce((acc, e) => {
+      const key = (e?.marketplace_name || "").toLowerCase();
+      if (key) acc[key] = e;
+      return acc;
+    }, {});
+  return items.map((item) => {
+    const market = (item?.market_name || "").toLowerCase();
+    const e = byMarket[market];
+    if (!e) return item;
+    return {
+      ...item,
+      fixed_markup_item_value: item.fixed_markup,
+      fixed_percentage_markup_item_value: item.fixed_percentage_markup,
+      profit_margin_item_value: item.profit_margin,
+      min_profit_mergin_item_value: item.min_profit_mergin,
+      fixed_markup: e.fixed_markup ?? item.fixed_markup,
+      fixed_percentage_markup: e.fixed_percentage_markup ?? item.fixed_percentage_markup,
+      profit_margin: e.profit_margin ?? item.profit_margin,
+      min_profit_mergin: e.min_profit_mergin ?? item.min_profit_mergin,
+    };
+  });
+};
+
+// Money/percentage display helper. Treats null/undefined/empty/"Null" as
+// missing and returns an em-dash so the inventory list never shows a mix of
+// "0.00" and blank for the same field.
+export const fmtMarkup = (v) => {
+  if (v === null || v === undefined) return "—";
+  const s = String(v).trim();
+  if (!s || s.toLowerCase() === "null") return "—";
+  const n = Number(s);
+  return Number.isFinite(n) ? n.toFixed(2) : "—";
+};
+
 export const fixJSON = (str) => {
   if (!str || typeof str !== "string") return null;
   try {

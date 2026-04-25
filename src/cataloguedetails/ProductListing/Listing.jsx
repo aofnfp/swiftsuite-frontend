@@ -7,7 +7,7 @@ import PricingSku from "./PricingSku";
 import { Toaster, toast } from "sonner";
 import DynamicProductInputs from "./DynamicProductsInput";
 import { buildListingData, buildWoocommerceData, buildUpdateData, buildWoocommerceUpdate } from "./listingDataBuilder";
-import { enrolledMarketplaces, fetchItemLeafCategory, fetchProductListing, fetchProductUpdate, fetchUserCategoryId, getWooCommerecCategoryName, marketplaceProductListing, marketplaceProductSaving, marketPlaceProductUpdate, userCategoriesId } from "../../api/authApi";
+import { enrolledMarketplaces, fetchItemLeafCategory, fetchProductListing, fetchProductUpdate, fetchUserCategoryId, getLiveItemSpecifics, getWooCommerecCategoryName, marketplaceProductListing, marketplaceProductSaving, marketPlaceProductUpdate, userCategoriesId } from "../../api/authApi";
 import { handleApiError } from "../../utils/handleError";
 import { mergeSavedAndSelected, normalizeKeys, safeJSONParse } from "../../utils/utils";
 import SubscriptionModal from "../../pages/SubscriptionModal";
@@ -234,6 +234,9 @@ const Listing = () => {
           const cleanedString = savedItem.item_specific_fields.replace(/'/g, '"').replace(/\\/g, "\\\\");
           const parsed = JSON.parse(cleanedString);
           setUseSavedItem(parsed);
+          // Seed selectedValues so dropdowns show the saved choice + checkmark
+          // for ALL aspects, not just the hardcoded autofillFields whitelist.
+          setSelectedValues((prev) => ({ ...prev, ...parsed }));
           item_specific = normalizeKeys(parsed);
           setNewItemSpecific(item_specific);
         } catch (parseError) { }
@@ -241,6 +244,11 @@ const Listing = () => {
       const { item_specific_fields, ...rest } = savedItem;
       const mergedProduct = { ...normalizeKeys(rest), ...item_specific };
       setProductListing(mergedProduct);
+      // Pull live ItemSpecifics from eBay (cache-first on the backend) so the
+      // dropdowns reflect what's actually on the listing right now. Runs in the
+      // background — non-blocking; if it fails we keep whatever we already
+      // seeded from item_specific_fields above.
+      hydrateFromLiveEbaySpecifics(savedItem?.id, savedItem?.market_name, savedItem?.market_item_id);
     } catch (error) {
       toast.error("Failed to load products details");
     }
@@ -266,6 +274,9 @@ const Listing = () => {
           const cleanedString = savedItem.item_specific_fields.replace(/'/g, '"').replace(/\\/g, "\\\\");
           const parsed = JSON.parse(cleanedString);
           setUseSavedItem(parsed);
+          // Seed selectedValues so dropdowns show the saved choice + checkmark
+          // for ALL aspects, not just the hardcoded autofillFields whitelist.
+          setSelectedValues((prev) => ({ ...prev, ...parsed }));
           item_specific = normalizeKeys(parsed);
           setNewItemSpecific(item_specific);
         } catch (parseError) { }
@@ -273,9 +284,33 @@ const Listing = () => {
       const { item_specific_fields, ...rest } = savedItem;
       const mergedProduct = { ...normalizeKeys(rest), ...item_specific };
       setProductListing(mergedProduct);
+      hydrateFromLiveEbaySpecifics(savedItem?.id, savedItem?.market_name, savedItem?.market_item_id);
     } catch (error) {
       toast.error("Failed to load product details");
     }
+  };
+
+  // Cache-first live fetch from eBay. Backend returns `source: "cache"` if the
+  // row already has populated item_specific_fields (no eBay call), or
+  // `source: "ebay_live"` after fetching from eBay and saving to the row.
+  // Either way, we merge the response into selectedValues. `force=true` forces
+  // a fresh eBay fetch — used by the "Refresh from eBay" button on the
+  // Item Specifics header.
+  const hydrateFromLiveEbaySpecifics = async (inventoryId, marketName, marketItemId, force = false) => {
+    if (!inventoryId || marketName !== "Ebay" || !marketItemId) return;
+    try {
+      const data = await getLiveItemSpecifics(userId, inventoryId, force);
+      const live = data?.item_specifics || {};
+      if (Object.keys(live).length === 0) return;
+      setSelectedValues((prev) => ({ ...prev, ...live }));
+    } catch (error) {
+      // Live fetch failed — keep whatever was seeded from the DB row.
+    }
+  };
+
+  const refreshLiveEbaySpecifics = () => {
+    const id = productListing?.product_id || productListing?.id;
+    hydrateFromLiveEbaySpecifics(id, productListing?.market_name, productListing?.market_item_id, true);
   };
 
   const fetchProductDetails = async () => {
@@ -878,6 +913,7 @@ const Listing = () => {
               setIsEbayOpen={setIsEbayOpen}
               productListing={productListing}
               isLoadingCategory={isLoadingCategory}
+              onRefreshLiveSpecifics={refreshLiveEbaySpecifics}
               handleOpenModal={handleOpenModal}
               isModalOpen={isModalOpen}
               handleCloseModal={handleCloseModal}

@@ -306,6 +306,31 @@ export const listingPreferencesDetails = async (userId) => {
   return response.data;
 };
 
+// Full marketplace enrollment record (includes fixed_markup, profit_margin, etc.).
+// Used by detail/modal views to overlay live enrollment values on top of an
+// inventory row's frozen-at-write-time copies. The list endpoints return this
+// alongside items already; this is for endpoints that don't.
+export const getMarketplaceEnrolmentDetail = async (userId, marketName) => {
+  const response = await axiosInstance.get(
+    `/marketplaceApp/get_enrolment_detail/${userId}/${encodeURIComponent(marketName)}/`
+  );
+  return response.data;
+};
+
+// Cache-first live ItemSpecifics for an existing eBay listing.
+//
+// First call for an item: backend hits eBay's GetItem and saves to the row,
+// returns `{ item_specifics, source: "ebay_live" }`.
+// Subsequent calls: backend returns the cached row value, `source: "cache"`.
+// Pass refresh=true to force a fresh eBay fetch (e.g. user clicked Refresh).
+export const getLiveItemSpecifics = async (userId, inventoryId, refresh = false) => {
+  const url = `/inventoryApp/get_live_item_specifics/${userId}/${inventoryId}/${
+    refresh ? "?refresh=1" : ""
+  }`;
+  const response = await axiosInstance.get(url);
+  return response.data;
+};
+
 // Product Listing 
 export const marketplaceProductListing = async (userId, marketplacePlatform, category_id, listingData) => {
   const response = await axiosInstance.post(`/marketplaceApp/marketplace_product_listing/${userId}/${marketplacePlatform}/${category_id}/`, listingData);

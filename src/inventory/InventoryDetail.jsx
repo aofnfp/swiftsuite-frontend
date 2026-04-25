@@ -13,8 +13,8 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import EditInventoryModal from "./EditInventoryModal";
 import { useDisclosure } from "@heroui/react";
-import { safeJSONParse, safeParseItemSpecific } from "../utils/utils";
-import { getInventoryProductDetails, getVendorEnrolledIdentifeir, mapInventoryItems } from "../api/authApi";
+import { safeJSONParse, safeParseItemSpecific, overlayEnrollmentMarkup, fmtMarkup } from "../utils/utils";
+import { getInventoryProductDetails, getVendorEnrolledIdentifeir, mapInventoryItems, getMarketplaceEnrolmentDetail } from "../api/authApi";
 import { Toaster, toast } from "sonner";
 import { MdOutlineDelete } from "react-icons/md";
 import VendorlistDropdown from "../cataloguedetails/Dropdown/VendorlistDropdown";
@@ -75,7 +75,21 @@ const InventoryDetail = () => {
       const response = await getInventoryProductDetails(userId, id);
       const item = response?.item_details?.[0];
       if (!item) return;
-      setInventoryDetail(item);
+      // The detail endpoint doesn't include enrollment_detail (unlike the list
+      // endpoints), so the per-row markup fields are stale. Pull the live
+      // enrollment for this item's marketplace and overlay before display.
+      let enriched = item;
+      if (item?.market_name) {
+        try {
+          const enrolment = await getMarketplaceEnrolmentDetail(userId, item.market_name);
+          const enrollmentDetail = enrolment?.marketplace_info || [];
+          const overlaid = overlayEnrollmentMarkup([item], enrollmentDetail);
+          enriched = overlaid?.[0] || item;
+        } catch {
+          // No enrollment available — fall back to the row's stored values.
+        }
+      }
+      setInventoryDetail(enriched);
       const parsed = safeParseItemSpecific(item.item_specific_fields);
       setParsedItemSpecific(parsed);
     } catch (err) {
@@ -464,7 +478,7 @@ const InventoryDetail = () => {
                 </span>
                 <span className="flex items-center">
                   <Tag className="w-4 h-4 mr-1" />
-                  Fixed Markup: {inventoryDetail.fixed_markup}
+                  Fixed Markup: {fmtMarkup(inventoryDetail.fixed_markup)}
                 </span>
               </div>
             </div>

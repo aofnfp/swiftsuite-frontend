@@ -281,86 +281,94 @@ const DescriptionSection = ({ value, onChange }) => {
       <div className="rounded-lg mb-20">
         {mode === "edit" && (
           <>
-            <div className="flex flex-wrap items-center gap-1 p-2 border border-gray-300 border-b-0 rounded-t bg-gray-50">
-              {tbBtn("B", () => exec("bold"), "Bold", "font-bold")}
-              {tbBtn("I", () => exec("italic"), "Italic", "italic")}
-              {tbBtn("U", () => exec("underline"), "Underline", "underline")}
-              {tbBtn("S", () => exec("strikeThrough"), "Strikethrough", "line-through")}
-              {sep}
-              {tbBtn("H1", () => execBlock("h1"), "Heading 1")}
-              {tbBtn("H2", () => execBlock("h2"), "Heading 2")}
-              {tbBtn("H3", () => execBlock("h3"), "Heading 3")}
-              {tbBtn("¶", () => execBlock("p"), "Paragraph")}
-              {sep}
-              {tbBtn("•", () => exec("insertUnorderedList"), "Bulleted list")}
-              {tbBtn("1.", () => exec("insertOrderedList"), "Numbered list")}
-              {tbBtn("❝", () => execBlock("blockquote"), "Blockquote")}
-              {sep}
-              {tbBtn("⇤", () => exec("justifyLeft"), "Align left")}
-              {tbBtn("⇔", () => exec("justifyCenter"), "Align center")}
-              {tbBtn("⇥", () => exec("justifyRight"), "Align right")}
-              {sep}
-              <label
-                className="flex items-center gap-1 text-xs cursor-pointer"
-                title="Text color"
-                onMouseDown={(e) => e.preventDefault()}
-              >
-                <span className="text-gray-600">A</span>
-                <input
-                  type="color"
-                  onChange={(e) => exec("foreColor", e.target.value)}
-                  className="w-6 h-6 cursor-pointer border border-gray-200 rounded"
-                />
-              </label>
-              <label
-                className="flex items-center gap-1 text-xs cursor-pointer"
-                title="Highlight"
-                onMouseDown={(e) => e.preventDefault()}
-              >
-                <span className="text-gray-600">▮</span>
-                <input
-                  type="color"
-                  onChange={(e) => exec("hiliteColor", e.target.value)}
-                  className="w-6 h-6 cursor-pointer border border-gray-200 rounded"
-                />
-              </label>
-              <select
-                onMouseDown={(e) => e.preventDefault()}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  if (v) exec("fontSize", v);
-                  e.target.value = "";
-                }}
-                defaultValue=""
-                className="h-7 px-1 text-xs border border-gray-200 bg-white rounded"
-                title="Font size"
-              >
-                <option value="" disabled>
-                  Size
-                </option>
-                <option value="1">Smallest</option>
-                <option value="2">Small</option>
-                <option value="3">Normal</option>
-                <option value="4">Large</option>
-                <option value="5">Larger</option>
-                <option value="6">X-Large</option>
-                <option value="7">Huge</option>
-              </select>
-              {sep}
-              {tbBtn("🔗", () => promptAnd("Link URL:", "createLink"), "Insert link")}
-              {tbBtn("⛓", () => exec("unlink"), "Remove link")}
-              {tbBtn("🖼", () => promptAnd("Image URL:", "insertImage"), "Insert image")}
-              {tbBtn("―", () => exec("insertHorizontalRule"), "Horizontal rule")}
-              {sep}
-              {tbBtn("↶", () => exec("undo"), "Undo")}
-              {tbBtn("↷", () => exec("redo"), "Redo")}
-              {tbBtn("✕", () => exec("removeFormat"), "Clear formatting")}
-              {/* Spacer absorbs free space between the formatting buttons
-                  and the mode toggles on whichever row they share, pushing
-                  </> and 👁 to the right edge of that row. */}
-              <span className="flex-1" />
-              {modeIconBtn(<IconSource />, () => switchMode("html"), "View / edit HTML source")}
-              {modeIconBtn(<IconPreview />, () => switchMode("preview"), "Preview")}
+            <div className="flex flex-col gap-1 p-2 border border-gray-300 border-b-0 rounded-t bg-gray-50">
+              {/* Top row — formatting + headings + lists + alignment + colors
+                  + size on the left; link / unlink pinned to the right via the
+                  flex-1 spacer so they sit at the container's right edge. */}
+              <div className="flex flex-wrap items-center gap-1">
+                {tbBtn("B", () => exec("bold"), "Bold", "font-bold")}
+                {tbBtn("I", () => exec("italic"), "Italic", "italic")}
+                {tbBtn("U", () => exec("underline"), "Underline", "underline")}
+                {tbBtn("S", () => exec("strikeThrough"), "Strikethrough", "line-through")}
+                {sep}
+                {tbBtn("H1", () => execBlock("h1"), "Heading 1")}
+                {tbBtn("H2", () => execBlock("h2"), "Heading 2")}
+                {tbBtn("H3", () => execBlock("h3"), "Heading 3")}
+                {tbBtn("¶", () => execBlock("p"), "Paragraph")}
+                {sep}
+                {tbBtn("•", () => exec("insertUnorderedList"), "Bulleted list")}
+                {tbBtn("1.", () => exec("insertOrderedList"), "Numbered list")}
+                {tbBtn("❝", () => execBlock("blockquote"), "Blockquote")}
+                {sep}
+                {tbBtn("⇤", () => exec("justifyLeft"), "Align left")}
+                {tbBtn("⇔", () => exec("justifyCenter"), "Align center")}
+                {tbBtn("⇥", () => exec("justifyRight"), "Align right")}
+                {sep}
+                <label
+                  className="flex items-center gap-1 text-xs cursor-pointer"
+                  title="Text color"
+                  onMouseDown={(e) => e.preventDefault()}
+                >
+                  <span className="text-gray-600">A</span>
+                  <input
+                    type="color"
+                    onChange={(e) => exec("foreColor", e.target.value)}
+                    className="w-6 h-6 cursor-pointer border border-gray-200 rounded"
+                  />
+                </label>
+                <label
+                  className="flex items-center gap-1 text-xs cursor-pointer"
+                  title="Highlight"
+                  onMouseDown={(e) => e.preventDefault()}
+                >
+                  <span className="text-gray-600">▮</span>
+                  <input
+                    type="color"
+                    onChange={(e) => exec("hiliteColor", e.target.value)}
+                    className="w-6 h-6 cursor-pointer border border-gray-200 rounded"
+                  />
+                </label>
+                <select
+                  onMouseDown={(e) => e.preventDefault()}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v) exec("fontSize", v);
+                    e.target.value = "";
+                  }}
+                  defaultValue=""
+                  className="h-7 px-1 text-xs border border-gray-200 bg-white rounded"
+                  title="Font size"
+                >
+                  <option value="" disabled>
+                    Size
+                  </option>
+                  <option value="1">Smallest</option>
+                  <option value="2">Small</option>
+                  <option value="3">Normal</option>
+                  <option value="4">Large</option>
+                  <option value="5">Larger</option>
+                  <option value="6">X-Large</option>
+                  <option value="7">Huge</option>
+                </select>
+                <span className="flex-1" />
+                {tbBtn("🔗", () => promptAnd("Link URL:", "createLink"), "Insert link")}
+                {tbBtn("⛓", () => exec("unlink"), "Remove link")}
+              </div>
+              {/* Bottom row — image / hr / undo / redo / clear on the left;
+                  HTML source + Preview pinned to the right via the flex-1
+                  spacer so they sit at the container's right edge directly
+                  under the link/unlink pair on row 1. */}
+              <div className="flex flex-wrap items-center gap-1">
+                {tbBtn("🖼", () => promptAnd("Image URL:", "insertImage"), "Insert image")}
+                {tbBtn("―", () => exec("insertHorizontalRule"), "Horizontal rule")}
+                {sep}
+                {tbBtn("↶", () => exec("undo"), "Undo")}
+                {tbBtn("↷", () => exec("redo"), "Redo")}
+                {tbBtn("✕", () => exec("removeFormat"), "Clear formatting")}
+                <span className="flex-1" />
+                {modeIconBtn(<IconSource />, () => switchMode("html"), "View / edit HTML source")}
+                {modeIconBtn(<IconPreview />, () => switchMode("preview"), "Preview")}
+              </div>
             </div>
             <iframe
               ref={refCallback}

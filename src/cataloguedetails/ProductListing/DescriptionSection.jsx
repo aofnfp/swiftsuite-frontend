@@ -355,6 +355,10 @@ const DescriptionSection = ({ value, onChange }) => {
               {tbBtn("↶", () => exec("undo"), "Undo")}
               {tbBtn("↷", () => exec("redo"), "Redo")}
               {tbBtn("✕", () => exec("removeFormat"), "Clear formatting")}
+              {/* Spacer absorbs free space between the formatting buttons
+                  and the mode toggles on whichever row they share, pushing
+                  </> and 👁 to the right edge of that row. */}
+              <span className="flex-1" />
               {modeIconBtn(<IconSource />, () => switchMode("html"), "View / edit HTML source")}
               {modeIconBtn(<IconPreview />, () => switchMode("preview"), "Preview")}
             </div>

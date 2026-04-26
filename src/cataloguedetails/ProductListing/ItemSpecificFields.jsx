@@ -88,7 +88,7 @@ const ItemSpecificFields = ({
                                 <p>
                                   {selectedValues[fieldName]}
                                   {!options.includes(selectedValues[fieldName]) && (
-                                    <span className="ml-2 text-xs text-gray-500">(saved)</span>
+                                    <span className="ml-2 text-xs text-gray-500">(custom)</span>
                                   )}
                                 </p>
                                 <IoMdCheckmark size={20} className="text-black" />

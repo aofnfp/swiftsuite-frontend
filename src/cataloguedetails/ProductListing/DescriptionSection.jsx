@@ -226,19 +226,13 @@ const DescriptionSection = ({ value, onChange }) => {
   // the button from stealing focus from the iframe, which would collapse the
   // user's text selection before the onClick handler can run execCommand.
   // Without it, "select text → click Bold" bolds nothing.
-  // All toolbar buttons share the same min width so the visual grid lines up
-  // — emoji-content buttons (🔗, ⛓, 🖼) used to render wider than text /
-  // SVG buttons, which made the right-pinned group on row 1 sit at a slightly
-  // different left edge than the right-pinned group on row 2.
-  const TB_BTN_BASE = "min-w-9 h-7 px-1 border rounded flex items-center justify-center";
-
   const tbBtn = (label, onClick, title, extraClass = "") => (
     <button
       type="button"
       title={title || label}
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
-      className={`${TB_BTN_BASE} text-xs border-gray-200 bg-white hover:bg-gray-100 ${extraClass}`}
+      className={`min-w-[28px] h-7 px-2 text-xs border border-gray-200 bg-white hover:bg-gray-100 rounded flex items-center justify-center ${extraClass}`}
     >
       {label}
     </button>
@@ -251,7 +245,7 @@ const DescriptionSection = ({ value, onChange }) => {
       type="button"
       title={title}
       onClick={onClick}
-      className={`${TB_BTN_BASE} transition-colors ${
+      className={`min-w-[28px] h-7 px-2 border rounded flex items-center justify-center transition-colors ${
         active
           ? "bg-[#089451] text-white border-[#089451]"
           : "bg-white text-gray-700 border-gray-200 hover:bg-gray-100"

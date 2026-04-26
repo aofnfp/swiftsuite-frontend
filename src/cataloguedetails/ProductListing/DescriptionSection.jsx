@@ -92,6 +92,58 @@ const IconBackToEditor = (props) => (
   </svg>
 );
 
+// Inline content icons. All 16x16, stroke-based, currentColor — match the
+// IconSource / IconPreview look so the toolbar reads as one icon family.
+const IconLink = (props) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+  </svg>
+);
+const IconUnlink = (props) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M18.84 12.25l1.72-1.71a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+    <path d="M5.17 11.75l-1.71 1.71a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    <line x1="8" y1="2" x2="8" y2="5" />
+    <line x1="2" y1="8" x2="5" y2="8" />
+    <line x1="16" y1="22" x2="16" y2="19" />
+    <line x1="22" y1="16" x2="19" y2="16" />
+  </svg>
+);
+const IconImage = (props) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <circle cx="9" cy="9" r="2" />
+    <path d="M21 15l-5-5L5 21" />
+  </svg>
+);
+const IconHr = (props) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <line x1="3" y1="12" x2="21" y2="12" />
+  </svg>
+);
+const IconUndo = (props) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M3 7v6h6" />
+    <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+  </svg>
+);
+const IconRedo = (props) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M21 7v6h-6" />
+    <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13" />
+  </svg>
+);
+const IconClearFormat = (props) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M4 7V4h16v3" />
+    <line x1="5" y1="20" x2="11" y2="20" />
+    <line x1="13" y1="4" x2="8" y2="20" />
+    <line x1="15" y1="15" x2="22" y2="22" />
+    <line x1="22" y1="15" x2="15" y2="22" />
+  </svg>
+);
+
 const DescriptionSection = ({ value, onChange }) => {
   // "edit"    = default — iframe + contenteditable body + full toolbar
   // "html"    = textarea with raw HTML source; return-to-editor chip on top
@@ -353,14 +405,14 @@ const DescriptionSection = ({ value, onChange }) => {
                 <option value="7">Huge</option>
               </select>
               {sep}
-              {tbBtn("🔗", () => promptAnd("Link URL:", "createLink"), "Insert link")}
-              {tbBtn("⛓", () => exec("unlink"), "Remove link")}
-              {tbBtn("🖼", () => promptAnd("Image URL:", "insertImage"), "Insert image")}
-              {tbBtn("―", () => exec("insertHorizontalRule"), "Horizontal rule")}
+              {tbBtn(<IconLink />, () => promptAnd("Link URL:", "createLink"), "Insert link")}
+              {tbBtn(<IconUnlink />, () => exec("unlink"), "Remove link")}
+              {tbBtn(<IconImage />, () => promptAnd("Image URL:", "insertImage"), "Insert image")}
+              {tbBtn(<IconHr />, () => exec("insertHorizontalRule"), "Horizontal rule")}
               {sep}
-              {tbBtn("↶", () => exec("undo"), "Undo")}
-              {tbBtn("↷", () => exec("redo"), "Redo")}
-              {tbBtn("✕", () => exec("removeFormat"), "Clear formatting")}
+              {tbBtn(<IconUndo />, () => exec("undo"), "Undo")}
+              {tbBtn(<IconRedo />, () => exec("redo"), "Redo")}
+              {tbBtn(<IconClearFormat />, () => exec("removeFormat"), "Clear formatting")}
               {/* Spacer absorbs free space on whichever row the mode toggles
                   end up on, pushing </> and 👁 to the container's right edge.
                   Buttons flow naturally from row 1 into row 2 without an

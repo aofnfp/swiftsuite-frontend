@@ -6,35 +6,11 @@ import ProductImageUpload from "./ProductImageUpload";
 import PricingSku from "./PricingSku";
 import { Toaster, toast } from "sonner";
 import DynamicProductInputs from "./DynamicProductsInput";
-import {
-  buildListingData,
-  buildWoocommerceData,
-  buildUpdateData,
-  buildWoocommerceUpdate,
-} from "./listingDataBuilder";
-import {
-  enrolledMarketplaces,
-  fetchItemLeafCategory,
-  fetchProductListing,
-  fetchProductUpdate,
-  fetchUserCategoryId,
-  getWooCommerecCategoryName,
-  marketplaceProductListing,
-  marketplaceProductSaving,
-  marketPlaceProductUpdate,
-  userCategoriesId,
+import { buildListingData, buildWoocommerceData, buildUpdateData, buildWoocommerceUpdate } from "./listingDataBuilder";
+import { enrolledMarketplaces, fetchItemLeafCategory, fetchProductListing, fetchProductUpdate, fetchUserCategoryId, getWooCommerecCategoryName, marketplaceProductListing, marketplaceProductSaving, marketPlaceProductUpdate, userCategoriesId, 
 } from "../../api/authApi";
 import { handleApiError } from "../../utils/handleError";
-<<<<<<< Updated upstream
-import {
-  mergeSavedAndSelected,
-  normalizeKeys,
-  safeJSONParse,
-  safeParseItemSpecific,
-} from "../../utils/utils";
-=======
 import { mergeSavedAndSelected, normalizeKeys, safeJSONParse, safeParseItemSpecific } from "../../utils/utils";
->>>>>>> Stashed changes
 import SubscriptionModal from "../../pages/SubscriptionModal";
 import { useSelector } from "react-redux";
 import { useListingStore } from "../../stores/listingStore";
@@ -76,7 +52,6 @@ const Listing = () => {
   const [itemSpecificFields, setItemSpecificFields] = useState({});
   const [requiredFields, setRequiredFields] = useState([]);
   const [selectedValues, setSelectedValues] = useState({});
-  console.log("Selected Values:", selectedValues);
   const [isLoadingCategory, setIsLoadingCategory] = useState(false);
   const [firstCategory, setFirstCategory] = useState([]) || [];
   const [filterValues, setFilterValues] = useState({});
@@ -93,7 +68,6 @@ const Listing = () => {
   const [handleSaveListingLoader, setHandleSaveListingLoader] = useState(false);
   const [handleUpdateLoader, setHandleUpdateLoader] = useState(false);
   const [useSavedItem, setUseSavedItem] = useState(false);
-  console.log("useSavedItem:", useSavedItem);
   const thumbnailImage = useListingStore((state) => state.thumbnailImage);
   const setThumbnailImage = useListingStore((state) => state.setThumbnailImage);
   const wcAttributes = useListingStore((state) => state.wcAttributes);
@@ -113,12 +87,8 @@ const Listing = () => {
   const [logos, setLogos] = useState({});
   const [wooCategories, setWooCategories] = useState([]);
   const [loadingWooCategories, setLoadingWooCategories] = useState(false);
-  const selectedWooCategories = useListingStore(
-    (state) => state.selectedWooCategories,
-  );
-  const setSelectedWooCategories = useListingStore(
-    (state) => state.setSelectedWooCategories,
-  );
+  const selectedWooCategories = useListingStore((state) => state.selectedWooCategories);
+  const setSelectedWooCategories = useListingStore((state) => state.setSelectedWooCategories);
   const [marketplacesEnrolled, setMarketplacesEnrolled] = useState([]);
   const [showModals, setShowModals] = useState(false);
 
@@ -156,11 +126,7 @@ const Listing = () => {
   }, [logos]);
 
   useEffect(() => {
-    if (
-      productListing?.enable_best_offer ||
-      productListing?.bestOfferEnabled ||
-      productListing?.bestofferenabled
-    ) {
+    if (productListing?.enable_best_offer || productListing?.bestOfferEnabled || productListing?.bestofferenabled) {
       setBestOfferEnabled(true);
     }
   }, [productListing]);
@@ -205,22 +171,10 @@ const Listing = () => {
         name: marketplace.toLowerCase(),
       }));
       setMarketplacesEnrolled(transformedMarketplaces);
-<<<<<<< Updated upstream
     } catch (err) {}
   };
 
-  const hasMarketplace = (platform) =>
-    marketplacesEnrolled?.some(
-      (marketplace) =>
-        marketplace.endpointName.toLowerCase() === platform.toLowerCase(),
-    );
-=======
-    } catch (err) {
-    }
-  };
-
   const hasMarketplace = (platform) => marketplacesEnrolled?.some((marketplace) => marketplace.endpointName.toLowerCase() === platform.toLowerCase());
->>>>>>> Stashed changes
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -270,7 +224,6 @@ const Listing = () => {
   const fetchProductForUpdate = async (productId) => {
     try {
       const response = await fetchProductUpdate(productId);
-      console.log("Fetched product for update:", response);
       const savedItem = response?.saved_items?.[0];
       if (!savedItem) {
         toast.error("No product found.");
@@ -285,9 +238,7 @@ const Listing = () => {
       let item_specific = {};
       if (savedItem.item_specific_fields) {
         try {
-          const cleanedString = savedItem.item_specific_fields
-            .replace(/'/g, '"')
-            .replace(/\\/g, "\\\\");
+          const cleanedString = savedItem.item_specific_fields.replace(/'/g, '"').replace(/\\/g, "\\\\");
           const parsed = JSON.parse(cleanedString);
           setUseSavedItem(parsed);
           item_specific = normalizeKeys(parsed);
@@ -323,9 +274,7 @@ const Listing = () => {
       let item_specific = {};
       if (savedItem.item_specific_fields) {
         try {
-          const cleanedString = savedItem.item_specific_fields
-            .replace(/'/g, '"')
-            .replace(/\\/g, "\\\\");
+          const cleanedString = savedItem.item_specific_fields.replace(/'/g, '"').replace(/\\/g, "\\\\");
           const parsed = JSON.parse(cleanedString);
           setUseSavedItem(parsed);
           item_specific = normalizeKeys(parsed);
@@ -420,12 +369,7 @@ const Listing = () => {
     setSearchQuery(e.target.value);
   };
 
-<<<<<<< Updated upstream
   const normalizeFeatureKey = (key) => key?.toString().trim().toLowerCase().replace(/[^a-z0-9]/g, "") || "";
-=======
-  const normalizeFeatureKey = (key) =>
-    key?.toString().trim().toLowerCase().replace(/[^a-z0-9]/g, "") || "";
->>>>>>> Stashed changes
 
   const parseFeatureList = (features) => {
     if (!features) return [];
@@ -452,7 +396,6 @@ const Listing = () => {
   };
 
   useEffect(() => {
-<<<<<<< Updated upstream
     const backendItems = parseBackendItemSpecificFields(
       productListing?.item_specific_fields,
     );
@@ -476,26 +419,10 @@ const Listing = () => {
         },
         {},
       );
-=======
-    const backendItems = parseBackendItemSpecificFields(productListing?.item_specific_fields);
-    if (!Object.keys(backendItems).length) return;
-
-    setSelectedValues((prev) => ({
-      ...backendItems,
-      ...prev,
-    }));
-
-    if (!Object.keys(itemSpecificFields).length) {
-      const formattedFields = Object.keys(backendItems).reduce((acc, fieldName) => {
-        acc[fieldName] = "";
-        return acc;
-      }, {});
->>>>>>> Stashed changes
       setItemSpecificFields(formattedFields);
     }
   }, [productListing?.item_specific_fields]);
 
-<<<<<<< Updated upstream
   // When saved item_specific_fields are loaded (edit/update flow), seed
   // selectedValues so the dropdowns display the previously chosen values.
   // Do NOT normalize keys — itemSpecificFields uses original API casing.
@@ -510,8 +437,6 @@ const Listing = () => {
     });
   }, [useSavedItem]);
 
-=======
->>>>>>> Stashed changes
   const mapProductFeaturesToSelectedValues = () => {
     const featureArray = parseFeatureList(productListing?.features);
     if (!featureArray.length) return {};
@@ -665,11 +590,7 @@ const Listing = () => {
       toast.success("Fetched successfully");
       setLoader(false);
       setIsModalOpen(false);
-<<<<<<< Updated upstream
     } catch (error) {
-=======
-      } catch (error) {
->>>>>>> Stashed changes
       let message = "Failed to fetch item specifics";
       if (error?.response?.status === 400) {
         message = "Invalid category or request";
@@ -745,11 +666,7 @@ const Listing = () => {
       toast.success("Fetched successfully");
       setIsModalOpen(false);
       setLoader(false);
-<<<<<<< Updated upstream
     } catch (error) {
-=======
-       } catch (error) {
->>>>>>> Stashed changes
       let message = "Failed to fetch item specifics";
       if (error?.response?.status === 400) {
         message = "Invalid category or request";
@@ -839,11 +756,7 @@ const Listing = () => {
       }
     })(),
     };
-<<<<<<< Updated upstream
     console.log("mergedData", mergedData);
-=======
-    console.log("Merged data:", mergedData);
->>>>>>> Stashed changes
     try {
       const response = await marketplaceProductListing(userId, platformParam, isEbay ? category_id : isWoocommerce ? selectedWooCategories : null, mergedData);
       setHandleSubmitLoader(false);
@@ -872,20 +785,7 @@ const Listing = () => {
       return;
     }
     setHandleSaveListingLoader(true);
-<<<<<<< Updated upstream
     const savingListingData = buildListingData(productListing, title, bestOfferEnabled, enableCharity, market_logos, id, itemSpecificFields, selectedValues);
-=======
-    const savingListingData = buildListingData(
-      productListing,
-      title,
-      bestOfferEnabled,
-      enableCharity,
-      market_logos,
-      id,
-      itemSpecificFields,
-      selectedValues
-    );
->>>>>>> Stashed changes
     const buildMarketName = () => {
       const markets = [];
       if (isEbay) markets.push("Ebay");
@@ -941,18 +841,12 @@ const Listing = () => {
 
   const handleUpdateListing = async (e) => {
     e.preventDefault();
-<<<<<<< Updated upstream
     const id = location.state?.isFromUpdate
       ? productListing?.product_id
       : productListing?.id;
     const submittingProduct = location.state?.isFromUpdate
       ? mergeSavedAndSelected(useSavedItem, selectedValues)
       : selectedValues;
-=======
-    const id = location.state?.isFromUpdate ? productListing?.product_id : productListing?.id;
-    const submittingProduct = location.state?.isFromUpdate ? mergeSavedAndSelected(useSavedItem, selectedValues) : selectedValues;
-    console.log("Submitting product for update:", submittingProduct);
->>>>>>> Stashed changes
     if (!isEbay && !isShopify && !isWoocommerce && !isWalmart && !isAmazon) {
       toast.error("Please select at least one marketplace");
       return;
@@ -1199,14 +1093,10 @@ const Listing = () => {
                 <div className="flex items-center space-x-2">
                   <input
                     className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
-<<<<<<< Updated upstream
                     type="checkbox"
                     onChange={(e) => setBestOfferEnabled(e.target.checked)}
                     checked={bestOfferEnabled}
                   />
-=======
-                    type="checkbox" onChange={(e) => setBestOfferEnabled(e.target.checked)} checked={bestOfferEnabled} />
->>>>>>> Stashed changes
                 </div>
               </div>
             </div>
@@ -1263,16 +1153,12 @@ const Listing = () => {
               wcAttributes={wcAttributes}
               setWcAttributes={setWcAttributes}
             />
-<<<<<<< Updated upstream
             <PreferencesSection
               productListing={productListing}
               setProductListing={setProductListing}
               enableCharity={enableCharity}
               setEnableCharity={setEnableCharity}
             />
-=======
-            <PreferencesSection productListing={productListing} setProductListing={setProductListing} enableCharity={enableCharity} setEnableCharity={setEnableCharity} />
->>>>>>> Stashed changes
             {isShopify && (
               <div className="bg-gray-50 p-4 rounded border border-gray-300">
                 <p>
@@ -1287,15 +1173,11 @@ const Listing = () => {
             {isWalmart && (
               <div className="bg-gray-50 p-4 rounded border border-gray-300">
                 <p>
-<<<<<<< Updated upstream
                   <img
                     src="https://i.postimg.cc/vZpK8RPJ/walmart.png"
                     alt="walmart"
                     className="w-20 h-10"
                   />
-=======
-                  <img src="https://i.postimg.cc/vZpK8RPJ/walmart.png" alt="walmart" className="w-20 h-10" />
->>>>>>> Stashed changes
                 </p>
               </div>
             )}

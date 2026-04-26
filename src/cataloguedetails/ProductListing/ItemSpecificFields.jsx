@@ -26,6 +26,14 @@ const ItemSpecificFields = ({
     setSelectedValues((prev) => ({ ...prev, [fieldName]: "" }));
   };
 
+<<<<<<< Updated upstream
+=======
+  const cleanValue = (val) => {
+    if (val === null || val === "Null" || val === "null") return "";
+    return val;
+  };
+
+>>>>>>> Stashed changes
   return (
     <section className="item-specific-fields">
       <div>

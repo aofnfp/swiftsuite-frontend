@@ -278,11 +278,11 @@ const DescriptionSection = ({ value, onChange }) => {
   // the button from stealing focus from the iframe, which would collapse the
   // user's text selection before the onClick handler can run execCommand.
   // Without it, "select text → click Bold" bolds nothing.
-  // Uniform min width across all toolbar buttons so emoji-content buttons
-  // (🔗, ⛓, 🖼) don't render wider than text / SVG buttons — that mismatch
-  // used to leave the right-pinned pair on row 2 (</> 👁) at a slightly
-  // different left x than the equivalent buttons on row 1.
-  const TB_BTN_BASE = "min-w-9 h-7 px-1 border rounded flex items-center justify-center";
+  // Uniform min width across all toolbar buttons so every slot is the same
+  // size regardless of whether the content is a text glyph (B, I, U, S, …)
+  // or a 16x16 SVG icon. 32px / px-1 fits a 16x16 SVG with comfortable
+  // breathing room and lets more buttons fit per row than 36px.
+  const TB_BTN_BASE = "min-w-8 h-7 px-1 border rounded flex items-center justify-center";
 
   const tbBtn = (label, onClick, title, extraClass = "") => (
     <button

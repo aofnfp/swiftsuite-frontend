@@ -281,8 +281,7 @@ const DescriptionSection = ({ value, onChange }) => {
       <div className="rounded-lg mb-20">
         {mode === "edit" && (
           <>
-            <div className="flex flex-wrap items-start gap-1 p-2 border border-gray-300 border-b-0 rounded-t bg-gray-50">
-              <div className="flex flex-wrap items-center gap-1">
+            <div className="flex flex-wrap items-center gap-1 p-2 border border-gray-300 border-b-0 rounded-t bg-gray-50">
               {tbBtn("B", () => exec("bold"), "Bold", "font-bold")}
               {tbBtn("I", () => exec("italic"), "Italic", "italic")}
               {tbBtn("U", () => exec("underline"), "Underline", "underline")}
@@ -356,15 +355,8 @@ const DescriptionSection = ({ value, onChange }) => {
               {tbBtn("↶", () => exec("undo"), "Undo")}
               {tbBtn("↷", () => exec("redo"), "Redo")}
               {tbBtn("✕", () => exec("removeFormat"), "Clear formatting")}
-              </div>
-              {/* Right cluster: mode toggles. ml-auto absorbs any free
-                  horizontal space before this cluster, so it sits at the
-                  container's right edge whether it shares the row with the
-                  left cluster or wraps to its own row. */}
-              <div className="flex flex-wrap items-center gap-1 ml-auto justify-end">
-                {modeIconBtn(<IconSource />, () => switchMode("html"), "View / edit HTML source")}
-                {modeIconBtn(<IconPreview />, () => switchMode("preview"), "Preview")}
-              </div>
+              {modeIconBtn(<IconSource />, () => switchMode("html"), "View / edit HTML source")}
+              {modeIconBtn(<IconPreview />, () => switchMode("preview"), "Preview")}
             </div>
             <iframe
               ref={refCallback}

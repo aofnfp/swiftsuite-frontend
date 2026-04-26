@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Tooltip } from "antd";
 import GetCategory from "./GetCategory";
 import ItemSpecificFields from "./ItemSpecificFields";
@@ -42,27 +42,40 @@ const ItemSpecificsSection = ({
   toggleDropdown,
   dropdownRef,
   handleListingChange,
+  isFromEditOrUpdate,
 }) => {
-  
-// useEffect(() => {
-//   if (productListing?.category_id) {
-//     setIsEbayOpen(true);
-//     handleOpenModal();
-//   }
-// }, [productListing?.category_id]);
+  const hasAutoOpened = useRef(false);
 
+  useEffect(() => {
+    if (productListing?.category_id && isEbay && isFromEditOrUpdate && !hasAutoOpened.current) {
+      hasAutoOpened.current = true;
+      setIsEbayOpen(true);
+      handleOpenModal();
+    }
+  }, [productListing?.category_id, isEbay, isFromEditOrUpdate]);
 
   if (!isEbay) return null;
 
   return (
     <>
-      <div onClick={() => setIsEbayOpen(!isEbayOpen)} className="bg-gray-50 cursor-pointer p-4 rounded border border-gray-300 my-2">
+      <div
+        onClick={() => setIsEbayOpen(!isEbayOpen)}
+        className="bg-gray-50 cursor-pointer p-4 rounded border border-gray-300 my-2"
+      >
         <div className="flex items-center justify-between">
           <p>
-            <img src="https://i.postimg.cc/3xZSgy9Z/ebay.png" alt="eBay" className="w-20 h-10" />
+            <img
+              src="https://i.postimg.cc/3xZSgy9Z/ebay.png"
+              alt="eBay"
+              className="w-20 h-10"
+            />
           </p>
           <div className="text-gray-500">
-            {isEbayOpen ? <BiChevronUp size={30} /> : <BiChevronDown size={30}/>}
+            {isEbayOpen ? (
+              <BiChevronUp size={30} />
+            ) : (
+              <BiChevronDown size={30} />
+            )}
           </div>
         </div>
       </div>
@@ -85,7 +98,11 @@ const ItemSpecificsSection = ({
                   onClick={handleOpenModal}
                   className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500"
                 >
-                  {isLoadingCategory ? <span>Loading...</span> : <BiCategoryAlt className="w-5 h-5" />}
+                  {isLoadingCategory ? (
+                    <span>Loading...</span>
+                  ) : (
+                    <BiCategoryAlt className="w-5 h-5" />
+                  )}
                 </button>
               </Tooltip>
             </div>

@@ -7,7 +7,8 @@ import PricingSku from "./PricingSku";
 import { Toaster, toast } from "sonner";
 import DynamicProductInputs from "./DynamicProductsInput";
 import { buildListingData, buildWoocommerceData, buildUpdateData, buildWoocommerceUpdate } from "./listingDataBuilder";
-import { enrolledMarketplaces, fetchItemLeafCategory, fetchProductListing, fetchProductUpdate, fetchUserCategoryId, getWooCommerecCategoryName, marketplaceProductListing, marketplaceProductSaving, marketPlaceProductUpdate, userCategoriesId } from "../../api/authApi";
+import { enrolledMarketplaces, fetchItemLeafCategory, fetchProductListing, fetchProductUpdate, fetchUserCategoryId, getWooCommerecCategoryName, marketplaceProductListing, marketplaceProductSaving, marketPlaceProductUpdate, userCategoriesId, 
+} from "../../api/authApi";
 import { handleApiError } from "../../utils/handleError";
 import { mergeSavedAndSelected, normalizeKeys, safeJSONParse, safeParseItemSpecific } from "../../utils/utils";
 import SubscriptionModal from "../../pages/SubscriptionModal";
@@ -33,7 +34,7 @@ const Listing = () => {
 
   const token = localStorage.getItem("token");
   const [isDropdownOpen, setIsDropdownOpen] = useState(null);
-  const [productListing, setProductListing] = useState("")
+  const [productListing, setProductListing] = useState("");
   const description = useListingStore((state) => state.description);
   const setDescription = useListingStore((state) => state.setDescription);
 
@@ -77,7 +78,9 @@ const Listing = () => {
   const maxLength = 80;
   const title = useListingStore((state) => state.title);
   const setTitle = useListingStore((state) => state.setTitle);
-  const [remaining, setRemaining] = useState(maxLength - (productListing?.title?.length || 0));
+  const [remaining, setRemaining] = useState(
+    maxLength - (productListing?.title?.length || 0),
+  );
   const [handleChange, setHandleChange] = useState("");
   const [isTitleDirty, setIsTitleDirty] = useState(false);
   const prevProductId = useRef(null);
@@ -106,19 +109,24 @@ const Listing = () => {
   }, [subscribed]);
 
   useEffect(() => {
-    setIsEbay(!!logos?.Ebay || productListing?.market_name === 'Ebay');
-    setIsShopify(!!logos?.Shopify_logo || productListing?.market_name === 'Shopify');
-    setIsWoocommerce(!!logos?.Woocommerce_logo || productListing?.market_name === 'Woocommerce');
-    setIsWalmart(!!logos?.Walmart_logo || productListing?.market_name === 'Walmart');
-    setIsAmazon(!!logos?.Amazon_logo || productListing?.market_name === 'Amazon');
+    setIsEbay(!!logos?.Ebay || productListing?.market_name === "Ebay");
+    setIsShopify(
+      !!logos?.Shopify_logo || productListing?.market_name === "Shopify",
+    );
+    setIsWoocommerce(
+      !!logos?.Woocommerce_logo ||
+        productListing?.market_name === "Woocommerce",
+    );
+    setIsWalmart(
+      !!logos?.Walmart_logo || productListing?.market_name === "Walmart",
+    );
+    setIsAmazon(
+      !!logos?.Amazon_logo || productListing?.market_name === "Amazon",
+    );
   }, [logos]);
 
   useEffect(() => {
-    if (
-      productListing?.enable_best_offer ||
-      productListing?.bestOfferEnabled ||
-      productListing?.bestofferenabled
-    ) {
+    if (productListing?.enable_best_offer || productListing?.bestOfferEnabled || productListing?.bestofferenabled) {
       setBestOfferEnabled(true);
     }
   }, [productListing]);
@@ -163,8 +171,7 @@ const Listing = () => {
         name: marketplace.toLowerCase(),
       }));
       setMarketplacesEnrolled(transformedMarketplaces);
-    } catch (err) {
-    }
+    } catch (err) {}
   };
 
   const hasMarketplace = (platform) => marketplacesEnrolled?.some((marketplace) => marketplace.endpointName.toLowerCase() === platform.toLowerCase());
@@ -217,7 +224,6 @@ const Listing = () => {
   const fetchProductForUpdate = async (productId) => {
     try {
       const response = await fetchProductUpdate(productId);
-      console.log("Fetched product for update:", response);
       const savedItem = response?.saved_items?.[0];
       if (!savedItem) {
         toast.error("No product found.");
@@ -237,7 +243,7 @@ const Listing = () => {
           setUseSavedItem(parsed);
           item_specific = normalizeKeys(parsed);
           setNewItemSpecific(item_specific);
-        } catch (parseError) { }
+        } catch (parseError) {}
       }
       const { item_specific_fields, ...rest } = savedItem;
       // Drop "description" so an eBay item-specific aspect named "Description"
@@ -273,7 +279,7 @@ const Listing = () => {
           setUseSavedItem(parsed);
           item_specific = normalizeKeys(parsed);
           setNewItemSpecific(item_specific);
-        } catch (parseError) { }
+        } catch (parseError) {}
       }
       const { item_specific_fields, ...rest } = savedItem;
       // Drop "description" so an eBay item-specific aspect named "Description"
@@ -325,7 +331,7 @@ const Listing = () => {
         return;
       } else {
         toast.error(
-          "Error fetching product listing details, please try again."
+          "Error fetching product listing details, please try again.",
         );
         return;
       }
@@ -347,21 +353,10 @@ const Listing = () => {
     setIsDropdownOpen(null);
   };
 
-  const handleMultiToggle = (fieldName, value) => {
-    if (!value) return;
-    setSelectedValues((prev) => {
-      const current = prev[fieldName] ? prev[fieldName].split(", ").filter(Boolean) : [];
-      const next = current.includes(value)
-        ? current.filter((v) => v !== value)
-        : [...current, value];
-      return { ...prev, [fieldName]: next.join(", ") };
-    });
-  };
-
   const filteredOptions = (fieldName, options) => {
     const filterValue = filterValues[fieldName]?.toLowerCase() || "";
     return Object.entries(options).filter(([key, label]) =>
-      label.toLowerCase().includes(filterValue)
+      label.toLowerCase().includes(filterValue),
     );
   };
 
@@ -374,8 +369,7 @@ const Listing = () => {
     setSearchQuery(e.target.value);
   };
 
-  const normalizeFeatureKey = (key) =>
-    key?.toString().trim().toLowerCase().replace(/[^a-z0-9]/g, "") || "";
+  const normalizeFeatureKey = (key) => key?.toString().trim().toLowerCase().replace(/[^a-z0-9]/g, "") || "";
 
   const parseFeatureList = (features) => {
     if (!features) return [];
@@ -402,22 +396,46 @@ const Listing = () => {
   };
 
   useEffect(() => {
-    const backendItems = parseBackendItemSpecificFields(productListing?.item_specific_fields);
+    const backendItems = parseBackendItemSpecificFields(
+      productListing?.item_specific_fields,
+    );
     if (!Object.keys(backendItems).length) return;
 
-    setSelectedValues((prev) => ({
-      ...backendItems,
-      ...prev,
-    }));
+    // Seed selectedValues from saved item_specific_fields — only fill empty slots
+    // so user changes made after load are not overwritten.
+    setSelectedValues((prev) => {
+      const next = { ...backendItems };
+      Object.entries(prev).forEach(([k, v]) => {
+        if (v) next[k] = v; // keep any value the user already set
+      });
+      return next;
+    });
 
     if (!Object.keys(itemSpecificFields).length) {
-      const formattedFields = Object.keys(backendItems).reduce((acc, fieldName) => {
-        acc[fieldName] = "";
-        return acc;
-      }, {});
+      const formattedFields = Object.keys(backendItems).reduce(
+        (acc, fieldName) => {
+          acc[fieldName] = "";
+          return acc;
+        },
+        {},
+      );
       setItemSpecificFields(formattedFields);
     }
   }, [productListing?.item_specific_fields]);
+
+  // When saved item_specific_fields are loaded (edit/update flow), seed
+  // selectedValues so the dropdowns display the previously chosen values.
+  // Do NOT normalize keys — itemSpecificFields uses original API casing.
+  useEffect(() => {
+    if (!useSavedItem || typeof useSavedItem !== "object") return;
+    setSelectedValues((prev) => {
+      const next = { ...useSavedItem };
+      Object.entries(prev).forEach(([k, v]) => {
+        if (v) next[k] = v; // keep any value the user already changed
+      });
+      return next;
+    });
+  }, [useSavedItem]);
 
   const mapProductFeaturesToSelectedValues = () => {
     const featureArray = parseFeatureList(productListing?.features);
@@ -480,7 +498,7 @@ const Listing = () => {
         const response = await fetchUserCategoryId(userId, productImageUploadId);
         const isValidCategory = response?.category_info?.offset === 0 || response?.category_info?.total === 0 || response?.category_info?.errors;
         if (isValidCategory) {
-          toast.error(`${response?.category_info?.errors[0].longMessage || "No categories found"}`);
+          toast.error(`${response?.category_info?.errors[0]?.longMessage || "No categories found"}`);
           setIsModalOpen(false);
           return;
         }
@@ -554,7 +572,9 @@ const Listing = () => {
         return;
       }
       const specificFieldsResponse = await userCategoriesId(userId, categoryId);
-      handleListingChange({ target: { name: "category_id", value: categoryId } });
+      handleListingChange({
+        target: { name: "category_id", value: categoryId },
+      });
       const itemSpecificArray = specificFieldsResponse?.item_specifics || [];
       const validChoices = specificFieldsResponse?.valid_choices || {};
       const requiredFields = specificFieldsResponse?.required_fields || [];
@@ -570,7 +590,7 @@ const Listing = () => {
       toast.success("Fetched successfully");
       setLoader(false);
       setIsModalOpen(false);
-      } catch (error) {
+    } catch (error) {
       let message = "Failed to fetch item specifics";
       if (error?.response?.status === 400) {
         message = "Invalid category or request";
@@ -646,7 +666,7 @@ const Listing = () => {
       toast.success("Fetched successfully");
       setIsModalOpen(false);
       setLoader(false);
-       } catch (error) {
+    } catch (error) {
       let message = "Failed to fetch item specifics";
       if (error?.response?.status === 400) {
         message = "Invalid category or request";
@@ -697,7 +717,7 @@ const Listing = () => {
     if (isWoocommerce && (!selectedWooCategories || selectedWooCategories.length === 0)) {
       toast.error("Please select WooCommerce category");
       return;
-    };
+    }
     setHandleSubmitLoader(true);
     const listingData = buildListingData(productListing, title, bestOfferEnabled, enableCharity, market_logos, id, itemSpecificFields, selectedValues);
     const buildMarketName = () => {
@@ -712,31 +732,31 @@ const Listing = () => {
     };
     const market_name = buildMarketName();
     const platformParam = Array.isArray(market_name) ? "all" : market_name;
-    const mergedData = isWoocommerce ? buildWoocommerceData(productListing, title, selectedWooCategories, thumbnailImage, convertWcAttributesToObject, wcAttributes, id, bestOfferEnabled, enableCharity, market_logos, isWoocommerce) : {
-      ...itemCategory,
-      ...handleChange,
-      userId,
-      product: id,
-      // ...itemSpecificFields ? itemSpecificFields : {},
-      ...listingData,
-      ...submittingProduct,
-      category_id,
-      gift: isGiftChecked,
-      categoryMappingAllowed: isMappingChecked,
-      market_name,
-      thumbnailImage: (() => {
-        try {
-          if (typeof thumbnailImage === 'string' && thumbnailImage.trim()) {
-            const parsed = JSON.parse(thumbnailImage);
-            return Array.isArray(parsed) && parsed.length > 0 ? JSON.stringify(parsed) : "Null";
-          }
-          return (Array.isArray(thumbnailImage) && thumbnailImage.length > 0) ? JSON.stringify(thumbnailImage) : "[]";
-        } catch {
-          return "Null";
+    const mergedData = isWoocommerce ? buildWoocommerceData( productListing, title, selectedWooCategories, thumbnailImage, convertWcAttributesToObject, wcAttributes, id, bestOfferEnabled, enableCharity, market_logos, isWoocommerce ) : {
+    ...itemCategory,
+    ...handleChange,
+    userId,
+    product: id,
+    // ...itemSpecificFields ? itemSpecificFields : {},
+    ...listingData,
+    ...submittingProduct,
+    category_id,
+    gift: isGiftChecked,
+    categoryMappingAllowed: isMappingChecked,
+    market_name,
+    thumbnailImage: (() => {
+      try {
+        if (typeof thumbnailImage === "string" && thumbnailImage.trim()) {
+          const parsed = JSON.parse(thumbnailImage);
+          return Array.isArray(parsed) && parsed.length > 0 ? JSON.stringify(parsed) : "Null";
         }
-      })(),
+        return Array.isArray(thumbnailImage) && thumbnailImage.length > 0 ? JSON.stringify(thumbnailImage) : "[]";
+      } catch {
+        return "Null";
+      }
+    })(),
     };
-    console.log("Merged data:", mergedData);
+    console.log("mergedData", mergedData);
     try {
       const response = await marketplaceProductListing(userId, platformParam, isEbay ? category_id : isWoocommerce ? selectedWooCategories : null, mergedData);
       setHandleSubmitLoader(false);
@@ -765,16 +785,7 @@ const Listing = () => {
       return;
     }
     setHandleSaveListingLoader(true);
-    const savingListingData = buildListingData(
-      productListing,
-      title,
-      bestOfferEnabled,
-      enableCharity,
-      market_logos,
-      id,
-      itemSpecificFields,
-      selectedValues
-    );
+    const savingListingData = buildListingData(productListing, title, bestOfferEnabled, enableCharity, market_logos, id, itemSpecificFields, selectedValues);
     const buildMarketName = () => {
       const markets = [];
       if (isEbay) markets.push("Ebay");
@@ -792,7 +803,6 @@ const Listing = () => {
       ...handleChange,
       userId,
       product: productId,
-      // ...itemSpecificFields ? itemSpecificFields : {},
       ...savingListingData,
       ...submittingProduct,
       category_id,
@@ -800,24 +810,30 @@ const Listing = () => {
       categoryMappingAllowed: isMappingChecked,
       thumbnailImage: (() => {
         try {
-          if (typeof thumbnailImage === 'string' && thumbnailImage.trim()) {
+          if (typeof thumbnailImage === "string" && thumbnailImage.trim()) {
             const parsed = JSON.parse(thumbnailImage);
             return Array.isArray(parsed) && parsed.length > 0 ? JSON.stringify(parsed) : "Null";
           }
-          return (Array.isArray(thumbnailImage) && thumbnailImage.length > 0) ? JSON.stringify(thumbnailImage) : "Null";
-        } catch {
-          return "Null";
-        }
-      })(),
-      ...(isWoocommerce ? { itemSpecific: convertWcAttributesToObject(wcAttributes) } : {}),
-    };
-    console.log(mergedSavingData)
+          return Array.isArray(thumbnailImage) && thumbnailImage.length > 0 ? JSON.stringify(thumbnailImage) : "Null";
+            } catch {
+              return "Null";
+            }
+          })(),
+          ...(isWoocommerce
+            ? { itemSpecific: convertWcAttributesToObject(wcAttributes) }
+            : {}),
+        };
     try {
-      const response = await marketplaceProductSaving(userId, platformParam, isEbay ? category_id : isWoocommerce ? selectedWooCategories : null, mergedSavingData);
+      const response = await marketplaceProductSaving(
+        userId,
+        platformParam,
+        isEbay ? category_id : isWoocommerce ? selectedWooCategories : null,
+        mergedSavingData,
+      );
       setHandleSaveListingLoader(false);
       toast.success(response);
     } catch (error) {
-      console.log(error)
+      console.log(error);
       setHandleSaveListingLoader(false);
       handleApiError(error);
     }
@@ -825,9 +841,12 @@ const Listing = () => {
 
   const handleUpdateListing = async (e) => {
     e.preventDefault();
-    const id = location.state?.isFromUpdate ? productListing?.product_id : productListing?.id;
-    const submittingProduct = location.state?.isFromUpdate ? mergeSavedAndSelected(useSavedItem, selectedValues) : selectedValues;
-    console.log("Submitting product for update:", submittingProduct);
+    const id = location.state?.isFromUpdate
+      ? productListing?.product_id
+      : productListing?.id;
+    const submittingProduct = location.state?.isFromUpdate
+      ? mergeSavedAndSelected(useSavedItem, selectedValues)
+      : selectedValues;
     if (!isEbay && !isShopify && !isWoocommerce && !isWalmart && !isAmazon) {
       toast.error("Please select at least one marketplace");
       return;
@@ -837,7 +856,10 @@ const Listing = () => {
       toast.error("Please enter a category id");
       return;
     }
-    if (isWoocommerce && (!selectedWooCategories || selectedWooCategories.length === 0)) {
+    if (
+      isWoocommerce &&
+      (!selectedWooCategories || selectedWooCategories.length === 0)
+    ) {
       toast.error("Please select WooCommerce category");
       return;
     }
@@ -847,8 +869,10 @@ const Listing = () => {
       title,
       bestOfferEnabled,
       enableCharity,
+      market_logos,
       thumbnailImage,
-      submittingProduct
+      itemSpecificFields,
+      submittingProduct,
     );
     const buildMarketName = () => {
       const markets = [];
@@ -862,30 +886,55 @@ const Listing = () => {
     };
     const market_name = buildMarketName();
     const platformParam = Array.isArray(market_name) ? "all" : market_name;
-    const mergedData = isWoocommerce ? buildWoocommerceUpdate(productListing, title, selectedWooCategories, thumbnailImage, convertWcAttributesToObject, wcAttributes, id, bestOfferEnabled, enableCharity, market_logos) : {
-      ...itemCategory,
-      ...handleChange,
-      userId,
-      product: id,
-      ...updateData,
-      inventory_id,
-      gift: isGiftChecked,
-      categoryMappingAllowed: isMappingChecked,
-      thumbnailImage: (() => {
-        try {
-          if (typeof thumbnailImage === 'string' && thumbnailImage.trim()) {
-            const parsed = JSON.parse(thumbnailImage);
-            return Array.isArray(parsed) && parsed.length > 0 ? JSON.stringify(parsed) : "[]";
-          }
-          return (Array.isArray(thumbnailImage) && thumbnailImage.length > 0) ? JSON.stringify(thumbnailImage) : "[]";
-        } catch {
-          return "[]";
-        }
-      })(),
-      ...(isWoocommerce ? { itemSpecific: convertWcAttributesToObject(wcAttributes) } : {}),
-    };
+    const mergedData = isWoocommerce
+      ? buildWoocommerceUpdate(
+          productListing,
+          title,
+          selectedWooCategories,
+          thumbnailImage,
+          convertWcAttributesToObject,
+          wcAttributes,
+          id,
+          bestOfferEnabled,
+          enableCharity,
+          market_logos,
+        )
+      : {
+          ...itemCategory,
+          ...handleChange,
+          userId,
+          product: id,
+          ...updateData,
+          ...submittingProduct,
+          inventory_id,
+          gift: isGiftChecked,
+          categoryMappingAllowed: isMappingChecked,
+          thumbnailImage: (() => {
+            try {
+              if (typeof thumbnailImage === "string" && thumbnailImage.trim()) {
+                const parsed = JSON.parse(thumbnailImage);
+                return Array.isArray(parsed) && parsed.length > 0
+                  ? JSON.stringify(parsed)
+                  : "[]";
+              }
+              return Array.isArray(thumbnailImage) && thumbnailImage.length > 0
+                ? JSON.stringify(thumbnailImage)
+                : "[]";
+            } catch {
+              return "[]";
+            }
+          })(),
+          ...(isWoocommerce
+            ? { itemSpecific: convertWcAttributesToObject(wcAttributes) }
+            : {}),
+        };
     try {
-      const response = await marketPlaceProductUpdate(userId, platformParam, isEbay ? inventory_id : isWoocommerce ? inventory_id : null, mergedData);
+      const response = await marketPlaceProductUpdate(
+        userId,
+        platformParam,
+        isEbay ? inventory_id : isWoocommerce ? inventory_id : null,
+        mergedData,
+      );
       setHandleUpdateLoader(false);
       toast.success(response);
     } catch (error) {
@@ -894,13 +943,33 @@ const Listing = () => {
     }
   };
 
-  const filteredFirstCategories = firstCategory?.filter((item) => item?.categoryName && item?.categoryName?.toLowerCase()?.includes(searchQuery?.toLowerCase()));
+  const filteredFirstCategories = firstCategory?.filter(
+    (item) =>
+      item?.categoryName &&
+      item?.categoryName?.toLowerCase()?.includes(searchQuery?.toLowerCase()),
+  );
 
-  const filteredSubcategories = subcategories?.filter((subcategory) => subcategory?.categoryName && subcategory?.categoryName?.toLowerCase()?.includes(searchQuery?.toLowerCase()));
+  const filteredSubcategories = subcategories?.filter(
+    (subcategory) =>
+      subcategory?.categoryName &&
+      subcategory?.categoryName
+        ?.toLowerCase()
+        ?.includes(searchQuery?.toLowerCase()),
+  );
 
-  const filteredMiddleCategories = middleCategories?.filter((middleCategory) => middleCategory?.categoryName && middleCategory?.categoryName?.toLowerCase()?.includes(searchQuery?.toLocaleLowerCase()));
+  const filteredMiddleCategories = middleCategories?.filter(
+    (middleCategory) =>
+      middleCategory?.categoryName &&
+      middleCategory?.categoryName
+        ?.toLowerCase()
+        ?.includes(searchQuery?.toLocaleLowerCase()),
+  );
 
-  const filteredLastCategories = lastCategories?.filter((lastCategory) => lastCategory?.categoryName?.toLowerCase()?.includes(searchQuery?.toLowerCase()));
+  const filteredLastCategories = lastCategories?.filter((lastCategory) =>
+    lastCategory?.categoryName
+      ?.toLowerCase()
+      ?.includes(searchQuery?.toLowerCase()),
+  );
 
   const handleWooCommerceCategory = async () => {
     try {
@@ -954,17 +1023,38 @@ const Listing = () => {
 
           <div className="lg:w-3/4 flex flex-col space-y-5">
             <div>
-              <ProductImageUpload productListing={productListing} thumbnailImage={thumbnailImage} setThumbnailImage={setThumbnailImage} productId={productImageUploadId} userId={userId} token={token} />
+              <ProductImageUpload
+                productListing={productListing}
+                thumbnailImage={thumbnailImage}
+                setThumbnailImage={setThumbnailImage}
+                productId={productImageUploadId}
+                userId={userId}
+                token={token}
+              />
             </div>
             <div>
-              <TitleSection title={title} maxLength={maxLength} onChange={handleTitleChange} />
+              <TitleSection
+                title={title}
+                maxLength={maxLength}
+                onChange={handleTitleChange}
+              />
             </div>
 
             <div>
-              <DescriptionSection value={productListing?.detailed_description || productListing?.description || ""} onChange={handleDescriptionChange} />
+              <DescriptionSection
+                value={
+                  productListing?.detailed_description ||
+                  productListing?.description ||
+                  ""
+                }
+                onChange={handleDescriptionChange}
+              />
             </div>
 
-            <DynamicProductInputs handleListingChange={handleListingChange} productListing={productListing} />
+            <DynamicProductInputs
+              handleListingChange={handleListingChange}
+              productListing={productListing}
+            />
             <div className="flex justify-between">
               <div className="flex items-center space-x-2">
                 <div>
@@ -973,7 +1063,10 @@ const Listing = () => {
                 <div>
                   <input
                     className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
-                    type="checkbox" onChange={(e) => setIsMappingChecked(e.target.checked)} checked={isMappingChecked} />
+                    type="checkbox"
+                    onChange={(e) => setIsMappingChecked(e.target.checked)}
+                    checked={isMappingChecked}
+                  />
                 </div>
               </div>
 
@@ -1000,7 +1093,10 @@ const Listing = () => {
                 <div className="flex items-center space-x-2">
                   <input
                     className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
-                    type="checkbox" onChange={(e) => setBestOfferEnabled(e.target.checked)} checked={bestOfferEnabled} />
+                    type="checkbox"
+                    onChange={(e) => setBestOfferEnabled(e.target.checked)}
+                    checked={bestOfferEnabled}
+                  />
                 </div>
               </div>
             </div>
@@ -1009,6 +1105,7 @@ const Listing = () => {
               isEbayOpen={isEbayOpen}
               setIsEbayOpen={setIsEbayOpen}
               productListing={productListing}
+              isFromEditOrUpdate={!!(location.state?.isFromEdit || location.state?.isFromUpdate)}
               isLoadingCategory={isLoadingCategory}
               handleOpenModal={handleOpenModal}
               isModalOpen={isModalOpen}
@@ -1030,7 +1127,6 @@ const Listing = () => {
               selectedValues={selectedValues}
               setSelectedValues={setSelectedValues}
               handleSelectChange={handleSelectChange}
-              handleMultiToggle={handleMultiToggle}
               customInputValues={customInputValues}
               setCustomInputValues={setCustomInputValues}
               handleInputChange={handleInputChange}
@@ -1048,6 +1144,7 @@ const Listing = () => {
               isWoocommerceOpen={isWoocommerceOpen}
               setIsWoocommerceOpen={setIsWoocommerceOpen}
               handleWooCommerceCategory={handleWooCommerceCategory}
+              isFromEditOrUpdate={!!(location.state?.isFromEdit || location.state?.isFromUpdate)}
               loadingWooCategories={loadingWooCategories}
               wooCategories={wooCategories}
               selectedWooCategories={selectedWooCategories}
@@ -1056,7 +1153,12 @@ const Listing = () => {
               wcAttributes={wcAttributes}
               setWcAttributes={setWcAttributes}
             />
-            <PreferencesSection productListing={productListing} setProductListing={setProductListing} enableCharity={enableCharity} setEnableCharity={setEnableCharity} />
+            <PreferencesSection
+              productListing={productListing}
+              setProductListing={setProductListing}
+              enableCharity={enableCharity}
+              setEnableCharity={setEnableCharity}
+            />
             {isShopify && (
               <div className="bg-gray-50 p-4 rounded border border-gray-300">
                 <p>
@@ -1071,7 +1173,11 @@ const Listing = () => {
             {isWalmart && (
               <div className="bg-gray-50 p-4 rounded border border-gray-300">
                 <p>
-                  <img src="https://i.postimg.cc/vZpK8RPJ/walmart.png" alt="walmart" className="w-20 h-10" />
+                  <img
+                    src="https://i.postimg.cc/vZpK8RPJ/walmart.png"
+                    alt="walmart"
+                    className="w-20 h-10"
+                  />
                 </p>
               </div>
             )}

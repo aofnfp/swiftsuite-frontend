@@ -79,16 +79,33 @@ const ItemSpecificFields = ({
                             </button>
                           </div>
                           <div className="max-h-[300px] overflow-y-auto" id="folder">
-                              {filteredOptions(fieldName, options).map(([index, value]) => (
+                            {selectedValues[fieldName] && (
                               <div
-                                key={index}
-                                className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm flex items-center justify-between"
-                                onClick={() => handleSelectChange(fieldName, value)}
+                                key={`pinned-${selectedValues[fieldName]}`}
+                                className="px-4 py-2 bg-gray-50 hover:bg-gray-100 cursor-pointer text-sm flex items-center justify-between border-b border-gray-200"
+                                onClick={() => handleSelectChange(fieldName, selectedValues[fieldName])}
                               >
-                                <p>{value}</p>
-                                <p>{selectedValues[fieldName] === value && <IoMdCheckmark size={20} className="text-black" />}</p>
+                                <p>
+                                  {selectedValues[fieldName]}
+                                  {!options.includes(selectedValues[fieldName]) && (
+                                    <span className="ml-2 text-xs text-gray-500">(saved)</span>
+                                  )}
+                                </p>
+                                <IoMdCheckmark size={20} className="text-black" />
                               </div>
-                            ))}
+                            )}
+                            {filteredOptions(fieldName, options).map(([index, value]) => {
+                              if (selectedValues[fieldName] === value) return null;
+                              return (
+                                <div
+                                  key={index}
+                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm flex items-center justify-between"
+                                  onClick={() => handleSelectChange(fieldName, value)}
+                                >
+                                  <p>{value}</p>
+                                </div>
+                              );
+                            })}
                             {/* Custom Input Field */}
                             {customInputValues[fieldName] && !options.includes(customInputValues[fieldName]) && (
                               <div

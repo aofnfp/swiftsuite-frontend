@@ -245,7 +245,7 @@ export const buildUpdateData = (productListing, title, bestOfferEnabled, enableC
     market_logos: typeof market_logos === "string" ? market_logos : JSON.stringify(market_logos) || "",
     market_name: productListing?.market_name || "",
     min_profit_mergin: productListing?.min_profit_mergin || 0,
-    item_specific_fields: convertToPythonDictString(itemSpecificPayload),
+    item_specific_fields: JSON.stringify(itemSpecificPayload),
     percentage_markup: productListing?.percentage_markup || null,
     picture_detail: productListing?.image || productListing?.picture_detail || "",
     postal_code: productListing?.postal_code || "",
@@ -271,5 +271,6 @@ export const buildUpdateData = (productListing, title, bestOfferEnabled, enableC
     total_product_cost: productListing?.total_product_cost || "",
     vendor_name: productListing?.vendor_name || productListing?.name || "",
     woo_category_name: productListing?.woo_category_name || null,
+    // ...itemSpecificPayload,
   }
 };

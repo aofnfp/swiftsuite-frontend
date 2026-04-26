@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Button } from "antd";
 import GetWooCategory from "./GetWooCategory";
 import AttributeAdder from "./AttributeAdder";
@@ -16,7 +16,17 @@ const WooSection = ({
   productListing,
   wcAttributes,
   setWcAttributes,
+  isFromEditOrUpdate,
 }) => {
+  const hasAutoOpened = useRef(false);
+
+  useEffect(() => {
+    if (isWoocommerce && isFromEditOrUpdate && !hasAutoOpened.current) {
+      hasAutoOpened.current = true;
+      setIsWoocommerceOpen(true);
+    }
+  }, [isWoocommerce, isFromEditOrUpdate]);
+
   return (
     <>
       {isWoocommerce && (
@@ -26,10 +36,18 @@ const WooSection = ({
         >
           <div className="flex items-center justify-between">
             <p>
-              <img src="https://i.postimg.cc/Wbfbs7QB/woocommerce.png" alt="woocommerce" className="w-20 h-10" />
+              <img
+                src="https://i.postimg.cc/Wbfbs7QB/woocommerce.png"
+                alt="woocommerce"
+                className="w-20 h-10"
+              />
             </p>
             <div className="text-gray-500">
-              {isWoocommerceOpen ? <BiChevronUp size={30} /> : <BiChevronDown size={30}/>}
+              {isWoocommerceOpen ? (
+                <BiChevronUp size={30} />
+              ) : (
+                <BiChevronDown size={30} />
+              )}
             </div>
           </div>
         </div>
@@ -38,10 +56,12 @@ const WooSection = ({
         <div className="bg-gray-100 shadowrounded p-4">
           <div className="mb-4 border border-gray-300 rounded p-4">
             <div className="flex justify-between">
-              <div className="font-semi-bold text-xl mt-3">Get WooCommerce Category</div>
+              <div className="font-semi-bold text-xl mt-3">
+                Get WooCommerce Category
+              </div>
               <div className="text-center">
                 <Button
-                   className="w-full h-10 font-semibold bg-[#089451] text-white border-none hover:!bg-[#06703d] hover:!text-white"
+                  className="w-full h-10 font-semibold bg-[#089451] text-white border-none hover:!bg-[#06703d] hover:!text-white"
                   OnClick={handleWooCommerceCategory}
                   disabled={!isWoocommerce}
                   isLoading={loadingWooCategories}
@@ -63,14 +83,19 @@ const WooSection = ({
             )}
           </div>
           <div className="mb-4 border border-gray-300 rounded p-4">
-            <p className="mb-2 text-sm text-gray-600">Add product attributes for WooCommerce below.</p>
+            <p className="mb-2 text-sm text-gray-600">
+              Add product attributes for WooCommerce below.
+            </p>
             <AttributeAdder
               initial={
                 Array.isArray(productListing?.woocommerce_attributes)
                   ? productListing?.woocommerce_attributes
-                  : productListing?.woocommerce_attributes && typeof productListing?.woocommerce_attributes === "object"
-                  ? Object.entries(productListing.woocommerce_attributes).map(([label, value]) => ({ label, value }))
-                  : []
+                  : productListing?.woocommerce_attributes &&
+                      typeof productListing?.woocommerce_attributes === "object"
+                    ? Object.entries(productListing.woocommerce_attributes).map(
+                        ([label, value]) => ({ label, value }),
+                      )
+                    : []
               }
               onChange={(attrs) => setWcAttributes(attrs)}
             />

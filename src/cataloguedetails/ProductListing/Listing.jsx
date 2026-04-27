@@ -359,6 +359,22 @@ const Listing = () => {
     setIsDropdownOpen(null);
   };
 
+  // Multi-value aspects (Features, Scent) store their selection as a
+  // comma-separated string in selectedValues[fieldName]. Toggle: if the value
+  // is already in the list, remove it; otherwise append.
+  const handleMultiToggle = (fieldName, value) => {
+    if (!value) return;
+    setSelectedValues((prev) => {
+      const current = prev[fieldName]
+        ? prev[fieldName].split(", ").filter(Boolean)
+        : [];
+      const next = current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value];
+      return { ...prev, [fieldName]: next.join(", ") };
+    });
+  };
+
   const filteredOptions = (fieldName, options) => {
     const filterValue = filterValues[fieldName]?.toLowerCase() || "";
     return Object.entries(options).filter(([key, label]) =>
@@ -1137,6 +1153,7 @@ const Listing = () => {
               selectedValues={selectedValues}
               setSelectedValues={setSelectedValues}
               handleSelectChange={handleSelectChange}
+              handleMultiToggle={handleMultiToggle}
               customInputValues={customInputValues}
               setCustomInputValues={setCustomInputValues}
               handleInputChange={handleInputChange}

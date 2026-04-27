@@ -51,6 +51,11 @@ const Listing = () => {
   const [loading, setLoading] = useState(false);
   const [itemSpecificFields, setItemSpecificFields] = useState({});
   const [requiredFields, setRequiredFields] = useState([]);
+  // Aspect names that eBay's Taxonomy API marks as MULTI for the current
+  // category (driven by the backend's multi_value_fields response field).
+  // Empty list = the backend hasn't shipped that field yet, in which case
+  // ItemSpecificFields falls back to its built-in default list.
+  const [multiValueFields, setMultiValueFields] = useState([]);
   const [selectedValues, setSelectedValues] = useState({});
   const [isLoadingCategory, setIsLoadingCategory] = useState(false);
   const [firstCategory, setFirstCategory] = useState([]) || [];
@@ -512,6 +517,7 @@ const Listing = () => {
         });
         setItemSpecificFields(formattedFields);
         setRequiredFields(requiredFields);
+        setMultiValueFields(response?.multi_value_fields || []);
         toast.success("Fetched successfully");
         setIsModalOpen(false);
       } else {
@@ -568,6 +574,7 @@ const Listing = () => {
       });
       setItemSpecificFields(formattedFields);
       setRequiredFields(requiredFields);
+      setMultiValueFields(specificFieldsResponse?.multi_value_fields || []);
       toast.success("Fetched successfully");
       setLoader(false);
       setIsModalOpen(false);
@@ -609,6 +616,7 @@ const Listing = () => {
       });
       setItemSpecificFields(formattedFields);
       setRequiredFields(requiredFields);
+      setMultiValueFields(specificFieldsResponse?.multi_value_fields || []);
       toast.success("Fetched successfully");
       setLoader(false);
       setIsModalOpen(false);
@@ -651,6 +659,7 @@ const Listing = () => {
       });
       setItemSpecificFields(formattedFields);
       setRequiredFields(requiredFields);
+      setMultiValueFields(specificFieldsResponse?.multi_value_fields || []);
       toast.success("Fetched successfully");
       setLoader(false);
       setIsModalOpen(false);
@@ -689,6 +698,7 @@ const Listing = () => {
       });
       setItemSpecificFields(formattedFields);
       setRequiredFields(requiredFields);
+      setMultiValueFields(response?.multi_value_fields || []);
       toast.success("Fetched successfully");
       setIsModalOpen(false);
       setLoader(false);
@@ -1150,6 +1160,7 @@ const Listing = () => {
               itemSpecificFields={itemSpecificFields}
               setItemSpecificFields={setItemSpecificFields}
               requiredFields={requiredFields}
+              multiValueFields={multiValueFields}
               selectedValues={selectedValues}
               setSelectedValues={setSelectedValues}
               handleSelectChange={handleSelectChange}

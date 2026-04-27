@@ -4,14 +4,19 @@ import { BiChevronDown, BiChevronUp } from "react-icons/bi";
 import { IoMdCheckmark } from "react-icons/io";
 import { Label } from "reactstrap";
 
-// Aspects whose value is a list, not a single choice. Stored in
-// selectedValues[fieldName] as a comma-separated string ("a, b, c"), with
-// add/remove driven by handleMultiToggle.
-const MULTI_VALUE_FIELDS = ["Features", "Scent"];
+// Fallback list used only when the backend's get_item_specifics_fields
+// response doesn't include multi_value_fields (e.g. backend hasn't deployed
+// yet). The authoritative source is eBay's Taxonomy API
+// aspectConstraint.itemToAspectCardinality === "MULTI" per category, which
+// the backend now surfaces as multi_value_fields and we receive via the
+// multiValueFields prop. Once that field is consistently populated this
+// fallback can be removed.
+const FALLBACK_MULTI_VALUE_FIELDS = ["Features", "Scent"];
 
 const ItemSpecificFields = ({
   itemSpecificFields,
   requiredFields = [],
+  multiValueFields,
   selectedValues,
   setSelectedValues,
   handleSelectChange,
@@ -27,7 +32,13 @@ const ItemSpecificFields = ({
   dropdownRef,
 }) => {
 
-  const isMultiField = (fieldName) => MULTI_VALUE_FIELDS.includes(fieldName);
+  // Effective multi-value list: prefer the per-category list from eBay
+  // (backend), fall back to the static list only if the prop is absent or
+  // empty so behavior degrades gracefully when the backend hasn't shipped.
+  const effectiveMultiValueFields = (Array.isArray(multiValueFields) && multiValueFields.length > 0)
+    ? multiValueFields
+    : FALLBACK_MULTI_VALUE_FIELDS;
+  const isMultiField = (fieldName) => effectiveMultiValueFields.includes(fieldName);
   const getMultiValues = (fieldName) => {
     const raw = selectedValues[fieldName] || "";
     return raw ? raw.split(", ").filter(Boolean) : [];

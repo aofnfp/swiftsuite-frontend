@@ -16,8 +16,17 @@ const convertToPythonDictString = (obj) => {
   }
 };
 
+const buildItemSpecificPayload = (itemSpecificFields = {}, selectedValues = {}) => {
+  if (!itemSpecificFields || typeof itemSpecificFields !== "object") return {};
+  return Object.keys(itemSpecificFields).reduce((acc, fieldName) => {
+    acc[fieldName] = selectedValues[fieldName] ?? "";
+    return acc;
+  }, {});
+};
+
 // Utility function to build listing data object
-export const buildListingData = (productListing, title, bestOfferEnabled, enableCharity, market_logos, id) => {
+export const buildListingData = (productListing, title, bestOfferEnabled, enableCharity, market_logos, id, itemSpecificFields = {}, selectedValues = {}) => {
+  const itemSpecificPayload = buildItemSpecificPayload(itemSpecificFields, selectedValues);
   return {
     title: title || "",
     description: productListing?.detailed_description || productListing?.description || "" || "Null",
@@ -45,9 +54,6 @@ export const buildListingData = (productListing, title, bestOfferEnabled, enable
     percentage_markup: productListing?.percentage_markup || "" || "Null", 
     Brand: productListing?.brand || productListing?.manufacturer || "" || "Null",
     cost: productListing?.cost || productListing?.total_product_cost || "" || "Null",
-    Volume: productListing?.volume || "" || "Null",
-    Formulation: productListing?.Formulation || "" || "Null",
-    Personalization: productListing?.Personalization || "" || "Null",
     fixed_markup: productListing?.fixed_markup || "" || "Null",
     shipping_height: productListing?.shipping_height || "" || "Null",
     shipping_width: productListing?.shipping_width || "" || "Null",
@@ -55,16 +61,6 @@ export const buildListingData = (productListing, title, bestOfferEnabled, enable
     model: productListing?.model || "" || "Null",
     shipping_weight: productListing?.shipping_weight || "" || "Null",
     shipping_length: productListing?.shipping_length || "" || "Null",
-    type: productListing?.type || "Default Type" || "Null",
-    "Character Family": productListing?.CharacterFamily || "" || "Null",
-    "Age Level": productListing?.AgeLevel || "" || "Null",
-    "Recommended Age Range": productListing?.RecommendedAgeRange || "" || "Null",
-    "California Prop 65 Warning": productListing?.CaliforniaProp65Warning || "" || "Null",
-    "Expiration Date": productListing?.ExpirationDate || "" || "Null",
-    "Unit Quantity": productListing?.UnitQuantity || "" || "Null",
-    "Unit Type": productListing?.UnitType || "" || "Null",
-     "Personalization Instructions": productListing?.PersonalizationInstructions || "" || "Null",
-    Year: productListing?.Year || "" || "Null",
     mode: productListing?.mode || "" || "Null",
     min_profit_mergin: productListing?.min_profit_mergin || "" || "Null",
     profit_margin: productListing?.profit_margin || "" || "Null",
@@ -82,6 +78,8 @@ export const buildListingData = (productListing, title, bestOfferEnabled, enable
     return_profileID: productListing?.return_profileID || productListing?.return_profileid || productListing?.return_policy?.id || "" || "Null",
     return_profileID: productListing?.return_profileID || productListing?.return_profileid || productListing?.return_policy?.id || "",
     vendor_name: productListing?.name || productListing?.vendor_name || "" || "Null",
+    item_specific_fields: JSON.stringify(itemSpecificPayload),
+    ...itemSpecificPayload,
   };
 };
 
@@ -220,7 +218,8 @@ export const buildWoocommerceUpdate = (productListing, title, selectedWooCategor
 };
 
 // Utility function to build update data
-export const buildUpdateData = (productListing, title, bestOfferEnabled, enableCharity, market_logos, thumbnailImage, itemSpecificFields = {}) => {
+export const buildUpdateData = (productListing, title, bestOfferEnabled, enableCharity, market_logos, thumbnailImage, itemSpecificFields = {}, selectedValues = {}) => {
+  const itemSpecificPayload = buildItemSpecificPayload(itemSpecificFields, selectedValues);
   return {
     title: title || productListing?.title || "",
     description: productListing?.detailed_description || productListing?.description || "",
@@ -243,10 +242,10 @@ export const buildUpdateData = (productListing, title, bestOfferEnabled, enableC
     location: productListing?.location || "US",
     map: productListing?.map || "0.00",
     market_item_id: productListing?.market_item_id || "",
-    market_logos: productListing?.market_logos || "",
+    market_logos: typeof market_logos === "string" ? market_logos : JSON.stringify(market_logos) || "",
     market_name: productListing?.market_name || "",
     min_profit_mergin: productListing?.min_profit_mergin || 0,
-    item_specific_fields: convertToPythonDictString(itemSpecificFields),
+    item_specific_fields: JSON.stringify(itemSpecificPayload),
     percentage_markup: productListing?.percentage_markup || null,
     picture_detail: productListing?.image || productListing?.picture_detail || "",
     postal_code: productListing?.postal_code || "",
@@ -272,5 +271,6 @@ export const buildUpdateData = (productListing, title, bestOfferEnabled, enableC
     total_product_cost: productListing?.total_product_cost || "",
     vendor_name: productListing?.vendor_name || productListing?.name || "",
     woo_category_name: productListing?.woo_category_name || null,
+    // ...itemSpecificPayload,
   }
 };

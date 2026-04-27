@@ -19,6 +19,7 @@
     "@iconify/react": "^6.0.2",
     "@internationalized/date": "^3.12.1",
     "@lottiefiles/dotlottie-react": "^0.12.1",
+    "@monaco-editor/react": "^4.7.0",
     "@mui/material": "^5.16.7",
     "@react-spring/web": "^10.0.1",
     "@reduxjs/toolkit": "^2.2.1",

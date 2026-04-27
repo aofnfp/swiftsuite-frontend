@@ -307,7 +307,20 @@ const Sidebar = () => {
                 )}
               </NavLink>
             </li>
-
+                <li onClick={handleCloseDropdowns}>
+              <NavLink to="/layout/templates">
+                {({ isActive }) => (
+                  <div
+                    className={`flex items-center gap-8 w-full px-2 hover:text-white ${
+                      isActive ? "bg-[#027840] rounded-[6px] text-white" : ""
+                    } hover:bg-[#027840] hover:rounded`}
+                  >
+                    <Icon icon="mdi:report-multiple" width="23" height="23" />
+                    <span>Templates</span>
+                  </div>
+                )}
+              </NavLink>
+            </li>
             <li
               onClick={() => {
                 setOrdersOpen((p) => !p);

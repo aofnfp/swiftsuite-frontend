@@ -42,6 +42,7 @@ import SupportTicket from '../Help/SupportTicket';
 import Faqs from '../Help/Faqs';
 import InventoryLog from '../inventory/log/InventoryLog';
 import HeldSKU from '../OrderPage/HeldSKU';
+import ListingTemplates from '../Templates/ListingTemplates';
 
 
 const Rootlayout = ({ children }) => {
@@ -49,7 +50,7 @@ const Rootlayout = ({ children }) => {
   const location = useLocation();
 
   
-const noPaddingPaths = ['/layout/settings', '/layout/help', '/layout/custom_success', '/layout/report'];
+const noPaddingPaths = ['/layout/settings', '/layout/help', '/layout/custom_success', '/layout/report', '/layout/templates'];
 const noPadding = noPaddingPaths.includes(location.pathname);
 
 
@@ -102,6 +103,7 @@ const bgClass = newBgPaths.includes(location.pathname) ? 'bg-[#f2f2f2]' : 'bg-[#
             <Route path="custom_vendor" element={<CustomVendorIntegrations />} />
             <Route path="customercare" element={<CustomerCare />} />
             <Route path="/report" element={<Report />} />
+            <Route path="/templates" element={<ListingTemplates/>} />
             <Route path="/report/sales" element={<SalesReport />} />
             <Route path="/report/inventory" element={<InventoryReport />} />
             <Route path="/report/order" element={<OrderReport />} />

@@ -14,6 +14,7 @@ const Foot = () => {
     '/layout/catalogue',
     '/layout/report',
     '/layout/help',
+    '/layout/templates',
     '/layout/product',
     '/layout/allapp',
     '/layout/enrolment',

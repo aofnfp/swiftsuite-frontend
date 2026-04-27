@@ -4,19 +4,10 @@ import { BiChevronDown, BiChevronUp } from "react-icons/bi";
 import { IoMdCheckmark } from "react-icons/io";
 import { Label } from "reactstrap";
 
-// Fallback list used only when the backend's get_item_specifics_fields
-// response doesn't include multi_value_fields (e.g. backend hasn't deployed
-// yet). The authoritative source is eBay's Taxonomy API
-// aspectConstraint.itemToAspectCardinality === "MULTI" per category, which
-// the backend now surfaces as multi_value_fields and we receive via the
-// multiValueFields prop. Once that field is consistently populated this
-// fallback can be removed.
-const FALLBACK_MULTI_VALUE_FIELDS = ["Features", "Scent"];
-
 const ItemSpecificFields = ({
   itemSpecificFields,
   requiredFields = [],
-  multiValueFields,
+  multiValueFields = [],
   selectedValues,
   setSelectedValues,
   handleSelectChange,
@@ -32,13 +23,14 @@ const ItemSpecificFields = ({
   dropdownRef,
 }) => {
 
-  // Effective multi-value list: prefer the per-category list from eBay
-  // (backend), fall back to the static list only if the prop is absent or
-  // empty so behavior degrades gracefully when the backend hasn't shipped.
-  const effectiveMultiValueFields = (Array.isArray(multiValueFields) && multiValueFields.length > 0)
-    ? multiValueFields
-    : FALLBACK_MULTI_VALUE_FIELDS;
-  const isMultiField = (fieldName) => effectiveMultiValueFields.includes(fieldName);
+  // Authoritative source: backend's multi_value_fields, which mirrors
+  // eBay's Taxonomy API aspectConstraint.itemToAspectCardinality === "MULTI"
+  // per category. No fallback list — if the prop is empty (backend hasn't
+  // shipped this field yet) we treat every aspect as single-select, which
+  // matches eBay's default for any aspect not explicitly marked MULTI and
+  // is safer than guessing. eBay rejects multi-value submits on SINGLE
+  // aspects, so a wrong-side fallback would cause real listing failures.
+  const isMultiField = (fieldName) => Array.isArray(multiValueFields) && multiValueFields.includes(fieldName);
   const getMultiValues = (fieldName) => {
     const raw = selectedValues[fieldName] || "";
     return raw ? raw.split(", ").filter(Boolean) : [];

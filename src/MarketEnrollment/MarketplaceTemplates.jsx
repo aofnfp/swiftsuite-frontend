@@ -8,28 +8,11 @@ const templateOptions = [
   { name: "Electronics & Tech", color: "#12365A" },
   { name: "Home & Garden", color: "#B06C4F" },
   { name: "Tools & Hardware", color: "#DB5B21" },
-//   { name: "Jewelry & Watches", color: "#6B2BD9" },
-//   { name: "Pet Supplies", color: "#89D6E2" },
-//   { name: "Office Business", color: "#70D59A" },
-//   { name: "Automotive & Parts", color: "#0D6836" },
-//   { name: "Fashion & Apparel", color: "#286B73" },
-//   { name: "Toys & Collectibles", color: "#F2FF00" },
-//   { name: "Health & Wellness", color: "#02A91F" },
 ];
 
 const marketplaceTemplateData = [
-  {
-    id: 1,
-    name: "eBay",
-    template: "Fragrance and Beauty",
-    enabled: true,
-  },
-  {
-    id: 2,
-    name: "WooCommerce",
-    template: "Fragrance and Beauty",
-    enabled: false,
-  },
+  { id: 1, name: "eBay", template: "Fragrance and Beauty", enabled: true },
+  { id: 2, name: "WooCommerce", template: "Fragrance and Beauty", enabled: false },
 ];
 
 const MarketplaceTemplates = () => {
@@ -64,29 +47,30 @@ const MarketplaceTemplates = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {items.map((market) => {
         const image = getMarketplaceImage(market.name);
         const selectedTemplate = getSelectedTemplate(market.template);
 
         return (
-          <div key={market.id} className="bg-white rounded-xl p-6 shadow-sm">
+          <div key={market.id} className="bg-white rounded-xl p-4 sm:p-6 shadow-sm">
             <div className="flex items-center gap-3 mb-6">
               {image && (
                 <img
                   src={image}
                   alt={market.name}
-                  className="w-[55px] h-[35px] object-contain"
+                  className="w-[50px] h-[32px] sm:w-[55px] sm:h-[35px] object-contain"
                 />
               )}
-
-              <h3 className="font-bold text-black">{market.name}</h3>
+              <h3 className="font-bold text-black text-base sm:text-lg">
+                {market.name}
+              </h3>
             </div>
 
-            <div className="flex justify-between gap-5">
-              <div className="flex-1">
+            <div className="flex flex-col lg:flex-row lg:justify-between gap-6">
+              <div className="flex-1 min-w-0">
                 <h4 className="font-semibold text-sm">Listing Template</h4>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs sm:text-sm text-gray-400 mt-1">
                   Apply a template to all listings on this store
                 </p>
 
@@ -96,24 +80,23 @@ const MarketplaceTemplates = () => {
                     onClick={() =>
                       setOpenDropdown(openDropdown === market.id ? null : market.id)
                     }
-                    className="w-full h-14 border border-gray-200 rounded-lg px-4 flex items-center justify-between bg-white"
+                    className="w-full min-h-14 border border-gray-200 rounded-lg px-3 sm:px-4 py-2 flex items-center justify-between bg-white gap-3"
                   >
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                       <span
-                        className="w-9 h-9 rounded-lg shrink-0"
+                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg shrink-0"
                         style={{
                           backgroundColor: selectedTemplate?.color || "#027840",
                         }}
                       />
-
-                      <span className="text-sm font-bold text-black">
+                      <span className="text-sm font-bold text-black truncate">
                         {market.template}
                       </span>
                     </div>
 
                     <ChevronDown
                       size={20}
-                      className={`text-gray-500 transition ${
+                      className={`text-gray-500 shrink-0 transition ${
                         openDropdown === market.id ? "rotate-180" : ""
                       }`}
                     />
@@ -130,14 +113,13 @@ const MarketplaceTemplates = () => {
                             onClick={() =>
                               handleTemplateChange(market.id, template.name)
                             }
-                            className="w-full h-14 px-4 flex items-center gap-4 hover:bg-[#027840]/5 transition text-left"
+                            className="w-full min-h-14 px-3 sm:px-4 py-2 flex items-center gap-3 sm:gap-4 hover:bg-[#027840]/5 transition text-left"
                           >
                             <span
-                              className="w-9 h-9 rounded-lg shrink-0"
+                              className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg shrink-0"
                               style={{ backgroundColor: template.color }}
                             />
-
-                            <span className="text-sm font-bold text-gray-500">
+                            <span className="text-sm font-bold text-gray-500 truncate">
                               {template.name}
                             </span>
                           </button>
@@ -147,8 +129,8 @@ const MarketplaceTemplates = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col items-end gap-4 pt-1 min-w-[240px]">
-                <button className="bg-[#027840] text-white text-xs font-semibold px-4 py-2 rounded-lg">
+              <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end gap-4 pt-1 lg:min-w-[240px]">
+                <button className="bg-[#027840] text-white text-xs font-semibold px-4 py-2 rounded-lg w-full sm:w-auto">
                   Save changes
                 </button>
 
@@ -175,18 +157,17 @@ const MarketplaceTemplates = () => {
                   </span>
                 </div>
 
-                <button className="border border-gray-200 text-gray-400 text-sm px-4 py-2 rounded-lg">
+                <button className="border border-gray-200 text-gray-400 text-sm px-4 py-2 rounded-lg w-full sm:w-auto">
                   Preview
                 </button>
               </div>
             </div>
 
-            <div className="mt-5 border-t border-gray-100 pt-3 flex items-center gap-2 text-xs text-gray-500">
-              <Info size={15} />
+            <div className="mt-5 border-t border-gray-100 pt-3 flex items-start gap-2 text-xs sm:text-sm text-gray-500">
+              <Info size={15} className="mt-0.5 shrink-0" />
               <span>
                 This template applies to all new listings by default. You can
-                override the template per listing during the listing creation
-                flow.
+                override the template per listing during the listing creation flow.
               </span>
             </div>
           </div>

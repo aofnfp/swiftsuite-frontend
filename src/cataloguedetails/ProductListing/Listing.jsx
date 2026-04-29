@@ -51,6 +51,11 @@ const Listing = () => {
   const [loading, setLoading] = useState(false);
   const [itemSpecificFields, setItemSpecificFields] = useState({});
   const [requiredFields, setRequiredFields] = useState([]);
+  // Aspect names that eBay's Taxonomy API marks as MULTI for the current
+  // category (driven by the backend's multi_value_fields response field).
+  // Empty list = the backend hasn't shipped that field yet, in which case
+  // ItemSpecificFields falls back to its built-in default list.
+  const [multiValueFields, setMultiValueFields] = useState([]);
   const [selectedValues, setSelectedValues] = useState({});
   const [isLoadingCategory, setIsLoadingCategory] = useState(false);
   const [firstCategory, setFirstCategory] = useState([]) || [];
@@ -241,14 +246,12 @@ const Listing = () => {
           const cleanedString = savedItem.item_specific_fields.replace(/'/g, '"').replace(/\\/g, "\\\\");
           const parsed = JSON.parse(cleanedString);
           setUseSavedItem(parsed);
+          setSelectedValues((prev) => ({ ...prev, ...parsed }));
           item_specific = normalizeKeys(parsed);
           setNewItemSpecific(item_specific);
         } catch (parseError) {}
       }
       const { item_specific_fields, ...rest } = savedItem;
-      // Drop "description" so an eBay item-specific aspect named "Description"
-      // (a short label like "Touch Up") doesn't overwrite the row's real
-      // description column (full HTML body) when spread into the product.
       const { description: _ignoredDescriptionAspect, ...itemSpecificSafe } = item_specific;
       const mergedProduct = { ...normalizeKeys(rest), ...itemSpecificSafe };
       setProductListing(mergedProduct);
@@ -277,14 +280,12 @@ const Listing = () => {
           const cleanedString = savedItem.item_specific_fields.replace(/'/g, '"').replace(/\\/g, "\\\\");
           const parsed = JSON.parse(cleanedString);
           setUseSavedItem(parsed);
+          setSelectedValues((prev) => ({ ...prev, ...parsed }));
           item_specific = normalizeKeys(parsed);
           setNewItemSpecific(item_specific);
         } catch (parseError) {}
       }
       const { item_specific_fields, ...rest } = savedItem;
-      // Drop "description" so an eBay item-specific aspect named "Description"
-      // (a short label like "Touch Up") doesn't overwrite the row's real
-      // description column (full HTML body) when spread into the product.
       const { description: _ignoredDescriptionAspect, ...itemSpecificSafe } = item_specific;
       const mergedProduct = { ...normalizeKeys(rest), ...itemSpecificSafe };
       setProductListing(mergedProduct);
@@ -351,6 +352,22 @@ const Listing = () => {
     setCustomInputValues((prev) => ({ ...prev, [fieldName]: "" }));
     setFilterValues((prev) => ({ ...prev, [fieldName]: "" }));
     setIsDropdownOpen(null);
+  };
+
+  // Multi-value aspects (Features, Scent) store their selection as a
+  // comma-separated string in selectedValues[fieldName]. Toggle: if the value
+  // is already in the list, remove it; otherwise append.
+  const handleMultiToggle = (fieldName, value) => {
+    if (!value) return;
+    setSelectedValues((prev) => {
+      const current = prev[fieldName]
+        ? prev[fieldName].split(", ").filter(Boolean)
+        : [];
+      const next = current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value];
+      return { ...prev, [fieldName]: next.join(", ") };
+    });
   };
 
   const filteredOptions = (fieldName, options) => {
@@ -490,6 +507,7 @@ const Listing = () => {
         });
         setItemSpecificFields(formattedFields);
         setRequiredFields(requiredFields);
+        setMultiValueFields(response?.multi_value_fields || []);
         toast.success("Fetched successfully");
         setIsModalOpen(false);
       } else {
@@ -546,6 +564,7 @@ const Listing = () => {
       });
       setItemSpecificFields(formattedFields);
       setRequiredFields(requiredFields);
+      setMultiValueFields(specificFieldsResponse?.multi_value_fields || []);
       toast.success("Fetched successfully");
       setLoader(false);
       setIsModalOpen(false);
@@ -587,6 +606,7 @@ const Listing = () => {
       });
       setItemSpecificFields(formattedFields);
       setRequiredFields(requiredFields);
+      setMultiValueFields(specificFieldsResponse?.multi_value_fields || []);
       toast.success("Fetched successfully");
       setLoader(false);
       setIsModalOpen(false);
@@ -629,6 +649,7 @@ const Listing = () => {
       });
       setItemSpecificFields(formattedFields);
       setRequiredFields(requiredFields);
+      setMultiValueFields(specificFieldsResponse?.multi_value_fields || []);
       toast.success("Fetched successfully");
       setLoader(false);
       setIsModalOpen(false);
@@ -663,6 +684,7 @@ const Listing = () => {
       });
       setItemSpecificFields(formattedFields);
       setRequiredFields(requiredFields);
+      setMultiValueFields(response?.multi_value_fields || []);
       toast.success("Fetched successfully");
       setIsModalOpen(false);
       setLoader(false);
@@ -756,7 +778,6 @@ const Listing = () => {
       }
     })(),
     };
-    console.log("mergedData", mergedData);
     try {
       const response = await marketplaceProductListing(userId, platformParam, isEbay ? category_id : isWoocommerce ? selectedWooCategories : null, mergedData);
       setHandleSubmitLoader(false);
@@ -1124,9 +1145,11 @@ const Listing = () => {
               itemSpecificFields={itemSpecificFields}
               setItemSpecificFields={setItemSpecificFields}
               requiredFields={requiredFields}
+              multiValueFields={multiValueFields}
               selectedValues={selectedValues}
               setSelectedValues={setSelectedValues}
               handleSelectChange={handleSelectChange}
+              handleMultiToggle={handleMultiToggle}
               customInputValues={customInputValues}
               setCustomInputValues={setCustomInputValues}
               handleInputChange={handleInputChange}

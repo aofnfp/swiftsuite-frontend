@@ -23,7 +23,21 @@ export const useFetchPageData = ({isSuccess, hasNextPage, userId, productChange,
         : {}),
     }).toString();
 
-    const endpoint = selectedProduct.endpoint.replace("${userId}", userId).replace("${page}", page + 1) +`&limit=${selectedProductPerPage}` +(queryParams ? `&${queryParams}` : "");
+    const endpointUrl = new URL(selectedProduct.endpoint);
+    endpointUrl.searchParams.set("page", (page + 1).toString());
+    endpointUrl.searchParams.set("limit", selectedProductPerPage.toString());
+
+    if (paginationContext === "search" && searchQuery) {
+      endpointUrl.searchParams.set("search", searchQuery);
+    } else {
+      endpointUrl.searchParams.delete("search");
+    }
+
+    Object.entries(cleanFilters).forEach(([key, value]) => {
+      endpointUrl.searchParams.set(key, value);
+    });
+
+    const endpoint = endpointUrl.toString();
     queryClient.prefetchQuery({
       queryKey: [
         "vendorProducts",
@@ -31,7 +45,7 @@ export const useFetchPageData = ({isSuccess, hasNextPage, userId, productChange,
         productChange,
         page + 1,
         selectedProductPerPage,
-        paginationContext === "filter" ? formFilters : {},
+        paginationContext === "filter" ? cleanFilters : {},
         paginationContext === "search" ? searchQuery : "",
       ],
       queryFn: async () => {

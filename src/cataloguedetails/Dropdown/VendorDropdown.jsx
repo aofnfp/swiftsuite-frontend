@@ -10,7 +10,7 @@ const VendorDropdown = ({
   catalogue = [],
   isLoading,
 }) => {
-  
+
   const dropdownRef = useRef(null);
 
   useEffect(() => {

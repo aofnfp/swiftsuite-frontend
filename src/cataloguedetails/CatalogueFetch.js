@@ -1,5 +1,6 @@
 // hooks/useVendorProducts.js
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import axios from "axios";
 import axiosInstance from "../utils/axiosInstance";
 
@@ -31,11 +32,23 @@ export const useGetVendorProducts = ({
   }).toString();
 
   const endpoint = selectedProduct
-    ? selectedProduct.endpoint
-        .replace("${userId}", userId)
-        .replace("${page}", page) +
-      `&limit=${selectedProductPerPage}` +
-      (queryParams ? `&${queryParams}` : "")
+    ? (() => {
+        const endpointUrl = new URL(selectedProduct.endpoint);
+        endpointUrl.searchParams.set("page", page.toString());
+        endpointUrl.searchParams.set("limit", selectedProductPerPage.toString());
+
+        if (isSearching && searchQuery) {
+          endpointUrl.searchParams.set("search", searchQuery);
+        } else {
+          endpointUrl.searchParams.delete("search");
+        }
+
+        Object.entries(cleanFilters).forEach(([key, value]) => {
+          endpointUrl.searchParams.set(key, value);
+        });
+
+        return endpointUrl.toString();
+      })()
     : "";
   return useQuery({
     queryKey: [
@@ -46,6 +59,7 @@ export const useGetVendorProducts = ({
       selectedProductPerPage,
       isFiltering ? cleanFilters : {},
       isSearching ? searchQuery : "",
+      selectedIdentifier || "",
     ],
     enabled: !!userId && !!token && !!productChange && !!paginationContext && !!selectedProduct,
     queryFn: async () => {
@@ -91,16 +105,18 @@ export const useGetProducts = ({
   productChange,
   isFilterApplied = false,
 }) => {
+  const safePage = Number.isFinite(Number(page)) && Number(page) > 0 ? Math.floor(Number(page)) : 1;
+  const safeLimit = Number.isFinite(Number(selectProductPerPage)) && Number(selectProductPerPage) > 0 ? Math.floor(Number(selectProductPerPage)) : 20;
   const selectedProduct = filterProduct.find((item) => item.name === productChange);
   const cleanFilters = Object.fromEntries(
     Object.entries(formFilters).filter(([_, v]) => v !== "")
   );
   const queryParams = new URLSearchParams({
-    page: page.toString(),
-    limit: selectProductPerPage.toString(),
+    page: safePage.toString(),
+    limit: safeLimit.toString(),
     ...(formFilters && isFilterApplied ? cleanFilters : {}),
     ...(searchQuery ? { search: searchQuery } : {}),
-    ...(selectedProduct ? { vendor: selectedProduct.name } : {})
+    ...(selectedProduct ? { vendor: selectedProduct.name } : {}),
   }).toString();
 
   const url = `/api/v2/view-all-products/?${queryParams}`;

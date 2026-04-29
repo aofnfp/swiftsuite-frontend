@@ -4,7 +4,7 @@ import { MdOutlineCalendarViewMonth } from "react-icons/md";
 import { Tooltip, Image } from "antd";
 import MarketLogos from "./MarketLogos";
 import VendorLogo from "./VendorLogos";
-import { formatInventoryDate } from "../utils/utils";
+import { formatInventoryDate, fmtMarkup } from "../utils/utils";
 
 export default function InventoryGridItem({
   item,
@@ -97,20 +97,12 @@ export default function InventoryGridItem({
       <div className="grid grid-cols-2 text-xs bg-[#e6f0eb] p-2">
         <div className="text-center">
           <p className="font-medium mb-0.5">Fixed Markup</p>
-          <p>
-            {item?.fixed_markup && item?.fixed_markup !== "Null"
-              ? item?.fixed_markup
-              : ""}
-          </p>
+          <p>{fmtMarkup(item?.fixed_markup)}</p>
         </div>
 
         <div className="text-center">
           <p className="font-medium mb-0.5">Minimum Profit Margin</p>
-          <p>
-            {item?.min_profit_mergin && item?.min_profit_mergin !== "Null"
-              ? item?.min_profit_mergin
-              : ""}
-          </p>
+          <p>{fmtMarkup(item?.min_profit_mergin)}</p>
         </div>
 
         <div className="text-center mt-1">

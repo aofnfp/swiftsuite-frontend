@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Edit, ShoppingCart, CheckCircle, Check } from 'lucide-react';
 import { MdDelete } from 'react-icons/md';
-import { safeJSONParse } from '../utils/utils';
+import { safeJSONParse, fmtMarkup } from '../utils/utils';
 import MarketLogos from './MarketLogos';
 import VendorLogo from './VendorLogos';
 import MapToSupplierModal from './MapToSupplierModal';
@@ -101,7 +101,7 @@ const InventoryDetailModal = ({ isInventoryDetailOpen, setIsInventoryDetailOpen,
               <div className="text-center">
                 <div className="text-xs text-gray-600 mb-1">Fixed Markup</div>
                 <div className="bg-blue-100 text-blue-700 py-2 rounded-xl text-xl font-bold">
-                  {viewItem?.fixed_markup}
+                  {fmtMarkup(viewItem?.fixed_markup)}
                 </div>
               </div>
               <div className="text-center">

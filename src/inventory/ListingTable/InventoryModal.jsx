@@ -1,6 +1,7 @@
 import React from "react";
 import { Modal, Button, Image } from "antd";
 import { useNavigate } from "react-router-dom";
+import { fmtMarkup } from "../../utils/utils";
 
 const InventoryModal = ({ isOpen, onOpenChange, onClose, viewItem }) => {
   if (!viewItem) return null;
@@ -66,14 +67,14 @@ const InventoryModal = ({ isOpen, onOpenChange, onClose, viewItem }) => {
               {sku && sku !== "Null" && <li><strong>SKU:</strong> {sku}</li>}
               {model && model !== "Null" && <li><strong>Model:</strong> {model}</li>}
               {upc && upc !== "Null" && <li><strong>UPC:</strong> {upc}</li>}
-              {min_profit_mergin && min_profit_mergin !== "Null" && <li><strong>Min Profit Margin:</strong> {min_profit_mergin}%</li>}
+              {min_profit_mergin && min_profit_mergin !== "Null" && <li><strong>Min Profit Margin:</strong> {fmtMarkup(min_profit_mergin)}%</li>}
               {category && category !== "Null" && <li><strong>Category:</strong> {category}</li>}
               {location && location !== "Null" && <li><strong>Location:</strong> {location}</li>}
               {price && price !== "Null" && <li><strong>Price:</strong> ${price}</li>}
               {cost && cost !== "Null" && <li><strong>Cost:</strong> ${cost}</li>}
               {profit_margin && profit_margin !== "Null" && <li><strong>Profit Margin:</strong> {profit_margin}%</li>}
               {percentage_markup && percentage_markup !== "Null" && <li><strong>Percentage Markup:</strong> {percentage_markup}%</li>}
-              {fixed_markup && fixed_markup !== "Null" && <li><strong>Fixed Markup:</strong> ${fixed_markup}</li>}
+              {fixed_markup && fixed_markup !== "Null" && <li><strong>Fixed Markup:</strong> ${fmtMarkup(fixed_markup)}</li>}
               {vendor_name && vendor_name !== "Null" && <li><strong>Vendor Name:</strong> {vendor_name}</li>}
               {city && city !== "Null" && <li><strong>City:</strong> {city}</li>}
               {country && country !== "Null" && <li><strong>Country:</strong> {country}</li>}

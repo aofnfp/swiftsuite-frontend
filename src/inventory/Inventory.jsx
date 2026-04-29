@@ -25,7 +25,7 @@ import NoItems from "./NoItems";
 import InventoryDetailModal from "./InventoryDetailModal";
 import MarketplaceDropdown from "../cataloguedetails/Dropdown/MarketplaceDropdown";
 import VendorlistDropdown from "../cataloguedetails/Dropdown/VendorlistDropdown";
-import { safeParseItemSpecific, overlayEnrollmentMarkup } from "../utils/utils";
+import { safeParseItemSpecific } from "../utils/utils";
 import MapModal from "./MapModal";
 import SubscriptionModal from "../pages/SubscriptionModal";
 import { useSelector } from "react-redux";
@@ -179,8 +179,7 @@ const Inventory = () => {
         response = await getUnmappedInventoryProducts(userId, page, selectedProductPerPage);
       }
       if (requestId !== activeRequestRef.current) return;
-      const rawItems = response?.Inventory_items || response?.inventory_items || [];
-      const items = overlayEnrollmentMarkup(rawItems, response?.enrollment_detail);
+      const items = response?.Inventory_items || response?.inventory_items || [];
       const parsedItems = items.map((item) => {
         if (!item) return item;
         let itemSpecific = [];
@@ -245,8 +244,7 @@ const Inventory = () => {
         response = await getInventoryProducts(userId, page, selectedProductPerPage);
       }
       if (requestId !== activeRequestRef.current) return;
-      const rawItems = response?.Inventory_items || [];
-      const items = overlayEnrollmentMarkup(rawItems, response?.enrollment_detail);
+      const items = response?.Inventory_items || [];
       const parsedItems = items.map((item) => {
         if (!item) return item;
         let itemSpecific = [];

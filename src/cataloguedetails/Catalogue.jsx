@@ -746,7 +746,6 @@ const Catalogue = () => {
                     <input
                       className="flex-grow px-3 py-2 bg-transparent outline-none"
                       type="text"
-                      disabled={productChange === "all"}
                       placeholder="Search for products by keyword, SKU, UPC, MPN..."
                       value={searchQuery}
                       onChange={handleSearch}
@@ -1061,6 +1060,7 @@ const Catalogue = () => {
           isLoading={isLoading}
           isFetching={isFetching}
           isSuccess={isSuccess}
+          isError={isError}
           error={error}
           multiSelect={multiSelect}
           token={token}

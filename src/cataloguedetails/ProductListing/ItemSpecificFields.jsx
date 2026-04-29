@@ -75,7 +75,7 @@ const ItemSpecificFields = ({
                               }}
                               className="p-1 hover:bg-gray-100 rounded-full"
                             >
-                              <X className="h-4 w-4 text-gray-500" />
+                              <X className="h-4 w-4 text-red-500" />
                             </button>
                           </div>
                           <div className="max-h-[300px] overflow-y-auto" id="folder">

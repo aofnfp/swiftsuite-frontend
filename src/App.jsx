@@ -47,6 +47,7 @@ import AddNewVendor2 from './Admin/AddNewVendor2';
 import AdminVendorSuccess from './Admin/AdminVendorSucess';
 import AdminManageSubscription from './Admin/AdminManageSubscription';
 import { Toaster } from "sonner";
+import ListingTemplateBuilder from './pages/ListingTemplateBuilder';
 
 
 
@@ -80,6 +81,7 @@ function App() {
             element={<Reset />}
           />
           <Route path="/success" element={<Regsuccess />} />
+          <Route path="/listing-template-builder" element={<ListingTemplateBuilder />} />
           <Route path="/passreg" element={<PassSuccess />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/api" element={<Api />} /> 

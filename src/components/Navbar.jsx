@@ -19,6 +19,7 @@ const Navbar = ({ openToggle }) => {
     "/passreg",
     "/layout/catalogue",
     "/layout/product",
+    "/layout/templates",
     "/layout/allapp",
     "/layout/enrolment",
     "/layout/inventory",

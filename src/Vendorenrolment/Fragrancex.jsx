@@ -254,7 +254,7 @@ const Fragrancex = () => {
             <div className="grid grid-cols-12 mt-8 px-5">
               <label className="mt-2 text-sm font-semibold h-8 md:col-span-6 col-span-5 flex items-center gap-2">
                 <span>Brand:</span>
-                <ResponsiveTooltip title="this is for brand">
+                <ResponsiveTooltip title="Select all brands you are authorized to sell.  Any unselected brands will not be imported">
                   <span className="inline-flex items-center cursor-pointer mt-2">
                     <MdInfo className="text-gray-600" />
                   </span>

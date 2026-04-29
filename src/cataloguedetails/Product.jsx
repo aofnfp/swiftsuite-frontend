@@ -46,6 +46,9 @@ const Product = () => {
   const setDebouncedQuery = useProductStore((state) => state.setDebouncedQuery);
   const page = useProductStore((state) => state.page);
   const setPage = useProductStore((state) => state.setPage);
+
+  const safePage = Number.isFinite(Number(page)) && Number(page) > 0 ? Math.floor(Number(page)) : 1;
+  const safeLimit = Number.isFinite(Number(selectProductPerPage)) && Number(selectProductPerPage) > 0 ? Math.floor(Number(selectProductPerPage)) : 20;
   const productChange = useProductStore((state) => state.productChange);
   const setProductChange = useProductStore((state) => state.setProductChange);
   const isFilterApplied = useProductStore((state) => state.isFilterApplied);
@@ -149,8 +152,8 @@ const Product = () => {
     userId,
     filterProduct,
     productChange,
-    page,
-    selectProductPerPage,
+    page: safePage,
+    selectProductPerPage: safeLimit,
     token,
     formFilters: formFilters,
     searchQuery: debouncedQuery,
@@ -214,8 +217,8 @@ const Product = () => {
 
   const userProduct = data?.results || [];
   const count = data?.count || 0;
-  const hasNextPage = page * selectProductPerPage < count;
-  const hasPreviousPage = page > 1;
+  const hasNextPage = safePage * safeLimit < count;
+  const hasPreviousPage = safePage > 1;
 
   const effectiveLoading = isLoading || !vendorsLoaded;
 
@@ -223,9 +226,9 @@ const Product = () => {
     isSuccess,
     hasNextPage,
     userId,
-    page,
+    page: safePage,
     token,
-    selectProductPerPage,
+    selectProductPerPage: safeLimit,
     searchQuery: debouncedQuery,
   });
 
@@ -239,13 +242,13 @@ const Product = () => {
 
   const handleNextPage = () => {
     if (hasNextPage) {
-      setPage((prevPage) => prevPage + 1);
+      setPage(safePage + 1);
     }
   };
 
   const handlePreviousPage = () => {
     if (hasPreviousPage) {
-      setPage((prev) => prev - 1);
+      setPage(safePage - 1);
     }
   };
 

@@ -241,14 +241,12 @@ const Listing = () => {
           const cleanedString = savedItem.item_specific_fields.replace(/'/g, '"').replace(/\\/g, "\\\\");
           const parsed = JSON.parse(cleanedString);
           setUseSavedItem(parsed);
+          setSelectedValues((prev) => ({ ...prev, ...parsed }));
           item_specific = normalizeKeys(parsed);
           setNewItemSpecific(item_specific);
         } catch (parseError) {}
       }
       const { item_specific_fields, ...rest } = savedItem;
-      // Drop "description" so an eBay item-specific aspect named "Description"
-      // (a short label like "Touch Up") doesn't overwrite the row's real
-      // description column (full HTML body) when spread into the product.
       const { description: _ignoredDescriptionAspect, ...itemSpecificSafe } = item_specific;
       const mergedProduct = { ...normalizeKeys(rest), ...itemSpecificSafe };
       setProductListing(mergedProduct);
@@ -277,14 +275,12 @@ const Listing = () => {
           const cleanedString = savedItem.item_specific_fields.replace(/'/g, '"').replace(/\\/g, "\\\\");
           const parsed = JSON.parse(cleanedString);
           setUseSavedItem(parsed);
+          setSelectedValues((prev) => ({ ...prev, ...parsed }));
           item_specific = normalizeKeys(parsed);
           setNewItemSpecific(item_specific);
         } catch (parseError) {}
       }
       const { item_specific_fields, ...rest } = savedItem;
-      // Drop "description" so an eBay item-specific aspect named "Description"
-      // (a short label like "Touch Up") doesn't overwrite the row's real
-      // description column (full HTML body) when spread into the product.
       const { description: _ignoredDescriptionAspect, ...itemSpecificSafe } = item_specific;
       const mergedProduct = { ...normalizeKeys(rest), ...itemSpecificSafe };
       setProductListing(mergedProduct);
@@ -756,7 +752,6 @@ const Listing = () => {
       }
     })(),
     };
-    console.log("mergedData", mergedData);
     try {
       const response = await marketplaceProductListing(userId, platformParam, isEbay ? category_id : isWoocommerce ? selectedWooCategories : null, mergedData);
       setHandleSubmitLoader(false);

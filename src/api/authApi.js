@@ -306,18 +306,7 @@ export const listingPreferencesDetails = async (userId) => {
   return response.data;
 };
 
-// Full marketplace enrollment record (includes fixed_markup, profit_margin, etc.).
-// Used by detail/modal views to overlay live enrollment values on top of an
-// inventory row's frozen-at-write-time copies. The list endpoints return this
-// alongside items already; this is for endpoints that don't.
-export const getMarketplaceEnrolmentDetail = async (userId, marketName) => {
-  const response = await axiosInstance.get(
-    `/marketplaceApp/get_enrolment_detail/${userId}/${encodeURIComponent(marketName)}/`
-  );
-  return response.data;
-};
-
-// Product Listing
+// Product Listing 
 export const marketplaceProductListing = async (userId, marketplacePlatform, category_id, listingData) => {
   const response = await axiosInstance.post(`/marketplaceApp/marketplace_product_listing/${userId}/${marketplacePlatform}/${category_id}/`, listingData);
   console.log(response);

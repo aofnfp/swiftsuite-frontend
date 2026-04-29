@@ -26,14 +26,9 @@
  * third-party parser or sanitizer in the loop.
  *
  * Key invariants (changing any of these will break something):
- *   - `sandbox="allow-same-origin allow-scripts"` — parent accesses the
- *     iframe's document for execCommand AND keyboard shortcuts /
- *     contenteditable behaviors run reliably across browsers. The combination
- *     would normally be unsafe (sandboxed scripts could break out via
- *     window.parent), but every srcdoc assignment passes through
- *     sanitizeForIframe (DOMPurify) which strips <script>, inline event
- *     handlers, javascript:/data: URIs, and other XSS vectors first. Do not
- *     loosen the sandbox or remove the sanitizer in isolation.
+ *   - `sandbox="allow-same-origin"` (NO allow-scripts) — parent accesses the
+ *     iframe's document for execCommand; arbitrary <script> in user content
+ *     cannot execute. Do not loosen this without a security review.
  *   - `iframeNode` is tracked via useState + callback ref, not a plain useRef.
  *     State triggers effects on mount/unmount, which is how fresh-mount
  *     detection works (critical for the Edit→HTML→Edit round-trip).
@@ -51,25 +46,9 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import DOMPurify from "dompurify";
 
 const DEFAULT_PLACEHOLDER =
   "<p style='color:#888;font-family:system-ui;padding:1rem;'>No description yet.</p>";
-
-// Sanitize description HTML before injecting into the iframe's srcdoc.
-// WHOLE_DOCUMENT preserves <html>/<head>/<body> structure so legacy eBay
-// templates with <link rel="stylesheet">, <style>, and schema.org microdata
-// render correctly. DOMPurify strips <script>, inline event handlers,
-// javascript:/data: URIs, and other XSS vectors — required because the
-// iframe's sandbox includes allow-scripts (without sanitization, content
-// scripts would have parent privileges via allow-same-origin).
-const sanitizeForIframe = (html) =>
-  DOMPurify.sanitize(html || "", {
-    WHOLE_DOCUMENT: true,
-    ADD_TAGS: ["link", "style"],
-    ADD_ATTR: ["target", "vocab", "typeof", "property"],
-    ALLOW_DATA_ATTR: true,
-  });
 
 // Toolbar icons — inlined SVGs so we don't pull another icon lib in.
 const IconSource = (props) => (
@@ -113,39 +92,30 @@ const DescriptionSection = ({ value, onChange }) => {
   const syncedNodeRef = useRef(null);
 
   // Legacy eBay-imported descriptions were stored JSON-encoded (json.dumps) in
-  // the DB. A small fraction got encoded twice. Unwrap up to 3 levels in a
-  // single pass so the user sees plain HTML on first render rather than after
-  // multiple re-render round-trips.
+  // the DB. Unwrap once if the incoming value looks encoded and parses cleanly.
   useEffect(() => {
     if (typeof value !== "string" || !value) return;
-    let current = value;
-    for (let i = 0; i < 3; i++) {
-      if (!(current.startsWith('"') && current.endsWith('"'))) break;
-      try {
-        const parsed = JSON.parse(current);
-        if (typeof parsed !== "string" || parsed === current) break;
-        current = parsed;
-      } catch {
-        break;
+    if (!(value.startsWith('"') && value.endsWith('"'))) return;
+    try {
+      const parsed = JSON.parse(value);
+      if (typeof parsed === "string" && parsed !== value) {
+        onChange(parsed);
       }
+    } catch {
+      // Not JSON-encoded after all — leave as-is.
     }
-    if (current !== value) onChange(current);
   }, [value, onChange]);
 
   // Content sync: fresh mount or external value change. Intentionally not
   // keyed on `mode` — switching edit ↔ preview on the same iframe must NOT
   // reload, or unsaved edits are wiped.
   useEffect(() => {
-    // Skip when iframe is not in the document. This handles the rare race
-    // where a value-prop change is committed in the same render as a
-    // mode→"html" change: the iframe element is detached but iframeNode
-    // state may not have flushed to null yet.
-    if (!iframeNode || !iframeNode.isConnected) return;
+    if (!iframeNode) return;
 
     const isFreshMount = syncedNodeRef.current !== iframeNode;
     if (isFreshMount) {
       iframeContentRef.current = value || "";
-      iframeNode.srcdoc = sanitizeForIframe(value || DEFAULT_PLACEHOLDER);
+      iframeNode.srcdoc = value || DEFAULT_PLACEHOLDER;
       syncedNodeRef.current = iframeNode;
       ownChangeRef.current = false;
       return;
@@ -159,7 +129,7 @@ const DescriptionSection = ({ value, onChange }) => {
 
     if ((value || "") !== iframeContentRef.current) {
       iframeContentRef.current = value || "";
-      iframeNode.srcdoc = sanitizeForIframe(value || DEFAULT_PLACEHOLDER);
+      iframeNode.srcdoc = value || DEFAULT_PLACEHOLDER;
     }
   }, [iframeNode, value]);
 
@@ -366,7 +336,7 @@ const DescriptionSection = ({ value, onChange }) => {
               title="Description editor"
               onLoad={handleIframeLoad}
               className="w-full h-[400px] border border-gray-300 bg-white rounded-b border-t-0"
-              sandbox="allow-same-origin allow-scripts"
+              sandbox="allow-same-origin"
             />
           </>
         )}
@@ -395,7 +365,7 @@ const DescriptionSection = ({ value, onChange }) => {
               title="Description preview"
               onLoad={handleIframeLoad}
               className="w-full h-[400px] border border-gray-300 border-t-0 bg-white rounded-b"
-              sandbox="allow-same-origin allow-scripts"
+              sandbox="allow-same-origin"
             />
           </>
         )}

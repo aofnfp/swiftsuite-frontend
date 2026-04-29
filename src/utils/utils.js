@@ -201,73 +201,18 @@ export const parseItemSpecificFields = (product = {}) => {
 };
 
 
-// Merge saved (DB-loaded) and selected (user-touched) item-specific values.
-// If the user has explicitly set a key in `selected` — including to "" to
-// clear it — that wins over the saved value. We use hasOwnProperty rather
-// than truthy `||` so a deliberate clear isn't silently undone by the saved
-// fallback.
 export const mergeSavedAndSelected = (saved, selected) => {
-  const safeSaved = saved && typeof saved === "object" ? saved : {};
-  const safeSelected = selected && typeof selected === "object" ? selected : {};
   const result = {};
-  Object.keys(safeSaved).forEach((fieldName) => {
-    result[fieldName] = Object.prototype.hasOwnProperty.call(safeSelected, fieldName)
-      ? safeSelected[fieldName]
-      : safeSaved[fieldName];
+  Object.keys(saved).forEach(fieldName => {
+    result[fieldName] = selected[fieldName] || saved[fieldName] || "";
   });
-  Object.keys(safeSelected).forEach((fieldName) => {
-    if (!Object.prototype.hasOwnProperty.call(result, fieldName)) {
-      result[fieldName] = safeSelected[fieldName];
+  Object.keys(selected).forEach(fieldName => {
+    if (!result[fieldName]) {
+      result[fieldName] = selected[fieldName];
     }
   });
+
   return result;
-};
-
-// Inventory rows store fixed_markup / fixed_percentage_markup / profit_margin /
-// min_profit_mergin as a frozen copy of the user's MarketplaceEnronment values
-// at write-time. Because not every backend write path covers all four fields
-// (e.g. inventoryApp/views.py:155 misses min_profit_mergin), rows drift out of
-// sync with the user's current enrollment settings.
-//
-// The list endpoint already returns the live enrollment data alongside items,
-// so we override the four markup fields with the matching enrollment's values
-// for display. The original per-item value is preserved as
-// `<field>_item_value` for any consumer that needs it.
-export const overlayEnrollmentMarkup = (items, enrollmentDetail) => {
-  if (!Array.isArray(items)) return items;
-  const byMarket = (Array.isArray(enrollmentDetail) ? enrollmentDetail : [])
-    .reduce((acc, e) => {
-      const key = (e?.marketplace_name || "").trim().toLowerCase();
-      if (key) acc[key] = e;
-      return acc;
-    }, {});
-  return items.map((item) => {
-    const market = (item?.market_name || "").trim().toLowerCase();
-    const e = byMarket[market];
-    if (!e) return item;
-    return {
-      ...item,
-      fixed_markup_item_value: item.fixed_markup,
-      fixed_percentage_markup_item_value: item.fixed_percentage_markup,
-      profit_margin_item_value: item.profit_margin,
-      min_profit_mergin_item_value: item.min_profit_mergin,
-      fixed_markup: e.fixed_markup ?? item.fixed_markup,
-      fixed_percentage_markup: e.fixed_percentage_markup ?? item.fixed_percentage_markup,
-      profit_margin: e.profit_margin ?? item.profit_margin,
-      min_profit_mergin: e.min_profit_mergin ?? item.min_profit_mergin,
-    };
-  });
-};
-
-// Money/percentage display helper. Treats null/undefined/empty/"Null" as
-// missing and returns an em-dash so the inventory list never shows a mix of
-// "0.00" and blank for the same field.
-export const fmtMarkup = (v) => {
-  if (v === null || v === undefined) return "—";
-  const s = String(v).trim();
-  if (!s || s.toLowerCase() === "null") return "—";
-  const n = Number(s);
-  return Number.isFinite(n) ? n.toFixed(2) : "—";
 };
 
 export const fixJSON = (str) => {

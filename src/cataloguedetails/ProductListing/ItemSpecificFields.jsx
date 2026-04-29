@@ -7,11 +7,9 @@ import { Label } from "reactstrap";
 const ItemSpecificFields = ({
   itemSpecificFields,
   requiredFields = [],
-  multiValueFields = [],
   selectedValues,
   setSelectedValues,
   handleSelectChange,
-  handleMultiToggle,
   handleInputChange,
   filteredOptions,
   filterValues,
@@ -22,19 +20,6 @@ const ItemSpecificFields = ({
   setCustomInputValues,
   dropdownRef,
 }) => {
-
-  // Authoritative source: backend's multi_value_fields, which mirrors
-  // eBay's Taxonomy API aspectConstraint.itemToAspectCardinality === "MULTI"
-  // per category. No fallback list — if the prop is empty (backend hasn't
-  // shipped this field yet) we treat every aspect as single-select, which
-  // matches eBay's default for any aspect not explicitly marked MULTI and
-  // is safer than guessing. eBay rejects multi-value submits on SINGLE
-  // aspects, so a wrong-side fallback would cause real listing failures.
-  const isMultiField = (fieldName) => Array.isArray(multiValueFields) && multiValueFields.includes(fieldName);
-  const getMultiValues = (fieldName) => {
-    const raw = selectedValues[fieldName] || "";
-    return raw ? raw.split(", ").filter(Boolean) : [];
-  };
 
   const close = (fieldName) => {
     setFilterValues((prev) => ({ ...prev, [fieldName]: "" }));
@@ -59,37 +44,17 @@ const ItemSpecificFields = ({
                     )}
                   </Label>
                 </div>
-                <div className="flex-1 relative min-w-0">
+                <div className="flex-1 relative">
                   {Array.isArray(options) ? (
                     <>
-                      {/* Chips row for multi-value aspects (Features, Scent) —
-                          each selected value renders as a removable pill above
-                          the dropdown trigger. */}
-                      {isMultiField(fieldName) && getMultiValues(fieldName).length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-3 mb-1">
-                          {getMultiValues(fieldName).map((chip) => (
-                            <span key={chip} className="inline-flex items-center gap-1 bg-green-50 border border-green-200 text-green-800 text-xs px-2 py-1 rounded-full">
-                              {chip}
-                              <button
-                                type="button"
-                                onClick={() => handleMultiToggle(fieldName, chip)}
-                                className="hover:bg-green-100 rounded-full p-0.5"
-                                aria-label={`Remove ${chip}`}
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between gap-2 px-4 py-2 my-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors cursor-pointer relative dropdown-trigger"
+                      <div className="flex items-center justify-between px-4 py-2 my-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors cursor-pointer relative dropdown-trigger"
                         onClick={(e) => toggleDropdown(fieldName, e)}>
-                        <span className="text-sm text-gray-700 truncate min-w-0 flex-1">
+                        <span className="text-sm text-gray-700 truncate">
                           {selectedValues[fieldName] || `Select ${fieldName}`}
                         </span>
                         {isDropdownOpen === fieldName ?
-                          <BiChevronUp className="h-5 w-5 text-gray-500 flex-shrink-0" /> :
-                          <BiChevronDown className="h-5 w-5 text-gray-500 flex-shrink-0" />
+                          <BiChevronUp className="h-5 w-5 text-gray-500" /> :
+                          <BiChevronDown className="h-5 w-5 text-gray-500" />
                         }
                       </div>
                       {isDropdownOpen === fieldName && (
@@ -106,14 +71,7 @@ const ItemSpecificFields = ({
                             />
                             <button
                               onClick={() => {
-                                if (isMultiField(fieldName)) {
-                                  // Multi-fields: just clear the search input,
-                                  // don't wipe the user's selected chips.
-                                  setFilterValues((prev) => ({ ...prev, [fieldName]: "" }));
-                                  setCustomInputValues((prev) => ({ ...prev, [fieldName]: "" }));
-                                } else {
-                                  close(fieldName);
-                                }
+                                close(fieldName);
                               }}
                               className="p-1 hover:bg-gray-100 rounded-full"
                             >
@@ -121,46 +79,21 @@ const ItemSpecificFields = ({
                             </button>
                           </div>
                           <div className="max-h-[300px] overflow-y-auto" id="folder">
-                            {(() => {
-                              const selectedList = isMultiField(fieldName)
-                                ? getMultiValues(fieldName)
-                                : (selectedValues[fieldName] ? [selectedValues[fieldName]] : []);
-                              return selectedList.map((sv) => (
-                                <div
-                                  key={`pinned-${sv}`}
-                                  className="px-4 py-2 bg-gray-50 hover:bg-gray-100 cursor-pointer text-sm flex items-center justify-between border-b border-gray-200"
-                                  onClick={() => isMultiField(fieldName) ? handleMultiToggle(fieldName, sv) : handleSelectChange(fieldName, sv)}
-                                >
-                                  <p>
-                                    {sv}
-                                    {!options.includes(sv) && (
-                                      <span className="ml-2 text-xs text-gray-500">(custom)</span>
-                                    )}
-                                  </p>
-                                  <IoMdCheckmark size={20} className="text-black" />
-                                </div>
-                              ));
-                            })()}
-                            {filteredOptions(fieldName, options).map(([index, value]) => {
-                              const selectedList = isMultiField(fieldName)
-                                ? getMultiValues(fieldName)
-                                : (selectedValues[fieldName] ? [selectedValues[fieldName]] : []);
-                              if (selectedList.includes(value)) return null;
-                              return (
-                                <div
-                                  key={index}
-                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm flex items-center justify-between"
-                                  onClick={() => isMultiField(fieldName) ? handleMultiToggle(fieldName, value) : handleSelectChange(fieldName, value)}
-                                >
-                                  <p>{value}</p>
-                                </div>
-                              );
-                            })}
+                              {filteredOptions(fieldName, options).map(([index, value]) => (
+                              <div
+                                key={index}
+                                className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm flex items-center justify-between"
+                                onClick={() => handleSelectChange(fieldName, value)}
+                              >
+                                <p>{value}</p>
+                                <p>{selectedValues[fieldName] === value && <IoMdCheckmark size={20} className="text-black" />}</p>
+                              </div>
+                            ))}
                             {/* Custom Input Field */}
                             {customInputValues[fieldName] && !options.includes(customInputValues[fieldName]) && (
                               <div
                                 className="px-4 py-2 bg-gray-100 cursor-pointer text-sm font-medium"
-                                onClick={() => isMultiField(fieldName) ? handleMultiToggle(fieldName, customInputValues[fieldName]) : handleSelectChange(fieldName, customInputValues[fieldName])}
+                                onClick={() => handleSelectChange(fieldName, customInputValues[fieldName])}
                               >
                                 {customInputValues[fieldName]} (Custom)
                               </div>

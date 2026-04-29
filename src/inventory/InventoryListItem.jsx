@@ -6,7 +6,7 @@ import { FiExternalLink } from "react-icons/fi";
 import MarketLogos from "./MarketLogos";
 import VendorLogo from "./VendorLogos";
 import { Tooltip, Image } from "antd";
-import { formatInventoryDate, fmtMarkup } from "../utils/utils";
+import { formatInventoryDate } from "../utils/utils";
 
 const InventoryListItem = ({ item, handleEditInventory, deleteLoader, setSelectedItemId, setShowModal, showCheckboxes, checkedItems, onToggleItem, handleInventoryDetail }) => {
 
@@ -71,7 +71,7 @@ const InventoryListItem = ({ item, handleEditInventory, deleteLoader, setSelecte
             Minimum Profit Margin
           </h3>
           <p className="text-center text-sm">
-            {fmtMarkup(item?.min_profit_mergin)}
+            {item?.min_profit_mergin !== "Null" ? item?.min_profit_mergin : ""}
           </p>
         </div>
       </div>
@@ -86,7 +86,7 @@ const InventoryListItem = ({ item, handleEditInventory, deleteLoader, setSelecte
           </div>
           <div className="flex">
             <p className="font-medium w-28">Fixed Markup:</p>
-            <p>{fmtMarkup(item?.fixed_markup)}</p>
+            <p>{item?.fixed_markup !== "Null" ? item?.fixed_markup : ""}</p>
           </div>
           <div className="flex">
             <p className="font-medium w-20">SKU:</p>

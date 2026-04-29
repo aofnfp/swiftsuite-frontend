@@ -27,7 +27,6 @@ const ItemSpecificsSection = ({
   itemSpecificFields,
   setItemSpecificFields,
   requiredFields,
-  multiValueFields,
   selectedValues,
   setSelectedValues,
   handleSelectChange,
@@ -129,7 +128,6 @@ const ItemSpecificsSection = ({
               itemSpecificFields={itemSpecificFields}
               setItemSpecificFields={setItemSpecificFields}
               requiredFields={requiredFields}
-              multiValueFields={multiValueFields}
               selectedValues={selectedValues}
               setSelectedValues={setSelectedValues}
               handleSelectChange={handleSelectChange}

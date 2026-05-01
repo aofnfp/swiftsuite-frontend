@@ -223,16 +223,17 @@ export const mergeSavedAndSelected = (saved, selected) => {
   return result;
 };
 
-// Inventory rows store fixed_markup / fixed_percentage_markup / profit_margin /
-// min_profit_mergin as a frozen copy of the user's MarketplaceEnronment values
-// at write-time. Because not every backend write path covers all four fields
-// (e.g. inventoryApp/views.py:155 misses min_profit_mergin), rows drift out of
-// sync with the user's current enrollment settings.
+// Inventory rows store the user's MarketplaceEnronment values as a frozen
+// copy at write-time: fixed_markup, fixed_percentage_markup, profit_margin,
+// min_profit_mergin, and minimum_quantity / maximum_quantity. Because not
+// every backend write path covers all of these (e.g. inventoryApp/views.py:155
+// misses min_profit_mergin), rows drift out of sync with the user's current
+// enrollment settings.
 //
 // The list endpoint already returns the live enrollment data alongside items,
-// so we override the four markup fields with the matching enrollment's values
-// for display. The original per-item value is preserved as
-// `<field>_item_value` for any consumer that needs it.
+// so we override the markup + quantity-bound fields with the matching
+// enrollment's values for display. The original per-item value is preserved
+// as `<field>_item_value` for any consumer that needs it.
 export const overlayEnrollmentMarkup = (items, enrollmentDetail) => {
   if (!Array.isArray(items)) return items;
   const byMarket = (Array.isArray(enrollmentDetail) ? enrollmentDetail : [])
@@ -251,10 +252,14 @@ export const overlayEnrollmentMarkup = (items, enrollmentDetail) => {
       fixed_percentage_markup_item_value: item.fixed_percentage_markup,
       profit_margin_item_value: item.profit_margin,
       min_profit_mergin_item_value: item.min_profit_mergin,
+      minimum_quantity_item_value: item.minimum_quantity,
+      maximum_quantity_item_value: item.maximum_quantity,
       fixed_markup: e.fixed_markup ?? item.fixed_markup,
       fixed_percentage_markup: e.fixed_percentage_markup ?? item.fixed_percentage_markup,
       profit_margin: e.profit_margin ?? item.profit_margin,
       min_profit_mergin: e.min_profit_mergin ?? item.min_profit_mergin,
+      minimum_quantity: e.minimum_quantity ?? item.minimum_quantity,
+      maximum_quantity: e.maximum_quantity ?? item.maximum_quantity,
     };
   });
 };

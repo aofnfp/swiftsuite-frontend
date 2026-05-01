@@ -1,27 +1,40 @@
 import React, { useCallback, useState, useMemo, useEffect } from "react";
+import axios from "axios";
 import { Toaster } from "sonner";
 import { useSelector } from "react-redux";
 import { FaCartShopping } from "react-icons/fa6";
 import { CiEdit } from "react-icons/ci";
-import { IoIosArrowDropleft, IoIosArrowDropright } from "react-icons/io";
+import { LayoutTemplate, Search } from "lucide-react";
 import MarketList from "./MarketList";
 import UpdateMarket from "./UpdateMarket";
 import SubscriptionModal from "../pages/SubscriptionModal";
 import { useMarketplaceStore } from "../stores/marketplaceStore";
+import MarketplaceTemplates from "./MarketplaceTemplates";
 
 const MyMarket = () => {
   const { subscribed } = useSelector((state) => state.permission);
   const showModal = useMarketplaceStore((state) => state.modal2Open);
   const setShowModal = useMarketplaceStore((state) => state.setModal2Open);
 
-  const [data, setData] = useState([
+  const [analytics, setAnalytics] = useState(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
+
+  const [data] = useState([
     {
       id: 1,
       name: "MarketPlace A",
       logo: "/marketplace-a-logo.png",
       accounts: [
-        { id: 101, name: "Account 1", enrollments: [{ id: 1001, created_at: "2025-01-01T12:00:00Z" }] },
-        { id: 102, name: "Account 2", enrollments: [{ id: 1002, created_at: "2025-02-01T12:00:00Z" }] },
+        {
+          id: 101,
+          name: "Account 1",
+          enrollments: [{ id: 1001, created_at: "2025-01-01T12:00:00Z" }],
+        },
+        {
+          id: 102,
+          name: "Account 2",
+          enrollments: [{ id: 1002, created_at: "2025-02-01T12:00:00Z" }],
+        },
       ],
     },
     {
@@ -32,10 +45,9 @@ const MyMarket = () => {
     },
   ]);
 
-  const [loader, setLoader] = useState(false);
+  const [loader] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const entriesPerPage = useMarketplaceStore((state) => state.marketPerPage);
-  const setEntriesPerPage = useMarketplaceStore((state) => state.setMarketPerPage);
   const [currentPage, setCurrentPage] = useState(1);
   const [view, setView] = useState("marketplaces");
 
@@ -43,25 +55,43 @@ const MyMarket = () => {
     if (!subscribed) setShowModal(true);
   }, [subscribed, setShowModal]);
 
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          setAnalyticsLoading(false);
+          return;
+        }
+
+        const response = await axios.get(
+          "https://service.swiftsuite.app/accounts/dashboard-analytics/",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        setAnalytics(response.data);
+      } catch (error) {
+        console.log("Failed to fetch analytics", error);
+      } finally {
+        setAnalyticsLoading(false);
+      }
+    };
+
+    fetchAnalytics();
+  }, []);
+
+  const tier = analytics?.tier || "Starter";
+
   const handleSearchChange = useCallback((e) => {
     const sanitizedValue = e.target.value.replace(/[<>]/g, "");
     setSearchTerm(sanitizedValue);
     setCurrentPage(1);
   }, []);
-
-  const handleEntriesChange = useCallback((e) => {
-    const value = Number(e.target.value);
-    setEntriesPerPage(value);
-    setCurrentPage(1);
-  }, [setEntriesPerPage]);
-
-  const handleNextPage = useCallback(() => {
-    setCurrentPage((prev) => prev + 1);
-  }, []);
-
-  const handlePreviousPage = useCallback(() => {
-    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
-  }, [currentPage]);
 
   const handleViewChange = useCallback(
     (newView) => {
@@ -69,10 +99,11 @@ const MyMarket = () => {
         setShowModal(true);
         return;
       }
+
       setView(newView);
       setCurrentPage(1);
     },
-    [subscribed]
+    [subscribed, setShowModal]
   );
 
   const filteredData = useMemo(() => {
@@ -87,65 +118,11 @@ const MyMarket = () => {
     indexOfFirstMarketplace,
     indexOfLastMarketplace
   );
-  const totalPages = Math.ceil(filteredData.length / entriesPerPage);
 
-  const renderPagination = () => {
-    const maxButtons = 5;
-    const halfButtons = Math.floor(maxButtons / 2);
-    let startPage = Math.max(1, currentPage - halfButtons);
-    let endPage = Math.min(totalPages, startPage + maxButtons - 1);
-
-    if (endPage === totalPages) {
-      startPage = Math.max(1, totalPages - maxButtons + 1);
-    }
-
-    const pageNumbers = [];
-    for (let i = startPage; i <= endPage; i++) {
-      pageNumbers.push(i);
-    }
-
-    return (
-      <div className="flex items-center gap-3">
-        <button
-          onClick={handlePreviousPage}
-          disabled={currentPage === 1}
-          className={`flex items-center gap-1 ${
-            currentPage === 1
-              ? "opacity-50 cursor-not-allowed"
-              : "text-green-700"
-          }`}
-        >
-          <IoIosArrowDropleft />
-          <span>Previous</span>
-        </button>
-
-        {pageNumbers.map((page) => (
-          <button
-            key={page}
-            onClick={() => setCurrentPage(page)}
-            className={`px-3 py-1 ${
-              currentPage === page ? "border" : "text-black"
-            }`}
-          >
-            {page}
-          </button>
-        ))}
-
-        <button
-          onClick={handleNextPage}
-          disabled={currentPage === totalPages}
-          className={`flex items-center gap-1 ${
-            currentPage === totalPages
-              ? "opacity-50 cursor-not-allowed"
-              : "text-green-700"
-          }`}
-        >
-          <span>Next</span>
-          <IoIosArrowDropright />
-        </button>
-      </div>
-    );
-  };
+  const renderTabClass = (tab) =>
+    view === tab
+      ? "bg-[#027840] text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold"
+      : "bg-white text-gray-500 px-4 py-2 rounded-lg border border-gray-200 flex items-center gap-2 text-sm font-semibold";
 
   return (
     <div className="bg-white p-5 md:mt-20 mt-16 min-h-screen">
@@ -156,60 +133,56 @@ const MyMarket = () => {
         }}
       />
 
-      <div className="flex lg:flex-row md:flex-row flex-col justify-between mb-4 items-center">
-        <div className="flex gap-2 mb-2 md:mb-0">
+      <h1 className="text-xl font-bold text-black mb-5">Marketplaces</h1>
+
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">
+        <div className="flex flex-wrap gap-3">
           <button
-            className={
-              view === "marketplaces"
-                ? "bg-[#027840] text-white px-2 py-1 rounded flex items-center gap-2"
-                : "text-black px-2 rounded border flex items-center gap-2"
-            }
+            className={renderTabClass("marketplaces")}
             onClick={() => handleViewChange("marketplaces")}
           >
-            <span>
-              <FaCartShopping />
-            </span>
+            <FaCartShopping />
             Marketplaces
           </button>
 
           <button
-            className={
-              view === "edit"
-                ? "bg-[#BB8232] text-white px-2 py-1 rounded flex items-center gap-2"
-                : "text-black px-2 rounded border flex items-center gap-2"
-            }
+            className={renderTabClass("edit")}
             onClick={() => handleViewChange("edit")}
           >
-            <span>
-              <CiEdit />
-            </span>
-            Edit Marketplaces
+            <CiEdit />
+            Enrolled marketplaces
+          </button>
+
+          <button
+            className={renderTabClass("templates")}
+            onClick={() => handleViewChange("templates")}
+          >
+            <LayoutTemplate size={18} />
+            Templates
           </button>
         </div>
 
-        <div className="relative">
-          <label htmlFor="search" className="mr-2">
-            Search:
-          </label>
+        <div className="flex flex-col md:flex-row items-center gap-4">
+          <div className="relative w-full md:w-[340px]">
+            <Search
+              size={18}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              placeholder="Search for Vendors"
+              className="w-full h-11 rounded-lg bg-white border border-gray-200 pl-11 pr-4 outline-none text-sm"
+            />
+          </div>
 
-          <input
-            id="search"
-            type="text"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="border px-2 py-1 text-black outline-none"
-            placeholder="Search marketplaces"
-            disabled={view !== "edit"}
-          />
-
-          {searchTerm && view === "edit" && (
-            <button
-              onClick={() => setSearchTerm("")}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
-            >
-              <span>X</span>
-            </button>
-          )}
+          <div className="bg-white border border-gray-200 rounded-lg px-5 py-3 text-sm">
+            Current Plan:{" "}
+            <span className="font-bold text-[#BB8232]">
+              {analyticsLoading ? "Loading..." : tier}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -222,31 +195,27 @@ const MyMarket = () => {
                 className="bg-white border border-gray-200 rounded-[8px] p-7 flex flex-col"
               >
                 <div className="flex items-center gap-2">
-                  <div className="h-8 w-36 bg-gray-200 rounded"></div>
-                  <div className="h-8 w-3/4 bg-gray-200 rounded"></div>
+                  <div className="h-8 w-36 bg-gray-200 rounded" />
+                  <div className="h-8 w-3/4 bg-gray-200 rounded" />
                 </div>
-                <div className="h-20"></div>
-                <div className="h-4 w-1/2 bg-gray-200 rounded"></div>
+                <div className="h-20" />
+                <div className="h-4 w-1/2 bg-gray-200 rounded" />
               </div>
             ))}
           </div>
         </div>
       ) : (
-        <div className="py-5 mb-10 bg-white">
-          {view === "marketplaces" && (
-            <div className="space-y-4">
-              <MarketList />
-            </div>
-          )}
+        <div className="py-2 mb-10">
+          {view === "marketplaces" && <MarketList />}
 
           {view === "edit" && (
-            <div className="space-y-4">
-              <UpdateMarket
-                marketplaces={currentMarketplaces}
-                searchTerm={searchTerm}
-              />
-            </div>
+            <UpdateMarket
+              marketplaces={currentMarketplaces}
+              searchTerm={searchTerm}
+            />
           )}
+
+          {view === "templates" && <MarketplaceTemplates />}
         </div>
       )}
 

@@ -9,7 +9,6 @@ const NotificationDrawer = ({ onClose }) => {
   const [headerTop, setHeaderTop] = useState(90);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [openDropdownId, setOpenDropdownId] = useState(null);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
@@ -44,7 +43,9 @@ const NotificationDrawer = ({ onClose }) => {
     const fetchNotifications = async () => {
       try {
         setLoading(true);
+
         const token = localStorage.getItem("token");
+
         if (!token) {
           setNotifications([]);
           return;
@@ -52,7 +53,11 @@ const NotificationDrawer = ({ onClose }) => {
 
         const res = await axios.get(
           "https://service.swiftsuite.app/api/v2/notifications/",
-          { headers: { Authorization: `Bearer ${token}` } }
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
 
         setNotifications(res.data?.results || []);
@@ -74,13 +79,8 @@ const NotificationDrawer = ({ onClose }) => {
   const markAsRead = async (id) => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) return;
 
-      await axios.post(
-        `https://service.swiftsuite.app/api/v2/notifications/${id}/read/`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      if (!token) return;
 
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, read: true } : n))
@@ -90,7 +90,15 @@ const NotificationDrawer = ({ onClose }) => {
         prev?.id === id ? { ...prev, read: true } : prev
       );
 
-      setOpenDropdownId(null);
+      await axios.post(
+        `https://service.swiftsuite.app/api/v2/notifications/${id}/read/`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
     } catch (err) {
       console.error(err);
     }
@@ -104,15 +112,20 @@ const NotificationDrawer = ({ onClose }) => {
       minute: "2-digit",
     });
 
-  const closeDropdown = () => setOpenDropdownId(null);
+  const openDetail = (notification) => {
+    const updatedNotification = { ...notification, read: true };
 
-  const openDetail = (n) => {
-    setSelectedNotification(n);
+    setSelectedNotification(updatedNotification);
     setIsDetailOpen(true);
+
+    if (!notification.read) {
+      markAsRead(notification.id);
+    }
   };
 
   const closeDetail = () => {
     setIsDetailOpen(false);
+
     setTimeout(() => {
       setSelectedNotification(null);
     }, 280);
@@ -121,7 +134,13 @@ const NotificationDrawer = ({ onClose }) => {
   return (
     <>
       <motion.div
-        style={{ top: headerTop, left: 0, right: 0, bottom: 0, position: "fixed" }}
+        style={{
+          top: headerTop,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          position: "fixed",
+        }}
         className="bg-black/50 z-[55]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -142,13 +161,11 @@ const NotificationDrawer = ({ onClose }) => {
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ type: "tween", duration: 0.28 }}
-        onClick={(e) => {
-          e.stopPropagation();
-          closeDropdown();
-        }}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center p-4 border-b">
           <h3 className="text-[18px] font-semibold">Notifications</h3>
+
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -165,6 +182,7 @@ const NotificationDrawer = ({ onClose }) => {
             Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="flex gap-3 p-3 animate-pulse border-b">
                 <div className="w-10 h-10 rounded-full bg-gray-200" />
+
                 <div className="flex-1 space-y-2">
                   <div className="h-4 bg-gray-200 rounded w-3/4" />
                   <div className="h-3 bg-gray-200 rounded w-full" />
@@ -180,27 +198,26 @@ const NotificationDrawer = ({ onClose }) => {
             notifications.map((n) => (
               <div
                 key={n.id}
-                className={`relative flex items-start gap-3 p-4 cursor-pointer transition
-                  ${n.read ? "bg-white" : "bg-[#E6F4EC] hover:bg-[#DFF1E7]"}
-                `}
+                className={`relative flex items-start gap-3 p-4 cursor-pointer transition ${
+                  n.read ? "bg-white hover:bg-gray-50" : "bg-[#E6F4EC] hover:bg-[#DFF1E7]"
+                }`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setOpenDropdownId(null);
                   openDetail(n);
                 }}
               >
                 {!n.read && (
-                  <span className="absolute left-0 top-0 h-full w-1" />
+                  <span className="absolute left-0 top-0 h-full w-1 bg-[#027840]" />
                 )}
 
-                <div className="bg-[#D9D9D9] w-10 h-10 rounded-full flex justify-center items-center">
+                <div className="bg-[#D9D9D9] w-10 h-10 rounded-full flex justify-center items-center shrink-0">
                   <Icon
                     icon="iconamoon:profile"
                     className="text-[#00000099] text-2xl"
                   />
                 </div>
 
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 pr-2">
                   <p className="text-[15px] font-semibold text-gray-800 line-clamp-1">
                     {n.title}
                   </p>
@@ -213,41 +230,6 @@ const NotificationDrawer = ({ onClose }) => {
                   <div className="text-sm text-[#02784099] mt-1">
                     {formatTime(n.sent_at)}
                   </div>
-                </div>
-
-                <div
-                  className="absolute top-2 right-2"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setOpenDropdownId(openDropdownId === n.id ? null : n.id);
-                    }}
-                    className="text-black font-bold text-lg px-2 py-1 hover:bg-gray-100 rounded"
-                  >
-                    ...
-                  </button>
-
-                  {openDropdownId === n.id && (
-                    <div className="absolute right-0 mt-2 w-32 border border-gray-200 bg-white rounded-md shadow-lg z-[70]">
-                      {!n.read ? (
-                        <div
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            markAsRead(n.id);
-                          }}
-                          className="px-4 py-2 text-sm cursor-pointer hover:bg-gray-100 text-gray-700 transition-all duration-150"
-                        >
-                          Mark as Read
-                        </div>
-                      ) : (
-                        <div className="px-4 py-2 text-sm text-gray-400 cursor-not-allowed">
-                          Already Read
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
               </div>
             ))

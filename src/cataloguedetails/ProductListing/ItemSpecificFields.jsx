@@ -1,7 +1,6 @@
 import { Input } from "antd";
 import { Search, X } from "react-feather";
 import { BiChevronDown, BiChevronUp } from "react-icons/bi";
-import { IoMdCheckmark } from "react-icons/io";
 import { Label } from "reactstrap";
 
 const ItemSpecificFields = ({
@@ -36,9 +35,10 @@ const ItemSpecificFields = ({
     return raw ? raw.split(", ").filter(Boolean) : [];
   };
 
-  const close = (fieldName) => {
+  const clearField = (fieldName) => {
     setFilterValues((prev) => ({ ...prev, [fieldName]: "" }));
     setSelectedValues((prev) => ({ ...prev, [fieldName]: "" }));
+    setCustomInputValues((prev) => ({ ...prev, [fieldName]: "" }));
   };
 
   return (
@@ -105,19 +105,11 @@ const ItemSpecificFields = ({
                               placeholder={`Search ${fieldName.toLowerCase()}...`}
                             />
                             <button
-                              onClick={() => {
-                                if (isMultiField(fieldName)) {
-                                  // Multi-fields: just clear the search input,
-                                  // don't wipe the user's selected chips.
-                                  setFilterValues((prev) => ({ ...prev, [fieldName]: "" }));
-                                  setCustomInputValues((prev) => ({ ...prev, [fieldName]: "" }));
-                                } else {
-                                  close(fieldName);
-                                }
-                              }}
-                              className="p-1 hover:bg-gray-100 rounded-full"
+                              type="button"
+                              onClick={() => clearField(fieldName)}
+                              className="text-sm text-gray-600 hover:text-gray-900 px-2 py-1 rounded"
                             >
-                              <X className="h-4 w-4 text-red-500" />
+                              Clear all
                             </button>
                           </div>
                           <div className="max-h-[300px] overflow-y-auto" id="folder">
@@ -125,46 +117,57 @@ const ItemSpecificFields = ({
                               const selectedList = isMultiField(fieldName)
                                 ? getMultiValues(fieldName)
                                 : (selectedValues[fieldName] ? [selectedValues[fieldName]] : []);
-                              return selectedList.map((sv) => (
-                                <div
-                                  key={`pinned-${sv}`}
-                                  className="px-4 py-2 bg-gray-50 hover:bg-gray-100 cursor-pointer text-sm flex items-center justify-between border-b border-gray-200"
-                                  onClick={() => isMultiField(fieldName) ? handleMultiToggle(fieldName, sv) : handleSelectChange(fieldName, sv)}
-                                >
-                                  <p>
-                                    {sv}
-                                    {!options.includes(sv) && (
-                                      <span className="ml-2 text-xs text-gray-500">(custom)</span>
-                                    )}
-                                  </p>
-                                  <IoMdCheckmark size={20} className="text-black" />
-                                </div>
-                              ));
+                              return filteredOptions(fieldName, options).map(([index, value]) => {
+                                const checked = selectedList.includes(value);
+                                return (
+                                  <label
+                                    key={index}
+                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm flex items-center justify-between"
+                                    onClick={() => {
+                                      if (isMultiField(fieldName)) {
+                                        handleMultiToggle(fieldName, value);
+                                      } else {
+                                        handleSelectChange(fieldName, value);
+                                      }
+                                    }}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <input
+                                        type="checkbox"
+                                        checked={checked}
+                                        readOnly
+                                        className="h-4 w-4 text-green-600 border-gray-300 rounded"
+                                      />
+                                      <span>{value}</span>
+                                    </div>
+                                  </label>
+                                );
+                              });
                             })()}
-                            {filteredOptions(fieldName, options).map(([index, value]) => {
+                            {(() => {
                               const selectedList = isMultiField(fieldName)
                                 ? getMultiValues(fieldName)
                                 : (selectedValues[fieldName] ? [selectedValues[fieldName]] : []);
-                              if (selectedList.includes(value)) return null;
-                              return (
-                                <div
-                                  key={index}
-                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm flex items-center justify-between"
-                                  onClick={() => isMultiField(fieldName) ? handleMultiToggle(fieldName, value) : handleSelectChange(fieldName, value)}
+                              const customValue = customInputValues[fieldName];
+                              const shouldShowCustom = customValue && !options.includes(customValue);
+                              const checked = shouldShowCustom && selectedList.includes(customValue);
+                              return shouldShowCustom ? (
+                                <label
+                                  className="px-4 py-2 bg-gray-100 cursor-pointer text-sm font-medium flex items-center gap-2"
+                                  onClick={() => isMultiField(fieldName)
+                                    ? handleMultiToggle(fieldName, customValue)
+                                    : handleSelectChange(fieldName, customValue)}
                                 >
-                                  <p>{value}</p>
-                                </div>
-                              );
-                            })}
-                            {/* Custom Input Field */}
-                            {customInputValues[fieldName] && !options.includes(customInputValues[fieldName]) && (
-                              <div
-                                className="px-4 py-2 bg-gray-100 cursor-pointer text-sm font-medium"
-                                onClick={() => isMultiField(fieldName) ? handleMultiToggle(fieldName, customInputValues[fieldName]) : handleSelectChange(fieldName, customInputValues[fieldName])}
-                              >
-                                {customInputValues[fieldName]} (Custom)
-                              </div>
-                            )}
+                                  <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    readOnly
+                                    className="h-4 w-4 text-green-600 border-gray-300 rounded"
+                                  />
+                                  <span>{customValue} (Custom)</span>
+                                </label>
+                              ) : null;
+                            })()}
                           </div>
                         </div>
                       )}

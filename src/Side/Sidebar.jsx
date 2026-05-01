@@ -19,12 +19,13 @@ const Sidebar = () => {
   const { pathname } = useLocation();
 
   loadIcons([
-    "mdi:report-multiple",
-    "tdesign:catalog",
-    "mynaui:cart-solid",
-    "mdi:marketplace-outline",
-    "material-symbols:order-approve-outline",
-  ]);
+  "mdi:report-multiple",
+  "tdesign:catalog",
+  "mynaui:cart-solid",
+  "mdi:marketplace-outline",
+  "material-symbols:order-approve-outline",
+  "tabler:template", 
+]);
 
   const [host, setHost] = useState(false);
   const [market, setMarket] = useState(false);
@@ -315,7 +316,7 @@ const Sidebar = () => {
                       isActive ? "bg-[#027840] rounded-[6px] text-white" : ""
                     } hover:bg-[#027840] hover:rounded`}
                   >
-                    <Icon icon="mdi:report-multiple" width="23" height="23" />
+                    <Icon icon="tabler:template" width="23" height="23" />
                     <span>Templates</span>
                   </div>
                 )}

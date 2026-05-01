@@ -267,17 +267,12 @@ const Listing = () => {
           const cleanedString = savedItem.item_specific_fields.replace(/'/g, '"').replace(/\\/g, "\\\\");
           const parsed = JSON.parse(cleanedString);
           setUseSavedItem(parsed);
-          // Seed selectedValues so dropdowns show the saved choice + checkmark
-          // for ALL aspects, not just the hardcoded autofillFields whitelist.
           setSelectedValues((prev) => ({ ...prev, ...parsed }));
           item_specific = normalizeKeys(parsed);
           setNewItemSpecific(item_specific);
         } catch (parseError) {}
       }
       const { item_specific_fields, ...rest } = savedItem;
-      // Drop "description" so an eBay item-specific aspect named "Description"
-      // (a short label like "Touch Up") doesn't overwrite the row's real
-      // description column (full HTML body) when spread into the product.
       const { description: _ignoredDescriptionAspect, ...itemSpecificSafe } = item_specific;
       const mergedProduct = { ...normalizeKeys(rest), ...itemSpecificSafe };
       const enrichedProduct = await enrichWithEnrollment(mergedProduct);
@@ -307,17 +302,12 @@ const Listing = () => {
           const cleanedString = savedItem.item_specific_fields.replace(/'/g, '"').replace(/\\/g, "\\\\");
           const parsed = JSON.parse(cleanedString);
           setUseSavedItem(parsed);
-          // Seed selectedValues so dropdowns show the saved choice + checkmark
-          // for ALL aspects, not just the hardcoded autofillFields whitelist.
           setSelectedValues((prev) => ({ ...prev, ...parsed }));
           item_specific = normalizeKeys(parsed);
           setNewItemSpecific(item_specific);
         } catch (parseError) {}
       }
       const { item_specific_fields, ...rest } = savedItem;
-      // Drop "description" so an eBay item-specific aspect named "Description"
-      // (a short label like "Touch Up") doesn't overwrite the row's real
-      // description column (full HTML body) when spread into the product.
       const { description: _ignoredDescriptionAspect, ...itemSpecificSafe } = item_specific;
       const mergedProduct = { ...normalizeKeys(rest), ...itemSpecificSafe };
       const enrichedProduct = await enrichWithEnrollment(mergedProduct);
@@ -707,10 +697,6 @@ const Listing = () => {
       handleListingChange({
         target: { name: "category_id", value: categoryId },
       });
-      // Backend returns `item_specifics` (plural). The other category-click
-      // handlers read this key correctly; this one used to read
-      // `item_specific_fields` and silently dropped every free-text aspect
-      // for leaf categories.
       const itemSpecificArray = response?.item_specifics || [];
       const validChoices = response?.valid_choices || {};
       const requiredFields = response?.required_fields || [];
@@ -820,7 +806,6 @@ const Listing = () => {
       }
     })(),
     };
-    console.log("mergedData", mergedData);
     try {
       const response = await marketplaceProductListing(userId, platformParam, isEbay ? category_id : isWoocommerce ? selectedWooCategories : null, mergedData);
       setHandleSubmitLoader(false);

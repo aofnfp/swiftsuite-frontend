@@ -19,6 +19,7 @@ const Displaycatalogue = ({
   isLoading,
   isFetching,
   isSuccess,
+  isError,
   productsToRender,
   error,
   currentItems,
@@ -165,10 +166,13 @@ const Displaycatalogue = ({
     e.stopPropagation();
   };
 
-  const showSkeleton =
-    isLoading ||
-    isFetching ||
-    (productChange && productChange !== "all" && !isSuccess && !error);
+  const showSkeleton = isLoading || isFetching;
+  const showNoResults =
+    !isLoading &&
+    !isFetching &&
+    isSuccess &&
+    productsToRender?.length === 0 &&
+    currentItems?.length === 0;
 
   return (
     <div className="bg-[#E7F2ED] mt-20 w-full min-w-full">
@@ -179,15 +183,14 @@ const Displaycatalogue = ({
         ))}
       {showSkeleton && viewMode === "grid" && <CatalogueGridSkeleton />}
 
-      {error ? (
+      {(error || isError) ? (
         <div className="text-red-500 text-xl mb-4 text-center w-full">
-          {error}
+          {error || "Failed to load products. Please try again."}
         </div>
       ) : (
         <div className="flex gap-6 mb-34 w-full min-w-full">
           <div className="rounded-lg overflow-hidden w-full min-w-full">
-            {isSuccess &&
-              (productsToRender?.length === 0 && currentItems?.length === 0 ? (
+            {showNoResults ? (
                 <div className="text-red-500 bg-[#E7F2ED] h-screen text-xl text-center mt-20 w-full">
                   Sorry, we couldn't find any results
                 </div>
@@ -197,10 +200,6 @@ const Displaycatalogue = ({
                     <div className="list-view-container w-full min-w-full cursor-pointer">
                       {productsToRender.map((product, index) => (
                         <div
-                          // onClick={(e) => {
-                          //   e.stopPropagation();
-                          //   handleProductClick(product);
-                          // }}
                           key={index}
                           className={`${checkedItems.includes(product?.id)
                             ? "border border-[#089451]"
@@ -595,7 +594,7 @@ const Displaycatalogue = ({
                     </div>
                   )}
                 </>
-              ))}
+              )}
           </div>
         </div>
       )}

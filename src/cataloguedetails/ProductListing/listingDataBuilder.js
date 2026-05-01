@@ -1,4 +1,4 @@
-import { parseEbayQuantity } from "../../utils/quantity";
+import { parseQuantity } from "../../utils/quantity";
 
 // Strip editor-only HTML attributes that can leak into a saved description
 // when the user lists a product without re-editing the body. Defense-in-
@@ -109,7 +109,7 @@ export const buildListingData = (productListing, title, bestOfferEnabled, enable
     postal_code: productListing?.zip_code || productListing?.postal_code || "" || "Null",
     location: productListing?.region || productListing?.location || "" || "Null",
     sku: productListing?.sku || "" || "Null",
-    quantity: parseEbayQuantity(productListing?.quantity) || "Null",
+    quantity: parseQuantity(productListing?.quantity) || "Null",
     picture_detail: productListing?.image || productListing?.picture_detail || "" || "Null",
     product: id || null,
     country: productListing?.country || "" || "Null",
@@ -169,9 +169,9 @@ export const buildWoocommerceData = (productListing, title, selectedWooCategorie
     picture_detail: productListing?.image || productListing?.picture_detail || null,
     brand: productListing?.brand || productListing?.manufacturer || "" || null,
     postal_code: productListing?.postal_code || "" || "Null",
-    quantity: parseEbayQuantity(productListing?.quantity) || "Null",
+    quantity: parseQuantity(productListing?.quantity) || "Null",
     return_profileID: productListing?.return_profileID || "" || "Null",
-    quantity: parseEbayQuantity(productListing?.quantity) || "Null",
+    quantity: parseQuantity(productListing?.quantity) || "Null",
     return_profileID: productListing?.return_profileID || "" || "Null",
     return_profileName: productListing?.return_profileName || "" || "Default",
     payment_profileID: productListing?.payment_profileID || "" || "Null",
@@ -237,7 +237,7 @@ export const buildWoocommerceUpdate = (productListing, title, selectedWooCategor
   start_price: productListing?.selling_price || productListing?.start_price || null,
   picture_detail: productListing?.image || productListing?.picture_detail || null,
   postal_code: productListing?.postal_code || "Null",
-  quantity: parseEbayQuantity(productListing?.quantity) || "Null",
+  quantity: parseQuantity(productListing?.quantity) || "Null",
   return_profileID: productListing?.return_profileID || "Null",
   return_profileName: productListing?.return_profileName || "Default",
   payment_profileID: productListing?.payment_profileID || "Null",
@@ -326,7 +326,7 @@ export const buildUpdateData = (productListing, title, bestOfferEnabled, enableC
     price: productListing?.price || "",
     product_id: productListing?.id || productListing?.product_id || "",
     profit_margin: productListing?.profit_margin || 0,
-    quantity: parseEbayQuantity(productListing?.quantity) || "0",
+    quantity: parseQuantity(productListing?.quantity) || "0",
     payment_profileID: productListing?.payment_profileID || productListing?.payment_profileid || "",
     return_profileID: productListing?.return_profileID || productListing?.return_profileid || "",
     shipping_profileID: productListing?.shipping_profileID || productListing?.shipping_profileid || "",

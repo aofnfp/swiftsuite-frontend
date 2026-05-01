@@ -15,16 +15,16 @@
 // `|| "Null"`, matching the existing pattern in listingDataBuilder.js).
 //
 // Examples:
-//   parseEbayQuantity("eb:6|su:6")  → "6"
-//   parseEbayQuantity("eb:0|su:12") → "0"
-//   parseEbayQuantity("su:6|eb:3")  → "3"  (order-independent)
-//   parseEbayQuantity("12")         → "12"
-//   parseEbayQuantity("")           → ""
-//   parseEbayQuantity(undefined)    → ""
+//   parseQuantity("eb:6|su:6")  → "6"
+//   parseQuantity("eb:0|su:12") → "0"
+//   parseQuantity("su:6|eb:3")  → "3"  (order-independent — picks eb side)
+//   parseQuantity("12")         → "12"
+//   parseQuantity("")           → ""
+//   parseQuantity(undefined)    → ""
 //
 // Remove this util once the backend write sites are fixed and a
 // migration scrubs existing rows (see Option A in the bug doc).
-export const parseEbayQuantity = (raw) => {
+export const parseQuantity = (raw) => {
   if (raw == null) return "";
   const s = String(raw);
   const m = s.match(/(?:^|\|)eb:(\d+)/i);

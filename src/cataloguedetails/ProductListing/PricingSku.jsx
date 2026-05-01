@@ -2,7 +2,7 @@ import { Button, Tooltip } from "antd";
 import React, { useState } from "react";
 import { FaPlus } from "react-icons/fa";
 import { FaMinus } from "react-icons/fa6";
-import { parseEbayQuantity } from "../../utils/quantity";
+import { parseQuantity } from "../../utils/quantity";
 
 const PricingSku = ({
   productListing,
@@ -77,7 +77,7 @@ const PricingSku = ({
                 type="number"
                 // onChange={handleSkuChange}
                 name="quantity"
-                value={parseEbayQuantity(productListing.quantity)}
+                value={parseQuantity(productListing.quantity)}
                 className="focus:outline-[#089451] border-2 border-[#089451] mt-1 py-3 ps-4 w-[60%]"
                 placeholder="3"
                 disabled
@@ -170,7 +170,7 @@ const PricingSku = ({
           </span>
           <span>
             <strong>Stock Quantity : </strong>
-            {parseEbayQuantity(productListing.quantity)}
+            {parseQuantity(productListing.quantity)}
           </span>
         </div>
 

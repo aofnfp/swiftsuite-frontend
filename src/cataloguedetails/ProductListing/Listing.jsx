@@ -6,7 +6,7 @@ import ProductImageUpload from "./ProductImageUpload";
 import PricingSku from "./PricingSku";
 import { Toaster, toast } from "sonner";
 import DynamicProductInputs from "./DynamicProductsInput";
-import { buildListingData, buildWoocommerceData, buildUpdateData, buildWoocommerceUpdate } from "./listingDataBuilder";
+import { buildListingData, buildWoocommerceData, buildUpdateData, buildWoocommerceUpdate, coerceMultiValuesToArrays } from "./listingDataBuilder";
 import { enrolledMarketplaces, fetchItemLeafCategory, fetchProductListing, fetchProductUpdate, fetchUserCategoryId, getMarketplaceEnrolmentDetail, getWooCommerecCategoryName, marketplaceProductListing, marketplaceProductSaving, marketPlaceProductUpdate, userCategoriesId,
 } from "../../api/authApi";
 import { handleApiError } from "../../utils/handleError";
@@ -800,7 +800,10 @@ const Listing = () => {
     product: id,
     // ...itemSpecificFields ? itemSpecificFields : {},
     ...listingData,
-    ...submittingProduct,
+    // Coerce multi-value aspects to arrays before spreading so they don't
+    // overwrite listingData's already-correctly-shaped values with the
+    // raw comma-joined strings from selectedValues.
+    ...coerceMultiValuesToArrays(submittingProduct, multiValueFields),
     category_id,
     gift: isGiftChecked,
     categoryMappingAllowed: isMappingChecked,
@@ -874,7 +877,7 @@ const Listing = () => {
       userId,
       product: productId,
       ...savingListingData,
-      ...submittingProduct,
+      ...coerceMultiValuesToArrays(submittingProduct, multiValueFields),
       category_id,
       gift: isGiftChecked,
       categoryMappingAllowed: isMappingChecked,
@@ -976,7 +979,7 @@ const Listing = () => {
           userId,
           product: id,
           ...updateData,
-          ...submittingProduct,
+          ...coerceMultiValuesToArrays(submittingProduct, multiValueFields),
           inventory_id,
           gift: isGiftChecked,
           categoryMappingAllowed: isMappingChecked,

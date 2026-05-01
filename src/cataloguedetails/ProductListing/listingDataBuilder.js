@@ -30,6 +30,37 @@ const convertToPythonDictString = (obj) => {
   }
 };
 
+// Walk an arbitrary {fieldName: value} map and split comma-joined strings
+// into arrays for any aspect listed in multiValueFields. Used to coerce
+// submittingProduct (which is a copy of selectedValues, possibly merged
+// with saved data) BEFORE spreading it at the top level of the listing
+// payload — otherwise the comma-joined string overwrites the correctly-
+// shaped array that buildItemSpecificPayload produced inside listingData.
+export const coerceMultiValuesToArrays = (values, multiValueFields = []) => {
+  if (!values || typeof values !== "object") return values;
+  const multiSet = new Set(
+    (Array.isArray(multiValueFields) ? multiValueFields : []).map((s) =>
+      String(s).toLowerCase()
+    )
+  );
+  const result = {};
+  for (const [key, raw] of Object.entries(values)) {
+    if (
+      multiSet.has(key.toLowerCase()) &&
+      typeof raw === "string" &&
+      raw !== ""
+    ) {
+      result[key] = raw
+        .split(",")
+        .map((v) => v.trim())
+        .filter(Boolean);
+    } else {
+      result[key] = raw;
+    }
+  }
+  return result;
+};
+
 // Multi-value aspects (Features, Scent, etc.) are kept in selectedValues as a
 // comma-joined string for UI convenience (handleMultiToggle in Listing.jsx
 // joins/splits with ", "). The eBay Trading API expects each value as a

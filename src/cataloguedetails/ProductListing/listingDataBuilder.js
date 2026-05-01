@@ -1,3 +1,17 @@
+import { parseEbayQuantity } from "../../utils/quantity";
+
+// Strip editor-only HTML attributes that can leak into a saved description
+// when the user lists a product without re-editing the body. Defense-in-
+// depth — the editor itself already strips these from new emissions, but
+// older saved records still carry them and would 400 the eBay listing
+// (eBay rejects descriptions with `<body contenteditable="true">` style
+// scaffolding noise on the way to the Trading API).
+const cleanDescriptionForListing = (raw) =>
+  String(raw || "")
+    .replace(/\scontenteditable="(?:true|false|inherit)"/gi, "")
+    .replace(/\sclass="is-empty"/g, "")
+    .replace(/<style id="__sse_editor_base"[^>]*>[\s\S]*?<\/style>/, "");
+
 // Helper function to convert object to single-quoted Python dict string format
 const convertToPythonDictString = (obj) => {
   if (!obj) return "{}";
@@ -16,26 +30,55 @@ const convertToPythonDictString = (obj) => {
   }
 };
 
-const buildItemSpecificPayload = (itemSpecificFields = {}, selectedValues = {}) => {
+// Multi-value aspects (Features, Scent, etc.) are kept in selectedValues as a
+// comma-joined string for UI convenience (handleMultiToggle in Listing.jsx
+// joins/splits with ", "). The eBay Trading API expects each value as a
+// distinct <Value> inside <NameValueList> — sending the joined string makes
+// eBay reject the listing because "Adjustable, Padded, Waterproof" is not a
+// member of the aspect's valid_choices set. Backend's `multi_value_fields`
+// response field tells us which aspects are multi; we split those back into
+// arrays here, leaving single-value aspects as strings.
+const buildItemSpecificPayload = (
+  itemSpecificFields = {},
+  selectedValues = {},
+  multiValueFields = []
+) => {
   if (!itemSpecificFields || typeof itemSpecificFields !== "object") return {};
+  const multiSet = new Set(
+    (Array.isArray(multiValueFields) ? multiValueFields : []).map((s) =>
+      String(s).toLowerCase()
+    )
+  );
   return Object.keys(itemSpecificFields).reduce((acc, fieldName) => {
-    acc[fieldName] = selectedValues[fieldName] ?? "";
+    const raw = selectedValues[fieldName];
+    if (raw == null || raw === "") {
+      acc[fieldName] = "";
+      return acc;
+    }
+    if (multiSet.has(fieldName.toLowerCase()) && typeof raw === "string") {
+      acc[fieldName] = raw
+        .split(",")
+        .map((v) => v.trim())
+        .filter(Boolean);
+    } else {
+      acc[fieldName] = raw;
+    }
     return acc;
   }, {});
 };
 
 // Utility function to build listing data object
-export const buildListingData = (productListing, title, bestOfferEnabled, enableCharity, market_logos, id, itemSpecificFields = {}, selectedValues = {}) => {
-  const itemSpecificPayload = buildItemSpecificPayload(itemSpecificFields, selectedValues);
+export const buildListingData = (productListing, title, bestOfferEnabled, enableCharity, market_logos, id, itemSpecificFields = {}, selectedValues = {}, multiValueFields = []) => {
+  const itemSpecificPayload = buildItemSpecificPayload(itemSpecificFields, selectedValues, multiValueFields);
   return {
     title: title || "",
-    description: productListing?.detailed_description || productListing?.description || "" || "Null",
+    description: cleanDescriptionForListing(productListing?.detailed_description || productListing?.description) || "Null",
     start_price: productListing?.selling_price || productListing?.start_price || "" || "Null",
     category: productListing?.category || "" || "Null",
     postal_code: productListing?.zip_code || productListing?.postal_code || "" || "Null",
     location: productListing?.region || productListing?.location || "" || "Null",
     sku: productListing?.sku || "" || "Null",
-    quantity: productListing?.quantity || "" || "Null",
+    quantity: parseEbayQuantity(productListing?.quantity) || "Null",
     picture_detail: productListing?.image || productListing?.picture_detail || "" || "Null",
     product: id || null,
     country: productListing?.country || "" || "Null",
@@ -87,7 +130,7 @@ export const buildListingData = (productListing, title, bestOfferEnabled, enable
 export const buildWoocommerceData = (productListing, title, selectedWooCategories, thumbnailImage, convertWcAttributesToObject, wcAttributes, id, market_logos) => {
   return {
     title: title || null,
-    description: productListing?.detailed_description || productListing?.description || null,
+    description: cleanDescriptionForListing(productListing?.detailed_description || productListing?.description) || null,
     sku: productListing?.sku || null,
     location: productListing?.location || "" || null,
     category_id: productListing?.category_id || "" || "Null",
@@ -95,9 +138,9 @@ export const buildWoocommerceData = (productListing, title, selectedWooCategorie
     picture_detail: productListing?.image || productListing?.picture_detail || null,
     brand: productListing?.brand || productListing?.manufacturer || "" || null,
     postal_code: productListing?.postal_code || "" || "Null",
-    quantity: productListing?.quantity || "" || "Null",
+    quantity: parseEbayQuantity(productListing?.quantity) || "Null",
     return_profileID: productListing?.return_profileID || "" || "Null",
-    quantity: productListing?.quantity || "Null",
+    quantity: parseEbayQuantity(productListing?.quantity) || "Null",
     return_profileID: productListing?.return_profileID || "" || "Null",
     return_profileName: productListing?.return_profileName || "" || "Default",
     payment_profileID: productListing?.payment_profileID || "" || "Null",
@@ -156,14 +199,14 @@ export const buildWoocommerceData = (productListing, title, selectedWooCategorie
 export const buildWoocommerceUpdate = (productListing, title, selectedWooCategories, thumbnailImage, convertWcAttributesToObject, wcAttributes, id, bestOfferEnabled, enableCharity, market_logos) => {
   return {
   title: title || null,
-  description:productListing?.detailed_description || productListing?.description || null,
+  description: cleanDescriptionForListing(productListing?.detailed_description || productListing?.description) || null,
   sku: productListing?.sku || null,
   location: productListing?.location || "Null",
   category_id: productListing?.category_id || "Null",
   start_price: productListing?.selling_price || productListing?.start_price || null,
   picture_detail: productListing?.image || productListing?.picture_detail || null,
   postal_code: productListing?.postal_code || "Null",
-  quantity: productListing?.quantity || "Null",
+  quantity: parseEbayQuantity(productListing?.quantity) || "Null",
   return_profileID: productListing?.return_profileID || "Null",
   return_profileName: productListing?.return_profileName || "Default",
   payment_profileID: productListing?.payment_profileID || "Null",
@@ -218,11 +261,11 @@ export const buildWoocommerceUpdate = (productListing, title, selectedWooCategor
 };
 
 // Utility function to build update data
-export const buildUpdateData = (productListing, title, bestOfferEnabled, enableCharity, market_logos, thumbnailImage, itemSpecificFields = {}, selectedValues = {}) => {
-  const itemSpecificPayload = buildItemSpecificPayload(itemSpecificFields, selectedValues);
+export const buildUpdateData = (productListing, title, bestOfferEnabled, enableCharity, market_logos, thumbnailImage, itemSpecificFields = {}, selectedValues = {}, multiValueFields = []) => {
+  const itemSpecificPayload = buildItemSpecificPayload(itemSpecificFields, selectedValues, multiValueFields);
   return {
     title: title || productListing?.title || "",
-    description: productListing?.detailed_description || productListing?.description || "",
+    description: cleanDescriptionForListing(productListing?.detailed_description || productListing?.description) || "",
     bestOfferEnabled: bestOfferEnabled || productListing?.bestOfferEnabled || false,
     brand: productListing?.brand || productListing?.manufacturer || "",
     upc: productListing?.upc || "Null",
@@ -252,7 +295,7 @@ export const buildUpdateData = (productListing, title, bestOfferEnabled, enableC
     price: productListing?.price || "",
     product_id: productListing?.id || productListing?.product_id || "",
     profit_margin: productListing?.profit_margin || 0,
-    quantity: productListing?.quantity || "0",
+    quantity: parseEbayQuantity(productListing?.quantity) || "0",
     payment_profileID: productListing?.payment_profileID || productListing?.payment_profileid || "",
     return_profileID: productListing?.return_profileID || productListing?.return_profileid || "",
     shipping_profileID: productListing?.shipping_profileID || productListing?.shipping_profileid || "",

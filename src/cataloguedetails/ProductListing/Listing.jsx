@@ -7,10 +7,10 @@ import PricingSku from "./PricingSku";
 import { Toaster, toast } from "sonner";
 import DynamicProductInputs from "./DynamicProductsInput";
 import { buildListingData, buildWoocommerceData, buildUpdateData, buildWoocommerceUpdate } from "./listingDataBuilder";
-import { enrolledMarketplaces, fetchItemLeafCategory, fetchProductListing, fetchProductUpdate, fetchUserCategoryId, getWooCommerecCategoryName, marketplaceProductListing, marketplaceProductSaving, marketPlaceProductUpdate, userCategoriesId, 
+import { enrolledMarketplaces, fetchItemLeafCategory, fetchProductListing, fetchProductUpdate, fetchUserCategoryId, getMarketplaceEnrolmentDetail, getWooCommerecCategoryName, marketplaceProductListing, marketplaceProductSaving, marketPlaceProductUpdate, userCategoriesId,
 } from "../../api/authApi";
 import { handleApiError } from "../../utils/handleError";
-import { mergeSavedAndSelected, normalizeKeys, safeJSONParse, safeParseItemSpecific } from "../../utils/utils";
+import { mergeSavedAndSelected, normalizeKeys, overlayEnrollmentMarkup, safeJSONParse, safeParseItemSpecific } from "../../utils/utils";
 import SubscriptionModal from "../../pages/SubscriptionModal";
 import { useSelector } from "react-redux";
 import { useListingStore } from "../../stores/listingStore";
@@ -179,6 +179,27 @@ const Listing = () => {
     } catch (err) {}
   };
 
+  // Same pattern as InventoryDetail.jsx — overlay the live enrollment's
+  // markup fields (profit_margin, min_profit_mergin, fixed_markup,
+  // fixed_percentage_markup) onto a product so the form picks up the user's
+  // current settings instead of the stale per-row copy. Without this,
+  // Profit Margin / Minimum Profit Margin / Maximum Quantity render empty
+  // when the product row was written by a sync path that didn't cover all
+  // four fields, and the listing submit goes out missing required values.
+  const enrichWithEnrollment = async (product, marketName = "Ebay") => {
+    if (!product) return product;
+    const market = product.market_name || marketName;
+    if (!market) return product;
+    try {
+      const enrolment = await getMarketplaceEnrolmentDetail(userId, market);
+      const enrollmentDetail = enrolment?.marketplace_info || [];
+      const overlaid = overlayEnrollmentMarkup([product], enrollmentDetail);
+      return overlaid?.[0] || product;
+    } catch {
+      return product;
+    }
+  };
+
   const hasMarketplace = (platform) => marketplacesEnrolled?.some((marketplace) => marketplace.endpointName.toLowerCase() === platform.toLowerCase());
 
   useEffect(() => {
@@ -259,7 +280,8 @@ const Listing = () => {
       // description column (full HTML body) when spread into the product.
       const { description: _ignoredDescriptionAspect, ...itemSpecificSafe } = item_specific;
       const mergedProduct = { ...normalizeKeys(rest), ...itemSpecificSafe };
-      setProductListing(mergedProduct);
+      const enrichedProduct = await enrichWithEnrollment(mergedProduct);
+      setProductListing(enrichedProduct);
     } catch (error) {
       toast.error("Failed to load products details");
     }
@@ -298,7 +320,8 @@ const Listing = () => {
       // description column (full HTML body) when spread into the product.
       const { description: _ignoredDescriptionAspect, ...itemSpecificSafe } = item_specific;
       const mergedProduct = { ...normalizeKeys(rest), ...itemSpecificSafe };
-      setProductListing(mergedProduct);
+      const enrichedProduct = await enrichWithEnrollment(mergedProduct);
+      setProductListing(enrichedProduct);
     } catch (error) {
       toast.error("Failed to load product details");
     }
@@ -323,7 +346,7 @@ const Listing = () => {
       const returnPolicy = ebayInfo?.return_policy ? JSON.parse(ebayInfo.return_policy) : null;
       const shippingPolicy = ebayInfo?.shipping_policy ? JSON.parse(ebayInfo.shipping_policy) : null;
       const vendor_location = response.vendor_details[0].vendor_location[0];
-      setProductListing({
+      const builtProduct = {
         ...ebayInfo,
         ...vendorDetails,
         ...vendor_location,
@@ -332,7 +355,9 @@ const Listing = () => {
         shipping_policy: shippingPolicy,
         policyInfo,
         ...productInfo,
-      });
+      };
+      const enrichedProduct = await enrichWithEnrollment(builtProduct, "Ebay");
+      setProductListing(enrichedProduct);
     } catch (error) {
       if (error.response.data) {
         toast.error(`${error.response.data}`);
@@ -755,7 +780,7 @@ const Listing = () => {
       return;
     }
     setHandleSubmitLoader(true);
-    const listingData = buildListingData(productListing, title, bestOfferEnabled, enableCharity, market_logos, id, itemSpecificFields, selectedValues);
+    const listingData = buildListingData(productListing, title, bestOfferEnabled, enableCharity, market_logos, id, itemSpecificFields, selectedValues, multiValueFields);
     const buildMarketName = () => {
       const markets = [];
       if (isEbay) markets.push("Ebay");
@@ -799,6 +824,15 @@ const Listing = () => {
       toast.success(response);
     } catch (error) {
       setHandleSubmitLoader(false);
+      // Log the response body so the actual backend reason is visible in the
+      // console — DRF returns field-level errors as JSON; without this we
+      // only see the generic "400 (Bad Request)" stack and the toast text.
+      console.error(
+        "listing 400 status:", error?.response?.status,
+        "\nlisting 400 body:", error?.response?.data,
+        "\nlisting 400 url:", error?.config?.url,
+        "\nlisting 400 payload sent:", error?.config?.data,
+      );
       handleApiError(error);
     }
   };
@@ -821,7 +855,7 @@ const Listing = () => {
       return;
     }
     setHandleSaveListingLoader(true);
-    const savingListingData = buildListingData(productListing, title, bestOfferEnabled, enableCharity, market_logos, id, itemSpecificFields, selectedValues);
+    const savingListingData = buildListingData(productListing, title, bestOfferEnabled, enableCharity, market_logos, id, itemSpecificFields, selectedValues, multiValueFields);
     const buildMarketName = () => {
       const markets = [];
       if (isEbay) markets.push("Ebay");
@@ -909,6 +943,7 @@ const Listing = () => {
       thumbnailImage,
       itemSpecificFields,
       submittingProduct,
+      multiValueFields,
     );
     const buildMarketName = () => {
       const markets = [];

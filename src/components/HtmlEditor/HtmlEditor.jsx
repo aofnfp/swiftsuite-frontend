@@ -203,15 +203,25 @@ const TableGridPicker = ({ onPick }) => {
   );
 };
 
-// Strip editor-only injections (base style, is-empty class) before
-// emitting HTML upward so they don't get persisted into the row's body.
+// Strip editor-only injections before emitting HTML upward so they don't
+// get persisted into the row's body or sent to eBay's listing endpoint.
+// Three scaffolds to remove:
+//   - the injected <style id="__sse_editor_base"> base styles
+//   - the body's `is-empty` class (added when the placeholder is showing)
+//   - any `contenteditable` attribute (set to "true" on body so the user
+//     can type, set to "false" on video wrappers to keep them atomic).
+//     The editor re-applies these on load via handleIframeLoad and
+//     normalizeVideoWrappers, so stripping them on emit doesn't break
+//     anything inside the editor — but it does mean downstream consumers
+//     (eBay <Description>, email body, saved record) get clean HTML.
 const stripEditorArtifacts = (html) =>
   String(html || "")
     .replace(
       new RegExp(`<style id="${BASE_STYLE_ID}"[^>]*>[\\s\\S]*?</style>`),
       ""
     )
-    .replace(/\sclass="is-empty"/g, "");
+    .replace(/\sclass="is-empty"/g, "")
+    .replace(/\scontenteditable="(?:true|false|inherit)"/gi, "");
 
 // Sanitize description HTML before injecting into the iframe's srcdoc.
 // WHOLE_DOCUMENT preserves <html>/<head>/<body> structure so legacy eBay

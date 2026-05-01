@@ -15,7 +15,7 @@ import SubscriptionModal from "../../pages/SubscriptionModal";
 import { useSelector } from "react-redux";
 import { useListingStore } from "../../stores/listingStore";
 import TitleSection from "./TitleSection";
-import DescriptionSection from "./DescriptionSection";
+import HtmlEditor from "../../components/HtmlEditor/HtmlEditor";
 import MarketplaceSelector from "./MarketplaceSelector";
 import PreferencesSection from "./PreferencesSection";
 import ItemSpecificsSection from "./ItemSpecificsSection";
@@ -1077,13 +1077,14 @@ const Listing = () => {
             </div>
 
             <div>
-              <DescriptionSection
+              <HtmlEditor
                 value={
                   productListing?.detailed_description ||
                   productListing?.description ||
                   ""
                 }
                 onChange={handleDescriptionChange}
+                placeholder="No description yet."
               />
             </div>
 

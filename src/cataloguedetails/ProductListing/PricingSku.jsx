@@ -15,6 +15,12 @@ const PricingSku = ({
     setHandleChange((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const parseQuantity = (quantity) => {
+    if (quantity === undefined || quantity === null || quantity === "") return "";
+    const match = String(quantity).match(/\d+/g);
+    return match ? match[0] : "";
+  };
+
   const handleToggle = () => {
     setOpen(!open);
   };
@@ -76,7 +82,7 @@ const PricingSku = ({
                 type="number"
                 // onChange={handleSkuChange}
                 name="quantity"
-                value={productListing.quantity || ""}
+                value={parseQuantity(productListing.quantity)}
                 className="focus:outline-[#089451] border-2 border-[#089451] mt-1 py-3 ps-4 w-[60%]"
                 placeholder="3"
                 disabled
@@ -169,7 +175,7 @@ const PricingSku = ({
           </span>
           <span>
             <strong>Stock Quantity : </strong>  
-            {productListing.quantity ? productListing.quantity : ""}
+            {parseQuantity(productListing.quantity)}
           </span>
         </div>
 

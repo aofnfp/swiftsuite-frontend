@@ -23,6 +23,10 @@ export default function InventoryGridItem({
     }
   };
 
+    const status = item?.ends_status;
+  const hasStatus = status && status !== "Null" && status !== "null";
+  const isActive = hasStatus && status.toLowerCase() === "active";
+
   return (
     <div className="relative flex flex-col bg-[#f3f8f6] rounded-lg overflow-hidden">
       {showCheckboxes && (
@@ -38,16 +42,16 @@ export default function InventoryGridItem({
           />
         </div>
       )}
-      <div className="md:w-[20%] flex flex-col items-center gap-3 border-r  relative p-4">
-      </div>
-      <div className="relative bg-white p-4">
-        <span
-          className={`absolute top-3 right-3 text-xs font-semibold px-2 py-1 rounded 
-            ${item?.end_status ? "bg-green-600 text-white" : "bg-black text-white"}`}
-        >
-          {item?.end_status ? "Active" : "Inactive"}
-        </span>
-        <div className="absolute top-2 left-2 bg-[#e6f0eb] px-2 py-0.5 rounded text-xs">
+    
+      <div className=" bg-white p-4 flex justify-between">
+        <p>
+          {hasStatus ? (
+            <span className={`inline-flex items-center rounded-full text-xs px-2 font-medium ${isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+              {isActive ? "Active" : "Inactive"}
+            </span>
+          ) : ""}
+        </p>
+        <div className="bg-[#e6f0eb] px-2 py-0.5 rounded text-xs">
           {item?.sku && item?.sku !== "Null" ? item?.sku : ""}
         </div>
       </div>

@@ -2,10 +2,9 @@ import React, { useEffect, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useForm } from "react-hook-form";
+// import { useForm } from "react-hook-form";
 import { countries } from "../Countries";
-import { MdArrowDropDown, MdArrowDropUp } from "react-icons/md";
-import { MdOutlineArrowBackIosNew, MdInfo } from "react-icons/md";
+import { MdArrowDropDown, MdArrowDropUp, MdInfo } from "react-icons/md";
 import ResponsiveTooltip from "../ResponsiveTooltip";
 import { Toaster, toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
@@ -18,6 +17,8 @@ import {
 } from "../../api/authApi";
 import { useMarketplaceStore } from "../../stores/marketplaceStore";
 import { Select } from "antd";
+import { Controller, useForm } from "react-hook-form";
+
 
 const Woocommerce = () => {
   const store = useSelector((state) => state.vendor.vendorData);
@@ -32,52 +33,28 @@ const Woocommerce = () => {
   const quantity = useMarketplaceStore((state) => state.wcQuantityUpdate);
   const setQuantity = useMarketplaceStore((state) => state.setWcQuantityUpdate);
   const enforcement = useMarketplaceStore((state) => state.wcMapEnforcement);
-  const setEnforcement = useMarketplaceStore(
-    (state) => state.setWcMapEnforcement,
-  );
+  const setEnforcement = useMarketplaceStore((state) => state.setWcMapEnforcement);
   const msrp = useMarketplaceStore((state) => state.wcAutoPopulateMsrp);
   const setMsrp = useMarketplaceStore((state) => state.setWcAutoPopulateMsrp);
   const sendMinPrice = useMarketplaceStore((state) => state.wcSendMinPrice);
-  const setSendMinPrice = useMarketplaceStore(
-    (state) => state.setWcSendMinPrice,
-  );
+  const setSendMinPrice = useMarketplaceStore((state) => state.setWcSendMinPrice);
   const selectedCountry = useMarketplaceStore((state) => state.selectedCountry);
-  const setSelectedCountry = useMarketplaceStore(
-    (state) => state.setSelectedCountry,
-  );
+  const setSelectedCountry = useMarketplaceStore((state) => state.setSelectedCountry);
   const productStatus = useMarketplaceStore((state) => state.wcProductStatus);
-  const setProductStatus = useMarketplaceStore(
-    (state) => state.setWcProductStatus,
-  );
-  const isStatusDropdownOpen = useMarketplaceStore(
-    (state) => state.wcStatusDropdownOpen,
-  );
-  const setIsStatusDropdownOpen = useMarketplaceStore(
-    (state) => state.setWcStatusDropdownOpen,
-  );
+  const setProductStatus = useMarketplaceStore((state) => state.setWcProductStatus);
+  const isStatusDropdownOpen = useMarketplaceStore((state) => state.wcStatusDropdownOpen);
+  const setIsStatusDropdownOpen = useMarketplaceStore((state) => state.setWcStatusDropdownOpen);
   const loading = useMarketplaceStore((state) => state.wcLoading);
   const setLoading = useMarketplaceStore((state) => state.setWcLoading);
   const apiKeysLoading = useMarketplaceStore((state) => state.wcApiKeysLoading);
-  const setApiKeysLoading = useMarketplaceStore(
-    (state) => state.setWcApiKeysLoading,
-  );
-  const connectStoreLoading = useMarketplaceStore(
-    (state) => state.wcConnectStoreLoading,
-  );
-  const setConnectStoreLoading = useMarketplaceStore(
-    (state) => state.setWcConnectStoreLoading,
-  );
+  const setApiKeysLoading = useMarketplaceStore((state) => state.setWcApiKeysLoading);
+  const connectStoreLoading = useMarketplaceStore((state) => state.wcConnectStoreLoading);
+  const setConnectStoreLoading = useMarketplaceStore((state) => state.setWcConnectStoreLoading);
   const initialLoading = useMarketplaceStore((state) => state.wcInitialLoading);
-  const setInitialLoading = useMarketplaceStore(
-    (state) => state.setWcInitialLoading,
-  );
-  const hasExistingEnrolment = useMarketplaceStore(
-    (state) => state.wcHasExistingEnrolment,
-  );
-  const setHasExistingEnrolment = useMarketplaceStore(
-    (state) => state.setWcHasExistingEnrolment,
-  );
-  const resetWcStore = useMarketplaceStore((state) => state.resetWcStore);
+  const setInitialLoading = useMarketplaceStore((state) => state.setWcInitialLoading);
+  const hasExistingEnrolment = useMarketplaceStore((state) => state.wcHasExistingEnrolment);
+  const setHasExistingEnrolment = useMarketplaceStore((state) => state.setWcHasExistingEnrolment);
+  const marketList = useMarketplaceStore((state) => state.marketList);
 
   const Schema = yup.object().shape({
     wc_consumer_url: yup
@@ -135,18 +112,20 @@ const Woocommerce = () => {
   });
 
   const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    watch,
-    setValue,
-    reset,
-  } = useForm({
+  register,
+  control,
+  handleSubmit,
+  formState: { errors },
+  watch,
+  setValue,
+  reset,
+} = useForm({
     resolver: yupResolver(Schema),
     mode: "onChange",
     defaultValues: {
       marketplace_name: "woocommerce",
       region: "",
+      wc_product_status: "Publish",
     },
   });
 
@@ -154,12 +133,9 @@ const Woocommerce = () => {
   const quantityUpdate = watch("enable_quantity_update");
   const enforcementCheck = watch("wc_map_enforcement");
   const msrpCheck = watch("wc_auto_populate_msrp");
-  const sendMinPriceCheck = watch("send_min_price");
   const wcConsumerUrl = watch("wc_consumer_url");
   const wcConsumerKey = watch("wc_consumer_key");
   const wcConsumerSecret = watch("wc_consumer_secret");
-
-  const marketList = useMarketplaceStore((state) => state.marketList);
 
   const loadExistingEnrolment = useCallback(async () => {
     if (!userId || !token || marketList === true) {
@@ -174,9 +150,12 @@ const Woocommerce = () => {
       if (response && response.status === 200) {
         const data = response.data;
 
+        const regionValue = data.region || "";
+        const statusValue = data.wc_product_status || "Publish";
+
         const formPayload = {
           marketplace_name: data.marketplace_name || "woocommerce",
-          region: data.region || "",
+          region: regionValue,
           wc_consumer_url: data.wc_consumer_url || "",
           wc_consumer_key: data.wc_consumer_key || "",
           wc_consumer_secret: data.wc_consumer_secret || "",
@@ -184,8 +163,7 @@ const Woocommerce = () => {
             data.fixed_percentage_markup != null
               ? String(data.fixed_percentage_markup)
               : "",
-          fixed_markup:
-            data.fixed_markup != null ? String(data.fixed_markup) : "",
+          fixed_markup: data.fixed_markup != null ? String(data.fixed_markup) : "",
           enable_price_update: Boolean(data.enable_price_update),
           enable_quantity_update: Boolean(data.enable_quantity_update),
           wc_map_enforcement: Boolean(data.wc_map_enforcement),
@@ -193,25 +171,24 @@ const Woocommerce = () => {
           send_min_price: Boolean(data.send_min_price),
           RIO_strategy: data.RIO_strategy || "",
           min_profit_mergin:
-            data.min_profit_mergin != null
-              ? String(data.min_profit_mergin)
-              : "",
+            data.min_profit_mergin != null ? String(data.min_profit_mergin) : "",
           profit_margin:
             data.profit_margin != null ? String(data.profit_margin) : "",
           maximum_quantity:
             data.maximum_quantity != null ? String(data.maximum_quantity) : "",
-          wc_product_status: data.wc_product_status || "Publish",
+          wc_product_status: statusValue,
         };
 
         reset(formPayload);
+setSelectedCountry(regionValue);
 
         setPrice(Boolean(data.enable_price_update));
         setQuantity(Boolean(data.enable_quantity_update));
         setEnforcement(Boolean(data.wc_map_enforcement));
         setMsrp(Boolean(data.wc_auto_populate_msrp));
         setSendMinPrice(Boolean(data.send_min_price));
-        setSelectedCountry(data.region || "");
-        setProductStatus(data.wc_product_status || "Publish");
+        // setSelectedCountry(regionValue);
+        setProductStatus(statusValue);
         setHasExistingEnrolment(true);
 
         toast.success("Previous enrolment filled");
@@ -224,7 +201,21 @@ const Woocommerce = () => {
     } finally {
       setInitialLoading(false);
     }
-  }, [userId, token, reset]);
+  }, [
+    userId,
+    token,
+    marketList,
+    reset,
+    setInitialLoading,
+    setPrice,
+    setQuantity,
+    setEnforcement,
+    setMsrp,
+    setSendMinPrice,
+    setSelectedCountry,
+    setProductStatus,
+    setHasExistingEnrolment,
+  ]);
 
   useEffect(() => {
     loadExistingEnrolment();
@@ -237,6 +228,7 @@ const Woocommerce = () => {
     }
 
     let normalizedUrl = data.wc_consumer_url?.trim() || "";
+
     if (normalizedUrl && !/^(https?:\/\/)/i.test(normalizedUrl)) {
       normalizedUrl = `https://${normalizedUrl}`;
     }
@@ -254,7 +246,8 @@ const Woocommerce = () => {
       profit_margin: data.profit_margin ?? null,
       maximum_quantity: data.maximum_quantity ?? null,
       wc_product_status: productStatus,
-      region: selectedCountry || null,
+      // region: selectedCountry || null,
+      region: data.region || null,
       store_id: null,
       enable_price_update: priceUpdate || false,
       enable_quantity_update: quantityUpdate || false,
@@ -265,6 +258,7 @@ const Woocommerce = () => {
 
     try {
       setLoading(true);
+
       const response = hasExistingEnrolment
         ? await marketplaceEnrolment(userId, "woocommerce", payload)
         : await woocommerceEnrolment(userId, payload);
@@ -274,6 +268,7 @@ const Woocommerce = () => {
         navigate("/marketplace/success");
       } else {
         const result = response.data;
+
         if (result === "User is already enrolled in WooCommerce marketplace.") {
           toast.error(result);
         } else {
@@ -288,22 +283,21 @@ const Woocommerce = () => {
     }
   };
 
-  const handleCountryChange = (e) => {
-    const val = e.target.value;
-    setSelectedCountry(val);
-    setValue("region", val);
-  };
-
   const toggleStatusDropdown = () =>
     setIsStatusDropdownOpen(!isStatusDropdownOpen);
+
   const handleStatusSelect = (status) => {
     setProductStatus(status);
-    setValue("wc_product_status", status);
+    setValue("wc_product_status", status, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
     setIsStatusDropdownOpen(false);
   };
 
   const handleCreateAPIKeys = async () => {
     const urlValue = wcConsumerUrl?.trim();
+
     if (!urlValue) {
       toast.error("Please enter a Site URL first.");
       return;
@@ -316,9 +310,11 @@ const Woocommerce = () => {
     try {
       const url = new URL(withProto);
       const domainRegex = /^(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
+
       if (!domainRegex.test(url.hostname)) throw new Error("invalid");
 
       setApiKeysLoading(true);
+
       const target = `${url.origin}/wp-admin/admin.php?page=wc-settings&tab=advanced&section=keys`;
       window.open(target, "_blank");
     } catch {
@@ -329,27 +325,61 @@ const Woocommerce = () => {
   };
 
   const handleConnectStore = async () => {
+    if (!wcConsumerUrl || !wcConsumerKey || !wcConsumerSecret) {
+      toast.error("Please fill in Site URL, Consumer Key and Consumer Secret first.");
+      return;
+    }
+
     setConnectStoreLoading(true);
 
     try {
       const res = await testWoocommerceConnection(userId);
-
       toast.success(res.data?.message || "WooCommerce connection successful");
     } catch (err) {
-      toast.error("Failed to connect to WooCommerce");
+      toast.error(
+        err?.response?.data?.message || "Failed to connect to WooCommerce"
+      );
     } finally {
       setConnectStoreLoading(false);
     }
   };
 
+  const checkboxClass =
+    "appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2";
+
+  if (initialLoading) {
+    return (
+      <div className="w-full min-h-[50vh] flex items-center justify-center">
+        <ThreeDots height="45" width="70" color="#027840" />
+      </div>
+    );
+  }
+
   return (
     <>
       <style>{`
-        select option { max-width: 100%; }
-        .dropdown-menu { max-height: 150px; overflow-y: auto; }
+        .dropdown-menu {
+          max-height: 150px;
+          overflow-y: auto;
+        }
+
+        .woocommerce-region-select .ant-select-selector {
+          min-height: 35px !important;
+          border-color: #d1d5db !important;
+          background-color: #f9f9f9 !important;
+          border-radius: 4px !important;
+          display: flex !important;
+          align-items: center !important;
+        }
+
+        .woocommerce-region-select .ant-select-selection-placeholder,
+        .woocommerce-region-select .ant-select-selection-item {
+          font-size: 14px !important;
+        }
       `}</style>
 
       <Toaster position="top-right" richColors closeButton />
+
       <div className="pb-10">
         <div className="flex justify-between items-center mt-5 mb-3">
           <div className="flex items-center gap-4">
@@ -361,10 +391,12 @@ const Woocommerce = () => {
               Return
             </Link>
           </div>
+
           <p className="relative lg:top-4 lg:left-0 md:left-10 font-bold text-xl">
             Edit Woocommerce
           </p>
         </div>
+
         <section className="bg-white shadow-lg px-2 w-full py-2 rounded-[10px]">
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="bg-white lg:w-[100%] w-[93%] md:w-[90%] lg:ms-0 md:ms-10 ms-3">
@@ -380,6 +412,7 @@ const Woocommerce = () => {
                   >
                     Marketplace Name:
                   </label>
+
                   <div className="w-full sm:flex-1">
                     <input
                       id="marketplace_name"
@@ -399,26 +432,37 @@ const Woocommerce = () => {
                   >
                     Marketplace Region:
                   </label>
-                  <div className="w-full sm:flex-1 relative">
-                    <Select
-                      id="region"
-                      {...register("region")}
-                      defaultValue=""
-                      className="w-full"
-                      onChange={handleCountryChange}
-                    >
-                      <option value="">
-                        Select Country
-                      </option>
-                      {countries.map((c) => (
-                        <option key={c.name} value={c.name}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </Select>
-                    <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xl text-gray-500">
-                      <MdArrowDropDown />
-                    </span>
+
+                  <div className="w-full sm:flex-1">
+                    <Controller
+  name="region"
+  control={control}
+  render={({ field }) => (
+    <Select
+      id="region"
+      value={field.value || undefined}
+      placeholder="Select Country"
+      className="w-full woocommerce-region-select"
+      showSearch
+      optionFilterProp="label"
+      onChange={(value) => {
+        field.onChange(value);
+        setSelectedCountry(value);
+      }}
+      options={countries.map((country) => ({
+        value: country.name,
+        label: country.name,
+      }))}
+    />
+  )}
+/>
+
+{errors.region && (
+  <p className="text-red-500 text-xs mt-1">
+    {errors.region.message}
+  </p>
+)}
+
                     {errors.region && (
                       <p className="text-red-500 text-xs mt-1">
                         {errors.region.message}
@@ -435,28 +479,26 @@ const Woocommerce = () => {
                     >
                       Site URL:
                     </label>
+
                     <div className="w-full sm:flex-1">
-                      <div className="relative">
-                        <input
-                          id="wc_consumer_url"
-                          {...register("wc_consumer_url")}
-                          type="text"
-                          className={`border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded ${
-                            errors.wc_consumer_url ? "border-red-400" : ""
-                          }`}
-                        />
-                      </div>
-                      <div className="h-[18px] mt-1">
-                        {errors.wc_consumer_url && (
-                          <p className="text-red-500 text-xs">
-                            {errors.wc_consumer_url.message}
-                          </p>
-                        )}
-                      </div>
+                      <input
+                        id="wc_consumer_url"
+                        {...register("wc_consumer_url")}
+                        type="text"
+                        className={`border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded ${
+                          errors.wc_consumer_url ? "border-red-400" : ""
+                        }`}
+                      />
+
+                      {errors.wc_consumer_url && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.wc_consumer_url.message}
+                        </p>
+                      )}
                     </div>
                   </div>
 
-                  <div className="flex flex-row items-center gap-3 md:col-span-6 col-span-12 justify-start sm:justify-start md:justify-start mb-10">
+                  <div className="flex flex-row items-center gap-3 md:col-span-6 col-span-12 justify-start mb-10">
                     <button
                       type="button"
                       onClick={handleCreateAPIKeys}
@@ -475,9 +517,7 @@ const Woocommerce = () => {
                       )}
                     </button>
 
-                    <ResponsiveTooltip
-                      title={`Open WooCommerce → Settings → Advanced → REST API → Add Key`}
-                    >
+                    <ResponsiveTooltip title="Open WooCommerce → Settings → Advanced → REST API → Add Key">
                       <MdInfo className="text-gray-500 text-xl cursor-pointer" />
                     </ResponsiveTooltip>
                   </div>
@@ -490,6 +530,7 @@ const Woocommerce = () => {
                   >
                     Consumer Key:
                   </label>
+
                   <div className="w-full sm:flex-1">
                     <input
                       id="wc_consumer_key"
@@ -497,6 +538,7 @@ const Woocommerce = () => {
                       type="text"
                       className="border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded"
                     />
+
                     {errors.wc_consumer_key && (
                       <p className="text-red-500 text-xs mt-1">
                         {errors.wc_consumer_key.message}
@@ -512,6 +554,7 @@ const Woocommerce = () => {
                   >
                     Consumer Secret:
                   </label>
+
                   <div className="w-full sm:flex-1">
                     <input
                       id="wc_consumer_secret"
@@ -519,6 +562,7 @@ const Woocommerce = () => {
                       type="password"
                       className="border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded"
                     />
+
                     {errors.wc_consumer_secret && (
                       <p className="text-red-500 text-xs mt-1">
                         {errors.wc_consumer_secret.message}
@@ -546,6 +590,7 @@ const Woocommerce = () => {
               <h1 className="lg:text-xl font-bold mt-5 border-b-1 px-4">
                 Processing Fees
               </h1>
+
               <section className="grid grid-cols-12 justify-center items-center gap-6 my-5 px-4">
                 <div className="flex flex-col sm:flex-row items-center gap-4 md:col-span-6 col-span-12">
                   <label
@@ -554,14 +599,15 @@ const Woocommerce = () => {
                   >
                     Fixed (%):
                   </label>
+
                   <div className="w-full sm:flex-1">
                     <input
-                      id="fixed_percentage_markup"
                       {...register("fixed_percentage_markup")}
                       type="number"
                       step="0.01"
                       className="border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded"
                     />
+
                     {errors.fixed_percentage_markup && (
                       <p className="text-red-500 text-xs mt-1">
                         {errors.fixed_percentage_markup.message}
@@ -577,14 +623,15 @@ const Woocommerce = () => {
                   >
                     Fixed ($):
                   </label>
+
                   <div className="w-full sm:flex-1">
                     <input
-                      id="fixed_markup"
                       {...register("fixed_markup")}
                       type="number"
                       step="0.01"
                       className="border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded"
                     />
+
                     {errors.fixed_markup && (
                       <p className="text-red-500 text-xs mt-1">
                         {errors.fixed_markup.message}
@@ -597,12 +644,14 @@ const Woocommerce = () => {
               <h1 className="lg:text-xl font-bold mt-10 border-b-1 px-4">
                 Marketplace Options
               </h1>
+
               <section className="grid grid-cols-12 justify-center items-center gap-6 my-5 px-4">
                 <div className="flex flex-col gap-6 col-span-12">
                   <div className="flex items-center gap-20">
                     <label className="text-sm font-semibold w-full sm:w-40">
                       Enable Price Update:
                     </label>
+
                     <input
                       {...register("enable_price_update")}
                       type="checkbox"
@@ -611,8 +660,7 @@ const Woocommerce = () => {
                         setPrice(e.target.checked);
                         setValue("enable_price_update", e.target.checked);
                       }}
-                      className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/5"
-                      aria-label="Enable automatic price updates"
+                      className={checkboxClass}
                     />
                   </div>
 
@@ -620,6 +668,7 @@ const Woocommerce = () => {
                     <label className="text-sm font-semibold w-full sm:w-40">
                       Enable Quantity Update:
                     </label>
+
                     <input
                       {...register("enable_quantity_update")}
                       type="checkbox"
@@ -628,8 +677,7 @@ const Woocommerce = () => {
                         setQuantity(e.target.checked);
                         setValue("enable_quantity_update", e.target.checked);
                       }}
-                      className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/5"
-                      aria-label="Enable automatic quantity updates"
+                      className={checkboxClass}
                     />
                   </div>
 
@@ -637,6 +685,7 @@ const Woocommerce = () => {
                     <label className="text-sm font-semibold w-full sm:w-40">
                       Send Minimum Price:
                     </label>
+
                     <input
                       {...register("send_min_price")}
                       type="checkbox"
@@ -645,8 +694,7 @@ const Woocommerce = () => {
                         setSendMinPrice(e.target.checked);
                         setValue("send_min_price", e.target.checked);
                       }}
-                      className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/5"
-                      aria-label="Enable send minimum price"
+                      className={checkboxClass}
                     />
                   </div>
                 </div>
@@ -658,9 +706,9 @@ const Woocommerce = () => {
                   >
                     ROI Strategy:
                   </label>
+
                   <div className="w-full sm:flex-1 relative">
                     <select
-                      id="RIO_strategy"
                       {...register("RIO_strategy")}
                       className="px-2 w-full h-[38px] bg-[#F9F9F9] border border-gray-300 rounded shadow-sm focus:outline-none appearance-none"
                     >
@@ -669,6 +717,7 @@ const Woocommerce = () => {
                       <option value="ROI Margin">ROI Margin</option>
                       <option value="ROI Fixed">ROI Fixed</option>
                     </select>
+
                     <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xl text-gray-500">
                       <MdArrowDropDown />
                     </span>
@@ -682,14 +731,15 @@ const Woocommerce = () => {
                   >
                     Min Profit Margin (%):
                   </label>
+
                   <div className="w-full sm:flex-1">
                     <input
-                      id="min_profit_mergin"
                       {...register("min_profit_mergin")}
                       type="number"
                       step="0.01"
                       className="border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded"
                     />
+
                     {errors.min_profit_mergin && (
                       <p className="text-red-500 text-xs mt-1">
                         {errors.min_profit_mergin.message}
@@ -705,14 +755,15 @@ const Woocommerce = () => {
                   >
                     Margin (%):
                   </label>
+
                   <div className="w-full sm:flex-1">
                     <input
-                      id="profit_margin"
                       {...register("profit_margin")}
                       type="number"
                       step="0.01"
                       className="border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded"
                     />
+
                     {errors.profit_margin && (
                       <p className="text-red-500 text-xs mt-1">
                         {errors.profit_margin.message}
@@ -726,6 +777,7 @@ const Woocommerce = () => {
                     <label className="text-sm font-semibold w-full sm:w-40">
                       Map Enforcement:
                     </label>
+
                     <input
                       {...register("wc_map_enforcement")}
                       type="checkbox"
@@ -734,8 +786,7 @@ const Woocommerce = () => {
                         setEnforcement(e.target.checked);
                         setValue("wc_map_enforcement", e.target.checked);
                       }}
-                      className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/5"
-                      aria-label="Enable map enforcement"
+                      className={checkboxClass}
                     />
                   </div>
 
@@ -743,6 +794,7 @@ const Woocommerce = () => {
                     <label className="text-sm font-semibold w-full sm:w-40">
                       Auto Populate MSRP:
                     </label>
+
                     <input
                       {...register("wc_auto_populate_msrp")}
                       type="checkbox"
@@ -751,8 +803,7 @@ const Woocommerce = () => {
                         setMsrp(e.target.checked);
                         setValue("wc_auto_populate_msrp", e.target.checked);
                       }}
-                      className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
-                      aria-label="Enable auto populate MSRP"
+                      className={checkboxClass}
                     />
                   </div>
                 </div>
@@ -764,14 +815,15 @@ const Woocommerce = () => {
                   >
                     Maximum Quantity:
                   </label>
+
                   <div className="w-full sm:flex-1">
                     <input
-                      id="maximum_quantity"
                       {...register("maximum_quantity")}
                       type="number"
                       step="1"
                       className="border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded"
                     />
+
                     {errors.maximum_quantity && (
                       <p className="text-red-500 text-xs mt-1">
                         {errors.maximum_quantity.message}
@@ -789,18 +841,21 @@ const Woocommerce = () => {
                   >
                     Product Status:
                   </label>
+
                   <div className="w-full sm:flex-1 relative">
                     <input
                       type="hidden"
                       {...register("wc_product_status")}
                       value={productStatus}
                     />
+
                     <button
                       type="button"
                       onClick={toggleStatusDropdown}
                       className="border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded flex items-center justify-between"
                     >
                       <span>{productStatus}</span>
+
                       <span className="text-xl text-gray-500">
                         {isStatusDropdownOpen ? (
                           <MdArrowDropUp />
@@ -812,14 +867,14 @@ const Woocommerce = () => {
 
                     {isStatusDropdownOpen && (
                       <div className="absolute z-10 w-full bg-white border border-gray-300 rounded shadow-lg dropdown-menu">
-                        {["Publish", "Draft", "Pending Review"].map((s) => (
+                        {["Publish", "Draft", "Pending Review"].map((status) => (
                           <button
-                            key={s}
+                            key={status}
                             type="button"
-                            onClick={() => handleStatusSelect(s)}
+                            onClick={() => handleStatusSelect(status)}
                             className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                           >
-                            {s}
+                            {status}
                           </button>
                         ))}
                       </div>
@@ -832,43 +887,18 @@ const Woocommerce = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`
-                    bg-[#089451] text-white px-16 py-2 rounded-lg 
-                    transition-all duration-200 ease-in-out
-                    flex items-center justify-center gap-2 font-medium
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                    hover:bg-green-700 hover:shadow-md active:scale-95
-                    focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2
-                  `}
-                  aria-busy={loading}
+                  className="bg-[#089451] text-white px-16 py-2 rounded-lg transition-all duration-200 ease-in-out flex items-center justify-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-green-700 hover:shadow-md active:scale-95 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                 >
-                  {loading && (
-                    <svg
-                      className="animate-spin h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V4l3 3-3 3V4a8 8 0 00-8 8h4l-3-3 3-3H4z"
-                      />
-                    </svg>
+                  {loading ? (
+                    <>
+                      <ThreeDots height="20" width="60" color="#fff" />
+                      <span>Submitting...</span>
+                    </>
+                  ) : hasExistingEnrolment ? (
+                    "Update"
+                  ) : (
+                    "Submit"
                   )}
-                  {loading
-                    ? "Submitting..."
-                    : hasExistingEnrolment
-                      ? "Update"
-                      : "Submit"}
                 </button>
               </div>
             </div>

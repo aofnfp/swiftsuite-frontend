@@ -72,39 +72,42 @@ const PricingDetails = () => {
 
   if (!activePlan) {
     return (
-      <div className="flex flex-col items-center justify-center h-[500px] text-center">
-        <p className="text-lg text-gray-600 mb-4">No plan details available.</p>
-        <button
-          onClick={() => navigate(-1)}
-          className="px-6 py-2 rounded-md bg-gray-800 text-white hover:bg-gray-700"
-        >
-          Go Back
-        </button>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#E7F2ED] px-4 py-8">
+        <div className="bg-white rounded-lg p-6 sm:p-8 text-center max-w-sm w-full">
+          <p className="text-base sm:text-lg text-gray-600 mb-6">
+            No plan details available.
+          </p>
+          <button
+            onClick={() => navigate(-1)}
+            className="w-full px-6 py-2 rounded-md bg-gray-800 text-white hover:bg-gray-700 transition font-semibold"
+          >
+            Go Back
+          </button>
+        </div>
       </div>
     );
   }
 
-
   return (
-    <div className="py-1 mx-auto bg-[#E7F2ED] rounded-lg">
+    <div className="py-1 mx-auto bg-[#E7F2ED] rounded-lg min-h-screen">
       <div className="mt-2 py-5 bg-white">
-        <h1 className="text-3xl text-center font-semibold">Pricing Plans</h1>
-        <p className="text-center">
-          Here, you have an elaborate view of the plans you want to go with <br />
-          and the top features, broken down <br /> and explained
+        <h1 className="text-2xl sm:text-3xl text-center font-semibold px-4">Pricing Plans</h1>
+        <p className="text-center text-sm sm:text-base px-4 mt-2">
+          Here, you have an elaborate view of the plans you want to go with <br className="hidden sm:block" />
+          and the top features, broken down <br className="hidden sm:block" /> and explained
         </p>
       </div>
 
       <div className="bg-white">
-        <div className="flex flex-col lg:flex-row pt-10 mt-3 justify-center items-stretch bg-white max-w-[50%] mx-auto">
-          <div className="grid grid-rows-2 flex-1 min-w-[50%]">
-            <div className="flex bg-[#F2F2F2] font-semibold text-2xl p-8">
-              <p>
+        <div className="flex flex-col lg:flex-row pt-6 sm:pt-10 mt-3 justify-center items-stretch bg-white px-4 sm:px-6 md:px-8 w-full lg:max-w-[50%] mx-auto gap-0 lg:gap-0">
+          <div className="grid grid-rows-2 flex-1 min-w-full lg:min-w-[50%] mb-6 lg:mb-0">
+            <div className="flex bg-[#F2F2F2] font-semibold text-xl sm:text-2xl p-6 sm:p-8">
+              <p className="break-words">
                 Choose your <br /> plan
               </p>
             </div>
-            <div className="flex flex-col">
-              <p className="font-semibold h-[40px] flex items-center text-[17px]">
+            <div className="flex flex-col border border-t-0 border-gray-200">
+              <p className="font-semibold h-10 sm:h-[40px] flex items-center text-base sm:text-[17px] px-4 sm:px-6">
                 Top Features
               </p>
               <ul className="flex-1 flex flex-col">
@@ -120,8 +123,8 @@ const PricingDetails = () => {
                     .trim();
 
                   return cleanedText ? (
-                    <li key={item.id} className="border-b flex items-center h-[60px] pl-2">
-                      <span className="text-gray-700 mx-4">{cleanedText}</span>
+                    <li key={item.id} className="border-b flex items-center h-12 sm:h-[60px] px-4 sm:px-6">
+                      <span className="text-gray-700 text-sm sm:text-base">{cleanedText}</span>
                     </li>
                   ) : null;
                 })}
@@ -130,129 +133,71 @@ const PricingDetails = () => {
           </div>
 
           <div className="grid grid-rows-2 w-full lg:w-[50%] shadow-[0_2px_30px_0_rgba(0,0,0,0.25)]">
-            <div className="border flex flex-col items-center justify-center text-center py-5">
-              <h2 className="text-2xl font-bold mb-4" style={{ color: activePlan.color }}>
+            <div className="border flex flex-col items-center justify-center text-center py-6 sm:py-8 px-4">
+              <h2 className="text-xl sm:text-2xl font-bold mb-4" style={{ color: activePlan.color }}>
                 {activePlan.name}
               </h2>
-              <div className="font-bold mb-2 text-[2rem]" style={{ color: activePlan.color }}>
+              <div className="font-bold mb-2 text-2xl sm:text-[2rem]" style={{ color: activePlan.color }}>
                 {parseFloat(activePlan.price) === 0 ? (
                   <span>Custom</span>
                 ) : (
                   <>
                     ${parseFloat(activePlan.price).toLocaleString()}
-                    <span className="text-[1rem] text-gray-500">/month</span>
+                    <span className="text-sm sm:text-[1rem] text-gray-500 block">/month</span>
                   </>
                 )}
               </div>
 
-              <p className="mb-4 font-semibold text-gray-500">
+              <p className="mb-6 font-semibold text-gray-500 text-sm sm:text-base">
                 billed <br /> monthly
               </p>
 
-              
               <button
                 onClick={() => chooseMyPlan(activePlan.id)}
-                className="border w-[170px] h-[40px] px-4 rounded-[10px] bg-[#027840] text-white flex items-center justify-center gap-2 mt-3"
+                className="border w-full sm:w-[170px] h-10 sm:h-[40px] px-4 rounded-[10px] bg-[#027840] text-white inline-flex items-center justify-center gap-2 mt-3 hover:bg-[#026634] transition disabled:opacity-70 font-semibold text-sm sm:text-base"
                 disabled={loadingTier === activePlan.id}
                 aria-busy={loadingTier === activePlan.id}
               >
                 {loadingTier === activePlan.id ? (
-                  <ThreeDots height="20" width="20" color="white" ariaLabel="loading" />
+                  <span className="flex items-center justify-center">
+                    <ThreeDots height="20" width="20" color="white" ariaLabel="loading" />
+                  </span>
                 ) : (
-                  "Proceed to Payment"
+                  <span className="whitespace-nowrap">Proceed to Payment</span>
                 )}
               </button>
             </div>
 
-            <div className="border">
-              <p className="font-semibold h-[40px] flex items-center text-[17px] "></p>
+            <div className="border border-t-0">
+              <p className="font-semibold h-10 sm:h-[40px] flex items-center text-base sm:text-[17px] px-4 sm:px-6"></p>
               <ul className="flex-1 flex flex-col">
-                <li className="border-b flex flex-col items-center justify-center h-[60px]">
-                  <span className="font-semibold">{activePlan.included_orders} Orders/month</span>
-                  <span className="text-gray-500 text-sm">
+                <li className="border-b flex flex-col items-center justify-center h-14 sm:h-[60px] px-4 sm:px-6">
+                  <span className="font-semibold text-sm sm:text-base">{activePlan.included_orders} Orders/month</span>
+                  <span className="text-gray-500 text-xs sm:text-sm">
                     (extra order cost ${parseFloat(activePlan.extra_order_cost).toFixed(2)})
                   </span>
                 </li>
-                <li className="border-b flex flex-col items-center justify-center h-[60px]">
-                  <span className="font-semibold">{activePlan.included_stores} Marketplace Integrations</span>
-                  <span className="text-gray-500 text-sm">
+                <li className="border-b flex flex-col items-center justify-center h-14 sm:h-[60px] px-4 sm:px-6">
+                  <span className="font-semibold text-sm sm:text-base">{activePlan.included_stores} Marketplace Integrations</span>
+                  <span className="text-gray-500 text-xs sm:text-sm">
                     (extra store cost: ${parseFloat(activePlan.extra_store_cost).toFixed(2)})
                   </span>
                 </li>
-                <li className="border-b flex flex-col items-center justify-center h-[60px]">
-                  <span className="font-semibold">{activePlan.included_vendors} Vendor Integrations</span>
-                  <span className="text-gray-500 text-sm">
+                <li className="border-b flex flex-col items-center justify-center h-14 sm:h-[60px] px-4 sm:px-6">
+                  <span className="font-semibold text-sm sm:text-base">{activePlan.included_vendors} Vendor Integrations</span>
+                  <span className="text-gray-500 text-xs sm:text-sm">
                     (extra vendor cost: ${parseFloat(activePlan.extra_vendor_cost).toFixed(2)})
                   </span>
                 </li>
-                <li className="border-b flex flex-col items-center justify-center h-[60px]">
-                  <span className="font-semibold">{activePlan.max_subaccounts} Subaccounts</span>
-                  <span className="text-gray-500 text-sm">(Included in plan)</span>
+                <li className="border-b flex flex-col items-center justify-center h-14 sm:h-[60px] px-4 sm:px-6">
+                  <span className="font-semibold text-sm sm:text-base">{activePlan.max_subaccounts} Subaccounts</span>
+                  <span className="text-gray-500 text-xs sm:text-sm">(Included in plan)</span>
                 </li>
               </ul>
             </div>
           </div>
         </div>
       </div>
-
-      {/* 
-      <div className="bg-white pt-5">
-        <section className="pb-5 bg-white max-w-[50%] mx-auto">
-          <div className="flex flex-col gap-4">
-            <h1 className="font-bold text-xl">Optional Add-Ons</h1>
-            {card.map((item, index) => {
-              const isSelected = selectedAddOns[index] || false;
-              return (
-                <div
-                  key={index}
-                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b gap-4"
-                >
-                  <div className="sm:flex-[2] w-full">
-                    <h3 className="font-bold text-lg">{item.heading}</h3>
-                    <p className="text-gray-600 text-sm">{item.details}</p>
-                  </div>
-                  <div className="sm:flex-1 w-full flex justify-center sm:justify-center font-bold">
-                    ${item.price}/month
-                  </div>
-                  <div className="sm:flex-1 w-full flex justify-start sm:justify-end items-center">
-                    <button
-                      onClick={() => toggleAddOn(index, !isSelected)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors 
-                        ${isSelected ? "bg-[#005D68]" : "bg-gray-300"}`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform 
-                        ${isSelected ? "translate-x-6" : "translate-x-1"}`}
-                      />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-            <div className="text-center">
-              <div className="text-xl font-bold flex justify-between">
-                <p>Total:</p>
-                <p>${totalPrice.toFixed(2)}</p>
-              </div>
-            </div>
-            <div className="flex justify-end items-end">
-              <button
-                onClick={() => chooseMyPlan(activePlan.id)}
-                className="border w-[170px] h-[40px] px-4 rounded-[10px] bg-[#027840] text-white flex items-center justify-center gap-2"
-                disabled={loadingTier === activePlan.id}
-                aria-busy={loadingTier === activePlan.id}
-              >
-                {loadingTier === activePlan.id ? (
-                  <ThreeDots height="20" width="20" color="white" ariaLabel="loading" />
-                ) : (
-                  "Proceed to Payment"
-                )}
-              </button>
-            </div>
-          </div>
-        </section>
-      </div>
-      */}
 
       <div className="mt-3 bg-white mx-auto">
         <Faqs />

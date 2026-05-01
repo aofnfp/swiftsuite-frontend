@@ -28,8 +28,8 @@ const Ebay = () => {
   const userIdString = localStorage.getItem('userId');
   const userId = userIdString ? JSON.parse(userIdString) : null;
   const navigate = useNavigate();
-  const vendorName = localStorage.getItem('vendorName');
 
+  // Zustand Store
   const connectClickedState = useMarketplaceStore((state) => state.connectClicked);
   const setConnectClickedState = useMarketplaceStore((state) => state.setConnectClicked);
   const ebayConnected = useMarketplaceStore((state) => state.ebayConnected);
@@ -139,7 +139,7 @@ const Ebay = () => {
       .transform((value, originalValue) => (originalValue === '' ? null : value))
       .min(1, 'Maximum quantity must be at least 1')
       .notRequired(),
-      min_profit_mergin: yup
+    min_profit_mergin: yup
       .number()
       .typeError('Minimum profit margin must be a number')
       .nullable()
@@ -187,7 +187,7 @@ const Ebay = () => {
     }),
     payment_policy: yup.object({
       id: yup.string().required('Payment policy is required'),
-      name: yup.string().required('Payment policy name is required'),
+      name: yup.string().required(''),
     }),
   });
 
@@ -239,10 +239,9 @@ const Ebay = () => {
     }
   }, [setValue]);
 
-  const handleCountryChange = useCallback((event) => {
-    const value = event.target.value;
+  const handleCountryChange = useCallback((value) => {
     setSelectedCountry(value);
-    setValue('region', value);
+    setValue('region', value, { shouldValidate: true, shouldDirty: true });
   }, [setValue]);
 
   const onSubmit = async (data) => {
@@ -258,6 +257,7 @@ const Ebay = () => {
       toast.error('Please select all required policies');
       return;
     }
+
     setIsSubmitting(true);
     try {
       const payload = {
@@ -272,6 +272,7 @@ const Ebay = () => {
         payment_policy: JSON.stringify(data.payment_policy),
         store_id: extractStoreId(data.store_id),
       };
+
       const response = await marketplaceEnrolment(userId, 'Ebay', payload);
       if (response.status === 200 || response.status === 201) {
         toast.success("eBay enrollment successful!");
@@ -291,7 +292,7 @@ const Ebay = () => {
   const refreshEbaySilent = useCallback(async () => {
     setIsRotating(true);
     try {
-      const response = await refreshEbaySilentConnection(userId)
+      const response = await refreshEbaySilentConnection(userId);
       if (response) {
         const data = response;
         setShipPolicyArray(data.fulfillment_policies?.fulfillmentPolicies || []);
@@ -300,9 +301,9 @@ const Ebay = () => {
         setRefreshIcon(true);
         setEbayConnected(true);
         setPoliciesLoaded(true);
-        const newStoreId = extractStoreId(data.ebay_store_id); 
+        const newStoreId = extractStoreId(data.ebay_store_id);
         setStoreDetails(newStoreId);
-        setValue('store_id', newStoreId); 
+        setValue('store_id', newStoreId);
         return data;
       }
     } catch (error) {
@@ -328,9 +329,9 @@ const Ebay = () => {
         setRefreshIcon(true);
         setEbayConnected(true);
         setPoliciesLoaded(true);
-        const newStoreId = extractStoreId(data.ebay_store_id); 
+        const newStoreId = extractStoreId(data.ebay_store_id);
         setStoreDetails(newStoreId);
-        setValue('store_id', newStoreId); 
+        setValue('store_id', newStoreId);
         toast.success("eBay connection refreshed successfully!");
         return data;
       }
@@ -395,14 +396,8 @@ const Ebay = () => {
       if (response.status === 200) {
         toast.success("eBay connection successful!");
         
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-          timeoutRef.current = null;
-        }
-        if (accessCodeTimeoutRef.current) {
-          clearTimeout(accessCodeTimeoutRef.current);
-          accessCodeTimeoutRef.current = null;
-        }
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        if (accessCodeTimeoutRef.current) clearTimeout(accessCodeTimeoutRef.current);
         
         setAuthorization_code('');
         setModal2Open(false);
@@ -424,23 +419,20 @@ const Ebay = () => {
         toast.error("Connection failed. Please try again.");
       }
     } catch (error) {
-      console.error('Authorization error:', error);
       const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
       toast.error(`Connection error: ${errorMessage}`);
     }
   }, [authorization_code, userId, refreshEbaySilent, setAuthorization_code, setModal2Open, setConnectClickedState, setConnectTime, setShowAccessCodeButton]);
 
+  // Load initial data
   useEffect(() => {
-    console.log(userId, token);
-    console.log(marketList)
     const loadInitialData = async () => {
       try {
         const refreshData = await refreshEbaySilent();
         
         if (!marketList) {
           const response = await marketplaceEnrolment(userId, 'Ebay');
-           console.log(response);
-           
+          
           if (response && response.status === 200) {
             const data = response.data;
             const parsePolicy = (policyString) => {
@@ -477,17 +469,17 @@ const Ebay = () => {
             };
 
             reset(formDataUpdate);
-            
+            setSelectedCountry(formDataUpdate.region || '');
+            setValue('region', formDataUpdate.region || '', { shouldValidate: true });
             setPaymentname(formDataUpdate.payment_policy.name || '');
             setShipname(formDataUpdate.shipping_policy.name || '');
             setReturnname(formDataUpdate.return_policy.name || '');
-            setSelectedCountry(formDataUpdate.region || '');
             setStoreDetails(formDataUpdate.store_id);
-            setValue('store_id', formDataUpdate.store_id); 
+            setValue('store_id', formDataUpdate.store_id);
           }
         }
       } catch (error) {
-        toast.error('Error loading initial data', error);
+        toast.error('Error loading initial data');
         setValue('store_id', '');
         setStoreDetails('');
       } finally {
@@ -498,47 +490,43 @@ const Ebay = () => {
     if (userId && token) {
       loadInitialData();
     }
-  }, [userId, token, refreshEbaySilent, reset, setValue]);
+  }, [userId, token, refreshEbaySilent, reset, setValue, marketList]);
 
+  // Timeout management
   useEffect(() => {
-    if (connectClickedState) {
+    if (connectClickedState && connectTime) {
       const currentTime = Date.now();
+      const parsedConnectTime = parseInt(connectTime);
+      const elapsed = currentTime - parsedConnectTime;
 
-      if (connectTime) {
-        const parsedConnectTime = parseInt(connectTime);
-        const elapsed = currentTime - parsedConnectTime;
+      const accessCodeRemaining = 6 * 60 * 1000 - elapsed;
+      const fullTimeoutRemaining = 15 * 60 * 1000 - elapsed;
 
-        const accessCodeRemaining = 6 * 60 * 1000 - elapsed;
-        const fullTimeoutRemaining = 15 * 60 * 1000 - elapsed;
+      if (accessCodeRemaining > 0) {
+        setShowAccessCodeButton(true);
+        accessCodeTimeoutRef.current = setTimeout(() => setShowAccessCodeButton(false), accessCodeRemaining);
+      } else {
+        setShowAccessCodeButton(false);
+      }
 
-        if (accessCodeRemaining > 0) {
-          setShowAccessCodeButton(true);
-          accessCodeTimeoutRef.current = setTimeout(() => {
-            setShowAccessCodeButton(false);
-          }, accessCodeRemaining);
-        } else {
-          setShowAccessCodeButton(false);
-        }
-
-        if (fullTimeoutRemaining > 0) {
-          timeoutRef.current = setTimeout(() => {
-            setConnectClickedState(false);
-            setConnectTime(null);
-            setShowAccessCodeButton(false);
-          }, fullTimeoutRemaining);
-        } else {
+      if (fullTimeoutRemaining > 0) {
+        timeoutRef.current = setTimeout(() => {
           setConnectClickedState(false);
           setConnectTime(null);
           setShowAccessCodeButton(false);
-        }
+        }, fullTimeoutRemaining);
+      } else {
+        setConnectClickedState(false);
+        setConnectTime(null);
+        setShowAccessCodeButton(false);
       }
     }
-  }, [connectClickedState, connectTime, setConnectClickedState, setConnectTime, setShowAccessCodeButton]);
+  }, [connectClickedState, connectTime]);
 
   useEffect(() => {
     return () => {
-      clearTimeout(timeoutRef.current);
-      clearTimeout(accessCodeTimeoutRef.current);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (accessCodeTimeoutRef.current) clearTimeout(accessCodeTimeoutRef.current);
     };
   }, []);
 
@@ -569,9 +557,7 @@ const Ebay = () => {
     };
 
     document.addEventListener('click', handleClickOutside);
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    };
+    return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
   const toggleShipPolicyDropdown = () => {
@@ -595,6 +581,15 @@ const Ebay = () => {
     setReturnPolicyToggle(false);
   };
 
+  useEffect(() => {
+    if (formValues.region && formValues.region !== selectedCountry) {
+      setSelectedCountry(formValues.region);
+    }
+  }, [formValues.region, selectedCountry]);
+
+  // ==================== UNIFORM CHECKBOX STYLE ====================
+  const checkboxClass = "appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2";
+
   return (
     <>
       <div className="pb-10">
@@ -611,6 +606,8 @@ const Ebay = () => {
         <section className="bg-white shadow-lg px-2 w-full py-2 rounded-[10px]">
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="bg-white lg:w-[100%] w-[93%] md:w-[90%] lg:ms-0 md:ms-10 lg:h-[20%] ms-3 lg:mt-8 mt-0">
+
+              {/* Account Information */}
               <div>
                 <h1 className="lg:text-xl text-sm font-bold border-b-1 px-4">Account Information</h1>
                 <section className="grid grid-cols-12 justify-center items-center gap-4 my-10 px-4">
@@ -628,28 +625,27 @@ const Ebay = () => {
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-col sm:flex-row items-center gap-4 md:col-span-6 col-span-12">
                     <label className="text-sm font-semibold w-full sm:w-40" htmlFor="region">
                       Marketplace Region:
                     </label>
                     <div className="w-full sm:flex-1">
                       <Select
-                      id="region"
-                      {...register("region")}
-                      defaultValue=""
-                      className="w-full"
-                      onChange={handleCountryChange}
-                    >
-                      <option value="">
-                        Select Country
-                      </option>
-                      {countries.map((c) => (
-                        <option key={c.name} value={c.name}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </Select>
+                        id="region"
+                        value={formValues.region || selectedCountry || undefined}
+                        placeholder="Select Country"
+                        className="w-full"
+                        onChange={handleCountryChange}
+                        status={errors.region ? "error" : ""}
+                      >
+                        <Select.Option value="">Select Country</Select.Option>
+                        {countries.map((c) => (
+                          <Select.Option key={c.name} value={c.name}>
+                            {c.name}
+                          </Select.Option>
+                        ))}
+                      </Select>
                       {errors.region && (
                         <p className="text-red-500 text-xs mt-1">{errors.region.message}</p>
                       )}
@@ -657,6 +653,7 @@ const Ebay = () => {
                   </div>
                 </section>
 
+                {/* Connect Buttons */}
                 <div className="flex mx-10 justify-center items-center md:gap-10 gap-4 my-6">
                   <Tooltip title="Connect to eBay" arrow>
                     <div 
@@ -668,7 +665,7 @@ const Ebay = () => {
                       </span>
                     </div>
                   </Tooltip>
-                  
+
                   {connectClickedState && showAccessCodeButton && (
                     <Tooltip title="Enter the code provided by eBay after authentication" arrow>
                       <div className="relative flex items-center">
@@ -691,7 +688,7 @@ const Ebay = () => {
                       </div>
                     </Tooltip>
                   )}
-                  
+
                   <Tooltip title="Refresh connection with eBay" arrow>
                     <div 
                       onClick={refreshEbay} 
@@ -704,6 +701,7 @@ const Ebay = () => {
                   </Tooltip>
                 </div>
 
+                {/* Store ID */}
                 <section className="grid grid-cols-12 justify-center items-center gap-4 my-5 px-4">
                   <div className="flex flex-col sm:flex-row items-center gap-4 md:col-span-6 col-span-12">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
@@ -729,14 +727,12 @@ const Ebay = () => {
                         type="text"
                         className="border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded"
                       />
-                      {errors.store_id && (
-                        <p className="text-red-500 text-xs mt-1">{errors.store_id.message}</p>
-                      )}
                     </div>
                   </div>
                 </section>
               </div>
 
+              {/* Marketplace Fees */}
               <div className='my-10'>
                 <h1 className="lg:text-xl font-bold mt-5 border-b-1 px-4">Marketplace Fees</h1>
                 <section className="grid grid-cols-12 justify-center items-center gap-4 my-5 px-4">
@@ -774,6 +770,7 @@ const Ebay = () => {
                 </section>
               </div>
 
+              {/* Marketplace Options with Uniform Checkboxes */}
               <div className='my-10'>
                 <h1 className="border-b-1 lg:text-xl font-bold mt-5 px-4">Marketplace Options</h1>
                 
@@ -786,7 +783,7 @@ const Ebay = () => {
                           {...register("enable_price_update")} 
                           type="checkbox" 
                           onChange={handleChange}
-                          className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
+                          className={checkboxClass}
                         />
                       </label>
                     </Tooltip>
@@ -802,13 +799,14 @@ const Ebay = () => {
                           {...register("enable_quantity_update")} 
                           type="checkbox" 
                           onChange={handleChange}
-                          className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
+                          className={checkboxClass}
                         />
                       </label>
                     </Tooltip>
                   </div>
                 </div>
 
+                {/* Charity Donation */}
                 <div className="my-10">
                   <h1 className="lg:text-xl font-bold mt-5 border-b-1 px-4">Charity Donation</h1>
                   <div className="flex items-center md:gap-20 gap-10 md:mx-5 mx-0 mt-8">
@@ -820,24 +818,24 @@ const Ebay = () => {
                           type="checkbox" 
                           checked={formValues.enable_charity} 
                           onChange={handleChange} 
-                          className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
+                          className={checkboxClass}
                         />
                       </label>
                     </div>
                   </div>
+
                   <section className="grid grid-cols-12 justify-center items-center gap-4 my-5 px-4">
                     <div className="flex flex-col sm:flex-row items-center gap-4 md:col-span-6 col-span-12">
                       <h3 className="text-sm font-semibold w-full sm:w-40">Charity ID:</h3>
                       <div className="w-full sm:flex-1">
                         <input
                           {...register("charity_id")}
-                          name="charity_id"
                           value={formValues.charity_id}
                           onChange={handleChange}
                           type="number"
                           step="1"
                           disabled={!formValues.enable_charity}
-                          className={`border border-gray-300 h-[35px] w-full sm:flex-1 px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded ${!formValues.enable_charity ? 'cursor-not-allowed' : ''}`}
+                          className={`border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded ${!formValues.enable_charity ? 'cursor-not-allowed' : ''}`}
                         />
                         {errors.charity_id && <p className="text-red-500 text-xs mt-1">{errors.charity_id.message}</p>}
                       </div>
@@ -847,13 +845,12 @@ const Ebay = () => {
                       <div className="w-full sm:flex-1">
                         <input
                           {...register("donation_percentage")}
-                          name="donation_percentage"
                           value={formValues.donation_percentage}
                           onChange={handleChange}
                           type="number"
                           step="1"
                           disabled={!formValues.enable_charity}
-                          className={`border border-gray-300 h-[35px] w-full sm:flex-1 px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded ${!formValues.enable_charity ? 'cursor-not-allowed' : ''}`}
+                          className={`border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded ${!formValues.enable_charity ? 'cursor-not-allowed' : ''}`}
                         />
                         {errors.donation_percentage && <p className="text-red-500 text-xs mt-1">{errors.donation_percentage.message}</p>}
                       </div>
@@ -861,31 +858,31 @@ const Ebay = () => {
                   </section>
                 </div>
 
+                {/* Offers Settings */}
                 <div className="my-10">
                   <h1 className="lg:text-xl font-bold mt-5 border-b-1 px-4">Offers Settings</h1>
+
                   <div className="flex items-center md:gap-20 gap-10 md:mx-5 mx-0 mt-8">
                     <h3 className="text-sm font-semibold w-[160px]">Enable Best Offer:</h3>
                     <div className="flex flex-col justify-center items-center">
-                      <Tooltip title="This will enable best offer" componentsProps={{ tooltip: { sx: { bgcolor: "black", color: "white", fontSize: "10px", borderRadius: "6px", p: 1 } } }} arrow PopperProps={{ modifiers: [{ name: "offset", options: { offset: [0, -10] } }] }}>
+                      <Tooltip title="This will enable best offer" arrow>
                         <label className="cursor-pointer p-3 -m-3">
                           <input
                             {...register("enable_best_offer")}
                             type="checkbox"
                             checked={formValues.enable_best_offer}
                             onChange={handleChange}
-                            className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
+                            className={checkboxClass}
                           />
                         </label>
                       </Tooltip>
                     </div>
                   </div>
+
                   <div className="flex items-center md:gap-20 gap-10 md:mx-5 mx-0 mt-8">
                     <h3 className="text-sm font-semibold w-[160px]">Send Min Price:</h3>
                     <div className="flex flex-col gap-1">
-                      <Tooltip 
-                        title="Send the minimum price to eBay when enabled" 
-                        arrow
-                      >
+                      <Tooltip title="Send the minimum price to eBay when enabled" arrow>
                         <label className="cursor-pointer p-3 -m-3">
                           <input
                             {...register("send_min_price")}
@@ -893,265 +890,205 @@ const Ebay = () => {
                             disabled={!formValues.enable_best_offer}
                             checked={formValues.send_min_price}
                             onChange={handleChange}
-                            className={`appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2 ${
-                              !formValues.enable_best_offer ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
+                            className={`${checkboxClass} ${!formValues.enable_best_offer ? 'opacity-50 cursor-not-allowed' : ''}`}
                           />
                         </label>
                       </Tooltip>
                     </div>
                   </div>
-                      {!formValues.enable_best_offer && (
-                        <p className="text-gray-500 text-xs italic mt-1 max-w-[620px] text-center">
-                          Enable "Best Offer" first to use this option
-                        </p>
-                      )}
-                  <div className='my-10'>
-                    <section className="grid grid-cols-12 justify-center items-center gap-6 mb-5 px-4">
-                      <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 md:col-span-6 col-span-12">
-                        <h3 className="text-sm font-semibold w-full sm:w-40">Min Profit Margin (%):</h3>
-                        <div className="w-full sm:flex-1 min-w-0">
-                          <input
-                            {...register("min_profit_mergin")}
-                            type="number"
-                            step="0.01"
-                            disabled={!formValues.send_min_price}
-                            className={`border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded ${
-                              !formValues.send_min_price 
-                                ? 'cursor-not-allowed bg-gray-100 opacity-70' 
-                                : 'focus:ring-1 focus:ring-[#089451]'
-                            }`}
-                            placeholder={formValues.send_min_price ? "" : ""}
-                          />
 
-                          {formValues.send_min_price ? (
-                            errors.min_profit_mergin && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {errors.min_profit_mergin.message}
-                              </p>
-                            )
-                          ) : (
-                            <p className="text-gray-500 text-xs mt-1 italic">
-                              Enable "Send Min Price" first to set minimum profit margin
-                            </p>
-                          )}
-                        </div>
+                  {!formValues.enable_best_offer && (
+                    <p className="text-gray-500 text-xs italic mt-1 max-w-[620px] text-center">
+                      Enable "Best Offer" first to use this option
+                    </p>
+                  )}
+
+                  <section className="grid grid-cols-12 justify-center items-center gap-6 mb-5 px-4 my-10">
+                    <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 md:col-span-6 col-span-12">
+                      <h3 className="text-sm font-semibold w-full sm:w-40">Min Profit Margin (%):</h3>
+                      <div className="w-full sm:flex-1 min-w-0">
+                        <input
+                          {...register("min_profit_mergin")}
+                          type="number"
+                          step="0.01"
+                          disabled={!formValues.send_min_price}
+                          className={`border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded ${
+                            !formValues.send_min_price ? 'cursor-not-allowed bg-gray-100 opacity-70' : ''
+                          }`}
+                        />
+                        {formValues.send_min_price ? (
+                          errors.min_profit_mergin && <p className="text-red-500 text-xs mt-1">{errors.min_profit_mergin.message}</p>
+                        ) : (
+                          <p className="text-gray-500 text-xs mt-1 italic">Enable "Send Min Price" first</p>
+                        )}
                       </div>
-                      <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 md:col-span-6 col-span-12">
-                        <h3 className="text-sm font-semibold w-full sm:w-40">Maximum Quantity:</h3>
-                        <div className="w-full sm:flex-1 min-w-0">
-                          <input
-                            {...register("maximum_quantity")}
-                            value={formValues.maximum_quantity}
-                            onChange={handleChange}
-                            type="number"
-                            className="border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded"
-                          />
-                          {errors.maximum_quantity && (
-                            <p className="text-red-500 text-xs mt-1">{errors.maximum_quantity.message}</p>
-                          )}
-                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 md:col-span-6 col-span-12">
+                      <h3 className="text-sm font-semibold w-full sm:w-40">Maximum Quantity:</h3>
+                      <div className="w-full sm:flex-1 min-w-0">
+                        <input
+                          {...register("maximum_quantity")}
+                          value={formValues.maximum_quantity}
+                          onChange={handleChange}
+                          type="number"
+                          className="border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded"
+                        />
+                        {errors.maximum_quantity && (
+                          <p className="text-red-500 text-xs mt-1">{errors.maximum_quantity.message}</p>
+                        )}
                       </div>
-                      <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 md:col-span-6 col-span-12">
-                        <h3 className="text-sm font-semibold w-full sm:w-40">Profit Margin:</h3>
-                        <div className="w-full sm:flex-1 min-w-0">
-                          <input
-                            {...register("profit_margin")}
-                            name="profit_margin"
-                            value={formValues.profit_margin}
-                            onChange={handleChange}
-                            type="number"
-                            className="border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded"
-                          />
-                          {errors.profit_margin && (
-                            <p className="text-red-500 text-xs mt-1">{errors.profit_margin.message}</p>
-                          )}
-                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 md:col-span-6 col-span-12">
+                      <h3 className="text-sm font-semibold w-full sm:w-40">Profit Margin:</h3>
+                      <div className="w-full sm:flex-1 min-w-0">
+                        <input
+                          {...register("profit_margin")}
+                          value={formValues.profit_margin}
+                          onChange={handleChange}
+                          type="number"
+                          className="border border-gray-300 h-[35px] w-full px-2 bg-[#F9F9F9] focus:outline-none py-1 rounded"
+                        />
+                        {errors.profit_margin && (
+                          <p className="text-red-500 text-xs mt-1">{errors.profit_margin.message}</p>
+                        )}
                       </div>
-                    </section>
-                  </div>
+                    </div>
+                  </section>
+
+                  {/* Warning Checkboxes */}
                   <div className="flex md:px-5 md:pe-28 px-0 justify-between my-10">
-                    <p className="md:w-[75%] w-[50%] text-balance text-sm font-semibold text-[#BB8232]">Warn me when I try to list items known to cause copyright complaints.</p>
+                    <p className="md:w-[75%] w-[50%] text-balance text-sm font-semibold text-[#BB8232]">
+                      Warn me when I try to list items known to cause copyright complaints.
+                    </p>
                     <label className="cursor-pointer p-3 -m-3">
                       <input 
                         type="checkbox" 
                         {...register("warn_copyright_complaints")} 
                         checked={formValues.warn_copyright_complaints} 
                         onChange={handleChange} 
-                        className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/5"
+                        className={checkboxClass}
                       />
                     </label>
                   </div>
+
                   <div className="flex md:px-5 md:pe-28 px-0 pb-5 justify-between my-5 border-b-1">
-                    <p className="md:w-[75%] w-[50%] text-balance text-sm text-[#BB8232] font-semibold">Warn me when I try to list items known to cause restriction violation.</p>
+                    <p className="md:w-[75%] w-[50%] text-balance text-sm text-[#BB8232] font-semibold">
+                      Warn me when I try to list items known to cause restriction violation.
+                    </p>
                     <label className="cursor-pointer p-3 -m-3">
                       <input 
                         {...register("warn_restriction_violation")} 
                         type="checkbox" 
                         checked={formValues.warn_restriction_violation} 
                         onChange={handleChange} 
-                        className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/5" 
+                        className={checkboxClass}
                       />
                     </label>
                   </div>
-                  <section>
-                    <h1 className="md:ms-5 lg:text-xl font-bold my-5">Business Policy</h1>
-                    <div
-                      className={`my-10 ship-policy-dropdown ${!refreshIcon || shipPolicyArray.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      onClick={refreshIcon && shipPolicyArray.length > 0 ? toggleShipPolicyDropdown : undefined}
-                    >
-                      <div className="grid grid-cols-12 md:mx-5 mt-5 lg:py-5 py-3 justify-center items-center">
-                        <h3 className="mt-2 text-sm font-semibold col-span-6">Shipping Policy:</h3>
-                        <div className="col-span-6 md:w-4/5 relative">
-                          <div
-                            className={`flex bg-[#F9F9F9] border border-gray-300 justify-between py-1 px-3 rounded ${!refreshIcon || shipPolicyArray.length === 0 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                            onClick={refreshIcon && shipPolicyArray.length > 0 ? toggleShipPolicyDropdown : undefined}
-                          >
-                            <span>{shipname || "Select Policy"}</span>
-                            <span className="mt-1 text-xl"><MdArrowDropDown /></span>
-                          </div>
-                          <div
-                            className={
-                              shipPolicyToggle && refreshIcon && shipPolicyArray.length > 0
-                                ? "absolute w-full z-30 bg-white h-[10rem] shadow overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-100 scrollbar-track-gray-100 scrollbar-shorter"
-                                : "hidden"
-                            }
-                          >
-                            {shipPolicyArray.map((items, i) => (
-                              <div
-                                onClick={() => handleSelect("shipping_policy", items.fulfillmentPolicyId, items.name)}
-                                key={i}
-                                className="w-full"
-                              >
-                                <div className="hover:bg-[#E7F2ED] p-2 border-b">{items.name}</div>
-                              </div>
-                            ))}
-                          </div>
-                          {(!refreshIcon || shipPolicyArray.length === 0) && (
-                            <small className="flex justify-center text-red-500">
-                              Connect to eBay and refresh to get policies
-                            </small>
-                          )}
-                          {errors.shipping_policy?.id && <p className="text-red-500 text-xs mt-1">{errors.shipping_policy.id.message}</p>}
-                          {errors.shipping_policy?.name && <p className="text-red-500 text-xs mt-1">{errors.shipping_policy.name.message}</p>}
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      className={`my-10 return-policy-dropdown ${!refreshIcon || returnPolicyArray.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      onClick={refreshIcon && returnPolicyArray.length > 0 ? toggleReturnPolicyDropdown : undefined}
-                    >
-                      <div className="grid grid-cols-12 md:mx-5 mt-5 lg:py-5 py-3 justify-center items-center">
-                        <h3 className="mt-2 text-sm font-semibold col-span-6">Return Policy:</h3>
-                        <div className="col-span-6 md:w-4/5 relative">
-                          <div
-                            className={`flex bg-[#F9F9F9] border border-gray-300 justify-between py-1 px-3 rounded ${!refreshIcon || returnPolicyArray.length === 0 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                            onClick={refreshIcon && returnPolicyArray.length > 0 ? toggleReturnPolicyDropdown : undefined}
-                          >
-                            <span>{returnname || "Select Policy"}</span>
-                            <span className="mt-1 text-xl"><MdArrowDropDown /></span>
-                          </div>
-                          <div
-                            className={
-                              returnPolicyToggle && refreshIcon && returnPolicyArray.length > 0
-                                ? "absolute w-full z-20 bg-white shadow h-[10rem] overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-100 scrollbar-track-gray-100 scrollbar-shorter"
-                                : "hidden"
-                            }
-                          >
-                            {returnPolicyArray.map((items, i) => (
-                              <div
-                                onClick={() => handleSelect("return_policy", items.returnPolicyId, items.name)}
-                                key={i}
-                                className="w-full"
-                              >
-                                <div className="hover:bg-[#E7F2ED] p-2 border-b">{items.name}</div>
-                              </div>
-                            ))}
-                          </div>
-                          {(!refreshIcon || returnPolicyArray.length === 0) && (
-                            <small className="flex justify-center text-red-500">
-                              Connect to eBay and refresh to get policies
-                            </small>
-                          )}
-                          {errors.return_policy?.id && <p className="text-red-500 text-xs mt-1">{errors.return_policy.id.message}</p>}
-                          {errors.return_policy?.name && <p className="text-red-500 text-xs mt-1">{errors.return_policy.name.message}</p>}
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      className={`my-10 payment-policy-dropdown ${!refreshIcon || paymentPolicyArray.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      onClick={refreshIcon && paymentPolicyArray.length > 0 ? togglePaymentPolicyDropdown : undefined}
-                    >
-                      <div className="grid grid-cols-12 md:mx-5 mt-5 lg:py-5 py-3 justify-center items-center">
-                        <h3 className="mt-2 text-sm font-semibold col-span-6">Payment Policy:</h3>
-                        <div className="col-span-6 md:w-4/5 relative">
-                          <div
-                            className={`flex bg-[#F9F9F9] border border-gray-300 justify-between py-1 px-3 rounded ${!refreshIcon || paymentPolicyArray.length === 0 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                            onClick={refreshIcon && paymentPolicyArray.length > 0 ? togglePaymentPolicyDropdown : undefined}
-                          >
-                            <span>{paymentname || "Select Policy"}</span>
-                            <span className="mt-1 text-xl"><MdArrowDropDown /></span>
-                          </div>
-                          <div
-                            className={
-                              paymentPolicyToggle && refreshIcon && paymentPolicyArray.length > 0
-                                ? "absolute w-full z-10 bg-white shadow h-[6rem] overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-100 scrollbar-track-gray-100 scrollbar-shorter"
-                                : "hidden"
-                            }
-                          >
-                            {paymentPolicyArray.map((items, i) => (
-                              <div
-                                onClick={() => handleSelect("payment_policy", items.paymentPolicyId, items.name)}
-                                key={i}
-                                className=""
-                              >
-                                <div className="hover:bg-[#E7F2ED] p-2 border-b">{items.name}</div>
-                              </div>
-                            ))}
-                          </div>
-                          {(!refreshIcon || paymentPolicyArray.length === 0) && (
-                            <small className="flex justify-center text-red-500">
-                              Connect to eBay and refresh to get policies
-                            </small>
-                          )}
-                          {errors.payment_policy?.id && <p className="text-red-500 text-xs mt-1">{errors.payment_policy.id.message}</p>}
-                          {errors.payment_policy?.name && <p className="text-red-500 text-xs mt-1">{errors.payment_policy.name.message}</p>}
-                        </div>
-                      </div>
-                    </div>
-                  </section>
-                  <div className="flex gap-20 justify-center my-5">
-                    <Tooltip
-                      title={refreshIcon ? "" : "Please connect to eBay before submitting"}
-                      arrow
-                      componentsProps={{
-                        tooltip: {
-                          sx: {
-                            bgcolor: "white",
-                            border: '1px solid #089451',
-                            color: "#089451",
-                            fontSize: "12px",
-                            borderRadius: "6px",
-                            p: 1
-                          }
-                        }
-                      }}
-                      PopperProps={{
-                        modifiers: [{ name: "offset", options: { offset: [0, -8] } }]
-                      }}
-                      disableHoverListener={refreshIcon}
-                    >
-                      <span>
-                        <button
-                          type="submit"
-                          className={`bg-[#027840] text-white border py-1 h-[40px]  flex items-center justify-center w-[5rem] rounded font-bold ${!refreshIcon ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-xl hover:bg-[#089451]'}`}
-                          disabled={!refreshIcon}
+                </div>
+
+                {/* Business Policies */}
+                <section>
+                  <h1 className="md:ms-5 lg:text-xl font-bold my-5">Business Policy</h1>
+                  
+                  {/* Shipping Policy */}
+                  <div className={`my-10 ship-policy-dropdown ${!refreshIcon || shipPolicyArray.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    <div className="grid grid-cols-12 md:mx-5 mt-5 lg:py-5 py-3 justify-center items-center">
+                      <h3 className="mt-2 text-sm font-semibold col-span-6">Shipping Policy:</h3>
+                      <div className="col-span-6 md:w-4/5 relative">
+                        <div
+                          className={`flex bg-[#F9F9F9] border border-gray-300 justify-between py-1 px-3 rounded ${!refreshIcon || shipPolicyArray.length === 0 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                          onClick={refreshIcon && shipPolicyArray.length > 0 ? toggleShipPolicyDropdown : undefined}
                         >
-                          {isSubmitting ? <img src={gif} alt="Loading" className="w-[25px]" /> : "Submit"}
-                        </button>
-                      </span>
-                    </Tooltip>
+                          <span>{shipname || "Select Policy"}</span>
+                          <span className="mt-1 text-xl"><MdArrowDropDown /></span>
+                        </div>
+                        {shipPolicyToggle && refreshIcon && shipPolicyArray.length > 0 && (
+                          <div className="absolute w-full z-30 bg-white h-[10rem] shadow overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-100 scrollbar-track-gray-100">
+                            {shipPolicyArray.map((items, i) => (
+                              <div key={i} onClick={() => handleSelect("shipping_policy", items.fulfillmentPolicyId, items.name)} className="w-full">
+                                <div className="hover:bg-[#E7F2ED] p-2 border-b">{items.name}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {(!refreshIcon || shipPolicyArray.length === 0) && (
+                          <small className="flex justify-center text-red-500">Connect to eBay and refresh to get policies</small>
+                        )}
+                        {errors.shipping_policy?.id && <p className="text-red-500 text-xs mt-1">{errors.shipping_policy.id.message}</p>}
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Return & Payment Policies - Similar structure (kept as in original) */}
+                  {/* Return Policy */}
+                  <div className={`my-10 return-policy-dropdown ${!refreshIcon || returnPolicyArray.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    <div className="grid grid-cols-12 md:mx-5 mt-5 lg:py-5 py-3 justify-center items-center">
+                      <h3 className="mt-2 text-sm font-semibold col-span-6">Return Policy:</h3>
+                      <div className="col-span-6 md:w-4/5 relative">
+                        <div className={`flex bg-[#F9F9F9] border border-gray-300 justify-between py-1 px-3 rounded ${!refreshIcon || returnPolicyArray.length === 0 ? 'cursor-not-allowed' : 'cursor-pointer'}`} onClick={refreshIcon && returnPolicyArray.length > 0 ? toggleReturnPolicyDropdown : undefined}>
+                          <span>{returnname || "Select Policy"}</span>
+                          <span className="mt-1 text-xl"><MdArrowDropDown /></span>
+                        </div>
+                        {returnPolicyToggle && refreshIcon && returnPolicyArray.length > 0 && (
+                          <div className="absolute w-full z-20 bg-white shadow h-[10rem] overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-100 scrollbar-track-gray-100">
+                            {returnPolicyArray.map((items, i) => (
+                              <div key={i} onClick={() => handleSelect("return_policy", items.returnPolicyId, items.name)} className="w-full">
+                                <div className="hover:bg-[#E7F2ED] p-2 border-b">{items.name}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {(!refreshIcon || returnPolicyArray.length === 0) && (
+                          <small className="flex justify-center text-red-500">Connect to eBay and refresh to get policies</small>
+                        )}
+                        {errors.return_policy?.id && <p className="text-red-500 text-xs mt-1">{errors.return_policy.id.message}</p>}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Payment Policy */}
+                  <div className={`my-10 payment-policy-dropdown ${!refreshIcon || paymentPolicyArray.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    <div className="grid grid-cols-12 md:mx-5 mt-5 lg:py-5 py-3 justify-center items-center">
+                      <h3 className="mt-2 text-sm font-semibold col-span-6">Payment Policy:</h3>
+                      <div className="col-span-6 md:w-4/5 relative">
+                        <div className={`flex bg-[#F9F9F9] border border-gray-300 justify-between py-1 px-3 rounded ${!refreshIcon || paymentPolicyArray.length === 0 ? 'cursor-not-allowed' : 'cursor-pointer'}`} onClick={refreshIcon && paymentPolicyArray.length > 0 ? togglePaymentPolicyDropdown : undefined}>
+                          <span>{paymentname || "Select Policy"}</span>
+                          <span className="mt-1 text-xl"><MdArrowDropDown /></span>
+                        </div>
+                        {paymentPolicyToggle && refreshIcon && paymentPolicyArray.length > 0 && (
+                          <div className="absolute w-full z-10 bg-white shadow h-[6rem] overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-100 scrollbar-track-gray-100">
+                            {paymentPolicyArray.map((items, i) => (
+                              <div key={i} onClick={() => handleSelect("payment_policy", items.paymentPolicyId, items.name)} className="">
+                                <div className="hover:bg-[#E7F2ED] p-2 border-b">{items.name}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {(!refreshIcon || paymentPolicyArray.length === 0) && (
+                          <small className="flex justify-center text-red-500">Connect to eBay and refresh to get policies</small>
+                        )}
+                        {errors.payment_policy?.id && <p className="text-red-500 text-xs mt-1">{errors.payment_policy.id.message}</p>}
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Submit Button */}
+                <div className="flex gap-20 justify-center my-5">
+                  <Tooltip title={refreshIcon ? "" : "Please connect to eBay before submitting"} arrow>
+                    <span>
+                      <button
+                        type="submit"
+                        className={`bg-[#027840] text-white border py-1 h-[40px] flex items-center justify-center w-[5rem] rounded font-bold ${!refreshIcon ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-xl hover:bg-[#089451]'}`}
+                        disabled={!refreshIcon}
+                      >
+                        {isSubmitting ? <img src={gif} alt="Loading" className="w-[25px]" /> : "Submit"}
+                      </button>
+                    </span>
+                  </Tooltip>
                 </div>
               </div>
             </div>
@@ -1159,6 +1096,7 @@ const Ebay = () => {
         </section>
         <Toaster position="top-right" />
       </div>
+
       <AccessModal sendCode={sendCode} />
     </>
   );

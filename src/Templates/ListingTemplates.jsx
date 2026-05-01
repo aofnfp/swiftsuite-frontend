@@ -5,6 +5,8 @@ import MaxTemplateModal from "./MaxTemplateModal";
 import CreateTemplateModal from "./CreateTemplateModal";
 import TemplatePreviewModal from "./TemplatePreviewModal";
 import UploadTemplateModal from "./UploadTemplateModal";
+import { Link } from "react-router-dom";
+
 
 const planLimits = {
   Starter: 2,
@@ -536,9 +538,9 @@ const ListingTemplates = () => {
               </p>
             </div>
 
-            <button className="bg-[#027840] text-white px-5 py-2 rounded-lg text-sm font-semibold">
+            <Link to='/pricing' className="bg-[#027840] text-white px-5 py-2 rounded-lg text-sm font-semibold">
               Upgrade plan
-            </button>
+            </Link>
           </div>
 
           <div className="flex items-center gap-4">

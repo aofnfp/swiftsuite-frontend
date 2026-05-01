@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { MdMoreHoriz, MdNotificationsNone } from "react-icons/md";
-import axios from "axios";
+import axiosInstance from "../utils/axiosInstance";
 import NotificationDrawer from "./NotificationDrawer";
 
 const AdminNotification = () => {
@@ -17,11 +17,7 @@ const AdminNotification = () => {
     const fetchNotifications = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem("token");
-        const { data } = await axios.get(
-          "https://service.swiftsuite.app/api/v2/templates/",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const { data } = await axiosInstance.get("/api/v2/templates/");
         setNotifications(data?.results || []);
       } catch (err) {
         console.error(err);
@@ -46,11 +42,7 @@ const AdminNotification = () => {
 
   const handleDelete = async (id) => {
     try {
-      const token = localStorage.getItem("token");
-      await axios.delete(
-        `https://service.swiftsuite.app/api/v2/templates/${id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axiosInstance.delete(`/api/v2/templates/${id}`);
       setNotifications((prev) => prev.filter((n) => n.id !== id));
     } catch (err) {
       console.error(err);

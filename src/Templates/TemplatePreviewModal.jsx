@@ -43,7 +43,7 @@ const TemplatePreviewModal = ({ template, selected, onToggle, onClose }) => {
         </div>
 
         <div className="p-5">
-          <div className="border-2 border-blue-500 bg-white">
+          <div className="border-2  bg-white">
             <div
               className="px-6 py-4 flex items-center justify-between text-white"
               style={{ backgroundColor: template.color }}

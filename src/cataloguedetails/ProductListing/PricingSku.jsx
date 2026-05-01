@@ -2,6 +2,7 @@ import { Button, Tooltip } from "antd";
 import React, { useState } from "react";
 import { FaPlus } from "react-icons/fa";
 import { FaMinus } from "react-icons/fa6";
+import { parseQuantity } from "../../utils/quantity";
 
 const PricingSku = ({
   productListing,
@@ -13,12 +14,6 @@ const PricingSku = ({
 
   const handleSkuChange = (e) => {
     setHandleChange((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const parseQuantity = (quantity) => {
-    if (quantity === undefined || quantity === null || quantity === "") return "";
-    const match = String(quantity).match(/\d+/g);
-    return match ? match[0] : "";
   };
 
   const handleToggle = () => {
@@ -174,7 +169,7 @@ const PricingSku = ({
             {productListing.sku ? productListing.sku : ""}
           </span>
           <span>
-            <strong>Stock Quantity : </strong>  
+            <strong>Stock Quantity : </strong>
             {parseQuantity(productListing.quantity)}
           </span>
         </div>

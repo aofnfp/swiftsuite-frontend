@@ -308,7 +308,7 @@ const EditProductType = () => {
                   onChange={handleAdultSignatureCheck}
                   className="md:w-5 w-6 h-5 rounded-[3px] border-[2px] border-[#027840] focus:outline-none bg-white checked:bg-[#027840] checked:border-green-500 relative checked:after:text-white checked:after:text-sm checked:after:font-bold cursor-pointer accent-[#027840] checked:after:top-0 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:leading-5"
                 />
-                <ResponsiveTooltip title="Enable adult signature requirement for deliveries requiring recipient verification.">
+                <ResponsiveTooltip title="$5 cost is added to any product with adult signature required.">
                   <MdInfo className="text-gray-600 mt-0.5" />
                 </ResponsiveTooltip>
               </div>

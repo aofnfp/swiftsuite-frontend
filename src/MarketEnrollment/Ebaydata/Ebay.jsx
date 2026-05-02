@@ -83,6 +83,9 @@ const Ebay = () => {
   const timeoutRef = useRef(null);
   const accessCodeTimeoutRef = useRef(null);
 
+  const [signatureRequired, setSignatureRequired] = useState(false);
+  const [adultSigThreshold, setAdultSigThreshold] = useState('');
+
   const defaultFormData = {
     marketplace_name: 'Ebay',
     region: '',
@@ -1071,6 +1074,44 @@ const Ebay = () => {
                           <small className="flex justify-center text-red-500">Connect to eBay and refresh to get policies</small>
                         )}
                         {errors.payment_policy?.id && <p className="text-red-500 text-xs mt-1">{errors.payment_policy.id.message}</p>}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Signature Required (placeholder — not yet wired to backend) */}
+                  <div className="my-10">
+                    <div className="grid grid-cols-12 md:mx-5 mt-5 lg:py-5 py-3 items-center">
+                      <h3 className="text-sm font-semibold col-span-6">Signature Required?</h3>
+                      <div className="col-span-6 flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={signatureRequired}
+                          onChange={() => {
+                            const next = !signatureRequired;
+                            setSignatureRequired(next);
+                            if (!next) setAdultSigThreshold('');
+                          }}
+                          className="appearance-none md:w-5 w-6 h-5 rounded-[4px] border-2 border-[#027840] bg-white cursor-pointer relative checked:bg-[#027840] checked:border-[#027840] checked:after:content-['✓'] checked:after:absolute checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2"
+                        />
+                      </div>
+                    </div>
+
+                    <div className={`grid grid-cols-12 md:mx-5 items-center overflow-hidden transition-all duration-500 ease-in-out ${
+                      signatureRequired ? "max-h-[120px] opacity-100 mt-2" : "max-h-0 opacity-0 mt-0"
+                    }`}>
+                      <label className="text-sm font-semibold col-span-6">Adult Sig Threshold:</label>
+                      <div className="col-span-6 md:w-4/5">
+                        <input
+                          type="text"
+                          value={adultSigThreshold}
+                          onChange={(e) => {
+                            let v = e.target.value.replace(/[^0-9.]/g, '');
+                            if ((v.match(/\./g) || []).length > 1) v = v.replace(/\.(?=.*\.)/g, '');
+                            setAdultSigThreshold(v);
+                          }}
+                          placeholder="0.00"
+                          className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
+                        />
                       </div>
                     </div>
                   </div>

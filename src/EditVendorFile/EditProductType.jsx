@@ -5,7 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useForm } from 'react-hook-form';
 import { Toaster, toast } from 'sonner';
-import { MdInfo, MdLightbulb } from 'react-icons/md';
+import { MdInfo } from 'react-icons/md';
 import { ThreeDots } from 'react-loader-spinner';
 import { FaCircleCheck } from 'react-icons/fa6';
 import { AiFillCloseCircle } from 'react-icons/ai';
@@ -61,22 +61,12 @@ const EditProductType = () => {
     serialized: yup.boolean().nullable(),
     shippable: yup.boolean().nullable(),
     adult_signature: yup.boolean(),
-    adult_sig_threshold: yup.string().nullable().when('adult_signature', {
-      is: true,
-      then: (schema) =>
-        schema
-          .required('Please enter a threshold when adult signature is enabled')
-          .test('is-positive', 'Threshold must be greater than $0', (val) => parseFloat(val) > 0)
-          .test('is-max', 'Threshold must be less than $100,000', (val) => parseFloat(val) < 100000),
-      otherwise: (schema) => schema.nullable(),
-    }),
   });
 
   const {
     register,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(Schema),
@@ -143,10 +133,6 @@ const EditProductType = () => {
         setAdultSignatureChecked(hasAdultSignature);
         setValue('adult_signature', hasAdultSignature);
 
-        if (enrolment?.adult_sig_threshold) {
-          setValue('adult_sig_threshold', parseFloat(enrolment.adult_sig_threshold));
-        }
-
         setValue('percentage_markup', enrolment?.percentage_markup || '');
         setValue('fixed_markup', enrolment?.fixed_markup || '');
         setValue('shipping_cost', enrolment?.shipping_cost || '');
@@ -171,9 +157,6 @@ const EditProductType = () => {
     const newValue = !adultSignatureChecked;
     setAdultSignatureChecked(newValue);
     setValue('adult_signature', newValue);
-    if (!newValue) {
-      setValue('adult_sig_threshold', '');
-    }
   };
 
   const handleCheckboxChange = (setState, fieldName) => (e) => {
@@ -280,10 +263,6 @@ const EditProductType = () => {
       fixed_markup: data.fixed_markup === '' ? null : data.fixed_markup,
       percentage_markup: data.percentage_markup === '' ? null : data.percentage_markup,
       adult_signature: adultSignatureChecked,
-      adult_sig_threshold:
-        adultSignatureChecked && data.adult_sig_threshold
-          ? parseFloat(data.adult_sig_threshold)
-          : null,
     };
 
     const payload = cleanObject(rawPayload);
@@ -313,7 +292,6 @@ const EditProductType = () => {
   const hasProductSection = connection?.product_filter || connection?.product_category;
   const hasManufacturerSection = connection?.manufacturer || connection?.brand;
   const isRSRVendor = vendor_name === 'RSR';
-  const adultSignatureFormValue = watch('adult_signature');
 
   return (
     <>
@@ -333,33 +311,6 @@ const EditProductType = () => {
                 <ResponsiveTooltip title="Enable adult signature requirement for deliveries requiring recipient verification.">
                   <MdInfo className="text-gray-600 mt-0.5" />
                 </ResponsiveTooltip>
-              </div>
-            </div>
-
-            <div
-              className={`grid grid-cols-12 px-5 items-center overflow-hidden transition-all duration-500 ease-in-out ${
-                adultSignatureFormValue ? 'max-h-[120px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'
-              }`}
-            >
-              <label className="text-sm font-semibold col-span-6">Adult Sig Threshold:</label>
-              <div className="flex flex-col col-span-6 lg:w-3/4">
-                <input
-                  {...register('adult_sig_threshold')}
-                  type="text"
-                  placeholder="0.00"
-                  onInput={(e) => {
-                    restrictToNumbersAndDecimals(e);
-                    setValue('adult_sig_threshold', e.target.value, { shouldValidate: true });
-                  }}
-                  className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                />
-                {errors.adult_sig_threshold && (
-                  <p className="text-xs text-red-600 mt-1">{errors.adult_sig_threshold.message}</p>
-                )}
-                <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-1.5">
-                  <MdLightbulb className="text-amber-500" />
-                  $5 will be added to the threshold price.
-                </div>
               </div>
             </div>
 

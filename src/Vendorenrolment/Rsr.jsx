@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { Toaster, toast } from "sonner";
 import { FaCircleCheck } from "react-icons/fa6";
 import { AiFillCloseCircle } from "react-icons/ai";
-import { MdInfo, MdLightbulb } from "react-icons/md";
+import { MdInfo } from "react-icons/md";
 import ResponsiveTooltip from "./ResponsiveTooltip";
 import { ThreeDots } from "react-loader-spinner";
 import { enrolment } from "../api/authApi";
@@ -72,7 +72,6 @@ const Rsr = () => {
     returnable: yup.string(),
     third_party_marketplaces: yup.string(),
     adult_signature: yup.boolean(),
-    adult_sig_threshold: yup.string().nullable(),
   });
 
   const {
@@ -146,11 +145,7 @@ const Rsr = () => {
   };
 
   const handleAdultSignatureCheck = () => {
-    const newValue = !adultSignatureChecked;
-    setAdultSignatureChecked(newValue);
-    if (!newValue) {
-      setValue("adult_sig_threshold", "");
-    }
+    setAdultSignatureChecked((prev) => !prev);
   };
 
   const cleanObject = (obj) =>
@@ -174,9 +169,6 @@ const Rsr = () => {
       stock_maximum: data.stock_maximum || null,
       shipping_cost: data.shipping_cost || null,
       adult_signature: adultSignatureChecked,
-      adult_sig_threshold: adultSignatureChecked && data.adult_sig_threshold 
-        ? data.adult_sig_threshold 
-        : null,
     };
 
     const formData = cleanObject(rawFormData);
@@ -256,27 +248,6 @@ const Rsr = () => {
                 <ResponsiveTooltip title="$5 cost is added to any product with adult signature required.">
                   <MdInfo className="text-gray-600 mt-0.5" />
                 </ResponsiveTooltip>
-              </div>
-            </div>
-
-            <div className={`grid grid-cols-12 items-center overflow-hidden transition-all duration-500 ease-in-out ${
-              adultSignatureChecked ? "max-h-[120px] opacity-100 mt-4" : "max-h-0 opacity-0 mt-0"
-            }`}>
-              <label className="text-sm font-semibold col-span-6">
-                Adult Sig Threshold:
-              </label>
-              <div className="flex flex-col col-span-6 lg:w-3/4">
-                <input
-                  {...register("adult_sig_threshold")}
-                  type="text"
-                  placeholder="0.00"
-                  onInput={restrictToNumbersAndDecimals}
-                  className="w-full border border-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500"
-                />
-                <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-1.5">
-                  <MdLightbulb className="text-amber-500" />
-                  $5 will be added to the threshold price.
-                </div>
               </div>
             </div>
 

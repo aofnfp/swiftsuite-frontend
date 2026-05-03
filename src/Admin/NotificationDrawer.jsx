@@ -240,6 +240,39 @@ const formatCost = (usd) => {
   return `$${usd.toFixed(3)}`;
 };
 
+// Notification archetypes — must match VALID_ARCHETYPES on the backend.
+const ARCHETYPE_OPTIONS = [
+  { value: "incident",    label: "Incident",    hint: "Active outage / disruption" },
+  { value: "maintenance", label: "Maintenance", hint: "Scheduled downtime" },
+  { value: "update",      label: "Update",      hint: "Feature release / improvement" },
+  { value: "headsup",     label: "Heads-up",    hint: "Short informational note" },
+];
+
+const LENGTH_OPTIONS = [
+  { value: "short",    label: "Short" },
+  { value: "standard", label: "Standard" },
+  { value: "detailed", label: "Detailed" },
+];
+
+// Default length per archetype (mirrors backend _DEFAULT_LENGTH).
+const DEFAULT_LENGTH = {
+  incident:    "detailed",
+  maintenance: "standard",
+  update:      "standard",
+  headsup:     "short",
+};
+
+// Fuzzy-match the freeform Category field against archetype keywords.
+// Returns null if nothing matches; modal then defaults to "headsup".
+const inferArchetypeFromCategory = (category) => {
+  const c = (category || "").toLowerCase();
+  if (!c) return null;
+  if (/incident|outage|down|broken|disruption|degrad|failure/.test(c)) return "incident";
+  if (/maintenance|scheduled|downtime|window|planned/.test(c)) return "maintenance";
+  if (/update|release|feature|launch|new|improvement|product/.test(c)) return "update";
+  return null;
+};
+
 const DraftWithAIModal = ({ isOpen, onClose, form, onUseDraft }) => {
   const [intent, setIntent] = useState("");
   const [busy, setBusy] = useState(false);
@@ -247,8 +280,15 @@ const DraftWithAIModal = ({ isOpen, onClose, form, onUseDraft }) => {
   const [costUsd, setCostUsd] = useState(0);
   const [modelUsed, setModelUsed] = useState("");
   const [cacheHit, setCacheHit] = useState(false);
+  const [archetype, setArchetype] = useState("headsup");
+  const [length, setLength] = useState("short");
+  // Tracks whether the admin has manually changed length so an archetype
+  // switch doesn't overwrite their choice.
+  const [lengthTouched, setLengthTouched] = useState(false);
 
-  // Reset transient state every time the modal opens.
+  // Reset transient state every time the modal opens. Pre-select the
+  // archetype from the form's Category field; default length follows
+  // the chosen archetype.
   useEffect(() => {
     if (isOpen) {
       setIntent("");
@@ -257,8 +297,22 @@ const DraftWithAIModal = ({ isOpen, onClose, form, onUseDraft }) => {
       setCostUsd(0);
       setModelUsed("");
       setCacheHit(false);
+      const inferred = inferArchetypeFromCategory(form.category) || "headsup";
+      setArchetype(inferred);
+      setLength(DEFAULT_LENGTH[inferred]);
+      setLengthTouched(false);
     }
-  }, [isOpen]);
+  }, [isOpen, form.category]);
+
+  const onArchetypeChange = (value) => {
+    setArchetype(value);
+    if (!lengthTouched) setLength(DEFAULT_LENGTH[value]);
+  };
+
+  const onLengthChange = (value) => {
+    setLength(value);
+    setLengthTouched(true);
+  };
 
   // Refinement source: prefer the most recent AI draft (so users iterate on
   // the AI's previous output); otherwise use what's currently in the form
@@ -270,6 +324,8 @@ const DraftWithAIModal = ({ isOpen, onClose, form, onUseDraft }) => {
     setBusy(true);
     try {
       const res = await axiosInstance.post("/api/v2/notifications/draft-with-ai/", {
+        archetype,
+        length,
         intent: intent.trim(),
         header: form.header || "",
         category: form.category || "",
@@ -332,6 +388,57 @@ const DraftWithAIModal = ({ isOpen, onClose, form, onUseDraft }) => {
               ? "Tell us how to improve the existing draft. We'll use the Header, Category, and Recipients you've already filled in."
               : "Tell us what this notification is about (optional). We'll use the Header, Category, and Recipients you've already filled in."}
           </p>
+
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5">
+              Type
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {ARCHETYPE_OPTIONS.map((opt) => {
+                const active = archetype === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    title={opt.hint}
+                    onClick={() => onArchetypeChange(opt.value)}
+                    className={`px-3 py-1.5 text-xs rounded-full border transition-colors ${
+                      active
+                        ? "bg-[#027840] text-white border-[#027840]"
+                        : "bg-white text-gray-700 border-gray-200 hover:border-[#027840] hover:text-[#027840]"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5">
+              Length
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {LENGTH_OPTIONS.map((opt) => {
+                const active = length === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => onLengthChange(opt.value)}
+                    className={`px-3 py-1.5 text-xs rounded-full border transition-colors ${
+                      active
+                        ? "bg-[#027840] text-white border-[#027840]"
+                        : "bg-white text-gray-700 border-gray-200 hover:border-[#027840] hover:text-[#027840]"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           <textarea
             value={intent}

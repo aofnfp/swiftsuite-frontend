@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import axiosInstance from "../utils/axiosInstance";
-import { MdClose, MdKeyboardArrowDown, MdKeyboardArrowUp } from "react-icons/md";
+import { MdAutoAwesome, MdClose, MdKeyboardArrowDown, MdKeyboardArrowUp } from "react-icons/md";
 import { IoMdCheckmark } from "react-icons/io";
 import { AnimatePresence, motion } from "framer-motion";
 import { Toaster, toast } from "sonner";
@@ -225,12 +225,187 @@ const RequiredLabel = ({ children, htmlFor, hint }) => (
   </label>
 );
 
+// Strips HTML to plain text for showing the user a "you've drafted N chars"
+// hint and for deciding whether to switch the modal to refinement mode.
+const htmlToText = (html) => {
+  if (!html) return "";
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return (div.textContent || div.innerText || "").trim();
+};
+
+const formatCost = (usd) => {
+  if (typeof usd !== "number" || Number.isNaN(usd)) return "$0.00";
+  if (usd < 0.01) return `$${usd.toFixed(4)}`;
+  return `$${usd.toFixed(3)}`;
+};
+
+const DraftWithAIModal = ({ isOpen, onClose, form, onUseDraft }) => {
+  const [intent, setIntent] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [draftHtml, setDraftHtml] = useState("");
+  const [costUsd, setCostUsd] = useState(0);
+  const [modelUsed, setModelUsed] = useState("");
+  const [cacheHit, setCacheHit] = useState(false);
+
+  // Reset transient state every time the modal opens.
+  useEffect(() => {
+    if (isOpen) {
+      setIntent("");
+      setBusy(false);
+      setDraftHtml("");
+      setCostUsd(0);
+      setModelUsed("");
+      setCacheHit(false);
+    }
+  }, [isOpen]);
+
+  // Refinement source: prefer the most recent AI draft (so users iterate on
+  // the AI's previous output); otherwise use what's currently in the form
+  // body (so the very first call refines the user's own draft if any).
+  const refinementSource = draftHtml || form.body || "";
+  const isRefining = htmlToText(refinementSource).length > 0;
+
+  const generate = async () => {
+    setBusy(true);
+    try {
+      const res = await axiosInstance.post("/api/v2/notifications/draft-with-ai/", {
+        intent: intent.trim(),
+        header: form.header || "",
+        category: form.category || "",
+        recipients: form.recipients || [],
+        current_body: refinementSource,
+      });
+      setDraftHtml(res.data?.html || "");
+      setCostUsd(res.data?.cost_usd || 0);
+      setModelUsed(res.data?.model_used || "");
+      setCacheHit(Boolean(res.data?.cache_hit));
+      const cost = res.data?.cache_hit
+        ? "cached · $0.00"
+        : formatCost(res.data?.cost_usd || 0);
+      toast.success(`Draft generated · ${cost}`);
+    } catch (err) {
+      const detail = err?.response?.data?.detail || err?.message || "Unknown error";
+      toast.error(`AI draft failed: ${detail}`);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const useDraft = () => {
+    if (!draftHtml) return;
+    onUseDraft(draftHtml);
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.96 }}
+        transition={{ duration: 0.15 }}
+        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col"
+      >
+        <div className="flex items-center justify-between px-5 py-4 border-b">
+          <div className="flex items-center gap-2">
+            <MdAutoAwesome className="text-[#027840] text-xl" />
+            <h3 className="font-semibold text-gray-800">
+              {isRefining ? "Refine draft with AI" : "Draft with AI"}
+            </h3>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600"
+            aria-label="Close"
+          >
+            <MdClose className="text-xl" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+          <p className="text-sm text-gray-600">
+            {isRefining
+              ? "Tell us how to improve the existing draft. We'll use the Header, Category, and Recipients you've already filled in."
+              : "Tell us what this notification is about (optional). We'll use the Header, Category, and Recipients you've already filled in."}
+          </p>
+
+          <textarea
+            value={intent}
+            onChange={(e) => setIntent(e.target.value)}
+            rows={4}
+            placeholder={
+              isRefining
+                ? "e.g. Make it shorter and more empathetic"
+                : "e.g. Maintenance window this Saturday 2-4am UTC"
+            }
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#027840]"
+          />
+
+          {draftHtml && (
+            <div className="border border-gray-200 rounded-md">
+              <div className="flex items-center justify-between px-3 py-2 border-b bg-gray-50 text-xs text-gray-600">
+                <span>Preview</span>
+                <span>
+                  {modelUsed}
+                  {" · "}
+                  {cacheHit ? "cached · $0.00" : formatCost(costUsd)}
+                </span>
+              </div>
+              <div
+                className="prose prose-sm max-w-none px-4 py-3"
+                dangerouslySetInnerHTML={{ __html: draftHtml }}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end gap-2 px-5 py-3 border-t bg-gray-50 rounded-b-xl">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={busy}
+            className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          {draftHtml && (
+            <button
+              type="button"
+              onClick={useDraft}
+              disabled={busy}
+              className="px-3 py-2 text-sm border border-[#027840] text-[#027840] rounded-md bg-white hover:bg-[#027840] hover:text-white disabled:opacity-50"
+            >
+              Use this draft
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={generate}
+            disabled={busy}
+            className="px-4 py-2 text-sm bg-[#027840] text-white rounded-md hover:bg-[#089451] disabled:opacity-50 flex items-center gap-2"
+          >
+            {busy && (
+              <span className="inline-block h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+            )}
+            {busy ? "Generating..." : draftHtml ? "Regenerate" : "Generate"}
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 const NotificationDrawer = ({ isOpen, onClose, notification, onSaved }) => {
   const [form, setForm] = useState(EMPTY_FORM);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [view, setView] = useState("form");
+  const [aiModalOpen, setAiModalOpen] = useState(false);
 
   useEffect(() => {
     setOpenDropdown(null);
@@ -484,7 +659,17 @@ const NotificationDrawer = ({ isOpen, onClose, notification, onSaved }) => {
                     </div>
 
                     <div>
-                      <RequiredLabel>Body</RequiredLabel>
+                      <div className="flex items-center justify-between">
+                        <RequiredLabel>Body</RequiredLabel>
+                        <button
+                          type="button"
+                          onClick={() => setAiModalOpen(true)}
+                          className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border border-[#027840] text-[#027840] bg-white hover:bg-[#027840] hover:text-white transition-colors"
+                        >
+                          <MdAutoAwesome className="text-sm" />
+                          {form.body?.trim() ? "Refine with AI" : "Draft with AI"}
+                        </button>
+                      </div>
                       <div className="mt-1">
                         <HtmlEditor
                           value={form.body}
@@ -842,6 +1027,12 @@ const NotificationDrawer = ({ isOpen, onClose, notification, onSaved }) => {
           </motion.div>
         </>
       )}
+      <DraftWithAIModal
+        isOpen={aiModalOpen}
+        onClose={() => setAiModalOpen(false)}
+        form={form}
+        onUseDraft={(html) => update("body", html)}
+      />
       <Toaster position="top-right" />
     </AnimatePresence>
   );
